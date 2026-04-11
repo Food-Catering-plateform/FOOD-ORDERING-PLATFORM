@@ -59,7 +59,7 @@ export default function Sidebar({ setActivePage, activePage, sidebarOpen, toggle
         </nav>
 
         <footer className="sidebar-footer">
-          <small>© 2026 Your App</small>
+          <small>© 2026 UniEats</small>
         </footer>
       </aside>
     </>
