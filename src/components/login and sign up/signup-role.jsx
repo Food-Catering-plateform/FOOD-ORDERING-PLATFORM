@@ -23,8 +23,6 @@ function SignupRole() {
             </a>
           </nav>
 
-          <br />
-
           <p>
             Already have an account? <a href="/login">Log in</a>
           </p>

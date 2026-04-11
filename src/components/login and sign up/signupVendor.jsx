@@ -1,7 +1,33 @@
-import React from "react";
-import "./style-signupVendor.css";
+import React, { useState } from "react";
+import "./style-signupCustomer.css";
+import Register from "../services/Register";
 
-function SignupVendor() {
+function SignupCustomer() {
+  const [studentNumber, setStudentNumber] = useState("");
+  const [lastName, setLastName] = useState(""); // I added this so the last name is also captured in React state
+
+  const {
+    handleRegister,
+    name,
+    setName,
+    email,
+    setEmail,
+    password,
+    setPassword,
+    setRole,
+    error,
+  } = Register();
+
+  const onSubmit = async (e) => {
+    e.preventDefault();
+
+    setRole("student"); 
+    // I kept this so the customer is marked as a student role
+
+    await handleRegister(e);
+    // I kept this to run my teammate's Firebase signup logic
+  };
+
   return (
     <>
       <header>
@@ -10,31 +36,38 @@ function SignupVendor() {
 
       <main>
         <section>
-          <form method="POST" id="create-vendor-account">
-            <h2>Create your vendor account</h2>
+          <form id="create-account" onSubmit={onSubmit}>
+            <h1>Please fill in your details to create an account</h1>
 
             <fieldset>
-              <label htmlFor="business-name">Business Name</label>
+              <label htmlFor="first-name">First Name</label>
               <input
                 type="text"
-                id="business-name"
-                name="businessName"
+                id="first-name"
+                name="firstName"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 required
               />
 
-              <label htmlFor="owner-name">Owner Full Name</label>
+              <label htmlFor="last-name">Last Name</label>
               <input
                 type="text"
-                id="owner-name"
-                name="ownerName"
+                id="last-name"
+                name="lastName"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                // I added this so the last name is captured from the form
                 required
               />
 
-              <label htmlFor="student-or-staff-number">Student or Staff Number</label>
+              <label htmlFor="student-number">Student Number</label>
               <input
                 type="text"
-                id="student-or-staff-number"
-                name="studentOrStaffNumber"
+                id="student-number"
+                name="studentNumber"
+                value={studentNumber}
+                onChange={(e) => setStudentNumber(e.target.value)}
                 required
               />
 
@@ -43,6 +76,8 @@ function SignupVendor() {
                 type="email"
                 id="email"
                 name="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
 
@@ -51,20 +86,16 @@ function SignupVendor() {
                 type="password"
                 id="password"
                 name="password"
-                required
-              />
-
-              <label htmlFor="confirm-password">Confirm Password</label>
-              <input
-                type="password"
-                id="confirm-password"
-                name="confirmPassword"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
               />
             </fieldset>
 
             <button type="submit">Create Account</button>
           </form>
+
+          {error && <p style={{ color: "red" }}>{error}</p>}
 
           <nav>
             <p>
@@ -86,4 +117,4 @@ function SignupVendor() {
   );
 }
 
-export default SignupVendor;
+export default SignupCustomer;
