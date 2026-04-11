@@ -1,0 +1,46 @@
+.notifications-container {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+}
+
+.notifications-container h1 {
+  margin-bottom: 20px;
+}
+
+.notifications-list {
+  list-style: none;
+  padding: 0;
+}
+
+.notifications-list li {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+}
+
+.notifications-list li:hover {
+  background: #f9f9f9;
+}
+
+.head{
+    text-align: center;
+font-size: 20px;
+}
+
+.page ul {
+  list-style: none;
+  padding: 0;
+}
+
+.page li {
+  background: #f9fafb;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.page li:hover {
+  background: #eef2ff;
+  transform: translateX(5px);
+}
