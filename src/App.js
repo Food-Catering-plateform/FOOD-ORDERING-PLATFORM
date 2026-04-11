@@ -1,15 +1,18 @@
  import React from 'react'
  import Navbar from './components/Navbar/Navbar'
  import Sidebar from './components/Sidebar/Sidebar'
- 
+ import MenuTasks from './components/Vendor/create'
 
-const App = () => {
+ function App(){
   return (
-    <div className ='app'>
-      <Navbar/>
-      <Sidebar/>
-    </div>
-  )
+    <main>
+
+      <MenuTasks />
+
+    </main>
+ 
+  );
 }
 
 export default App
+
