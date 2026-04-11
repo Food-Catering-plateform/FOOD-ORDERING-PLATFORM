@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import './Sidebar.css';
+//import { NavLink } from 'react-router-dom';
 
 const Sidebar = () => {
-  const [isOpen, setIsOpen] = useState(true); 
+  const [isOpen, setIsOpen] = useState(true);
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
-  }; 
-  return(
+  };
+
+  return (
     <aside className={`sidebar ${isOpen ? 'open' : 'closed'}`}>
       <button className="toggle-btn" onClick={toggleSidebar} aria-label="Toggle sidebar">
         <span className="line"></span>
@@ -15,12 +17,12 @@ const Sidebar = () => {
       </button>
 
       {isOpen && (
-        <nav className="sidebar-menu" aria-label="Sidebar navigation">
+        <nav className="sidebar-menu" aria-label="Vendor navigation">
           <ul>
-            <li>Home</li>
-            <li>Menu</li>
+            <li>Menu Management</li>
             <li>Orders</li>
-            <li>Profile</li>
+            <li>Analytics</li>
+            <li>Account Settings</li>
           </ul>
         </nav>
       )}
