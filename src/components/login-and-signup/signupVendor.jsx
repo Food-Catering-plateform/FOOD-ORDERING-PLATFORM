@@ -61,13 +61,23 @@ function SignupCustomer() {
                 required
               />
 
-              <label htmlFor="student-number">Student Number</label>
+              <label htmlFor="student-number">Student/Staff Number</label>
               <input
                 type="text"
                 id="student-number"
                 name="studentNumber"
                 value={studentNumber}
                 onChange={(e) => setStudentNumber(e.target.value)}
+                required
+              />
+
+              <label htmlFor="first-name">Business Name</label>
+              <input
+                type="text"
+                id="first-name"
+                name="firstName"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 required
               />
 

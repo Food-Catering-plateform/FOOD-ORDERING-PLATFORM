@@ -1,0 +1,80 @@
+/* RESET */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: white;
+    color: black;
+}
+
+header {
+    text-align: center;
+    padding: 15px;
+    font-weight: bold;
+}
+
+main { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
+    min-height: 80vh; 
+    max-width: 1000px; 
+    margin: auto; 
+    background: white; 
+    border-radius: 12px; 
+    overflow: hidden; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15); 
+}
+
+/* LEFT SIDE */
+.auth-up {
+    padding: 5px;
+}
+
+.auth-up h2 {
+    margin-bottom: 15px;
+}
+
+.auth-up p {
+    margin-bottom: 15px;
+    
+}
+
+.role-btn {
+    display: block;
+    text-align: center;
+    padding: 1rem;
+    border-radius: 10px;
+    margin: 3px;
+    font-weight: bold;
+    text-decoration: none;
+    background: lightseagreen;
+    border: 3px;
+    color: white;
+}
+
+
+/* RIGHT SIDE */
+.sider {
+
+    background-repeat: no-repeat; /* prevents tiling */
+    color: white;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.sider h2 {
+    margin-bottom: 1rem;
+}
+
+/* FOOTER */
+footer {
+    text-align: center;
+    padding: 1rem;
+    font-size: 0.9rem;
+}
