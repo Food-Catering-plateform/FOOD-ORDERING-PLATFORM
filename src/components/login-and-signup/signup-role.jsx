@@ -35,7 +35,7 @@ function SignupRole() {
       </main>
 
       <footer>
-        <p>&copy; 2026 EaziEats</p>
+        <p>&copy; 2026 Eats</p>
       </footer>
     </>
   );

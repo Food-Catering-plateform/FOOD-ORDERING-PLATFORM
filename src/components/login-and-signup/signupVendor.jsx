@@ -1,9 +1,11 @@
-import React, { useState } from "react"; // I added useState so I can store what the user types
+import React, { useState } from "react";
 import "./style-signupCustomer.css";
-import Register from "../services/Register"; // I added this to use my teammate's signup logic
+import Register from "../../Services/Register";
 
 function SignupCustomer() {
-  const [studentNumber, setStudentNumber] = useState(""); // I added this to keep the student number value
+  const [studentNumber, setStudentNumber] = useState("");
+  const [lastName, setLastName] = useState(""); // I added this so the last name is also captured in React state
+
   const {
     handleRegister,
     name,
@@ -12,15 +14,18 @@ function SignupCustomer() {
     setEmail,
     password,
     setPassword,
-    role,
     setRole,
     error,
-  } = Register(); // I added this to connect my form to the Firebase/Firestore register logic
+  } = Register();
 
   const onSubmit = async (e) => {
-    e.preventDefault(); // I added this so the page does not refresh when the form submits
-    setRole("student"); // I added this so the customer is saved with the student role
-    await handleRegister(e); // I added this to run my teammate's signup function
+    e.preventDefault();
+
+    setRole("student"); 
+    // I kept this so the customer is marked as a student role
+
+    await handleRegister(e);
+    // I kept this to run my teammate's Firebase signup logic
   };
 
   return (
@@ -41,7 +46,7 @@ function SignupCustomer() {
                 id="first-name"
                 name="firstName"
                 value={name}
-                onChange={(e) => setName(e.target.value)} // I added this so the first name is stored in React state
+                onChange={(e) => setName(e.target.value)}
                 required
               />
 
@@ -50,6 +55,9 @@ function SignupCustomer() {
                 type="text"
                 id="last-name"
                 name="lastName"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                // I added this so the last name is captured from the form
                 required
               />
 
@@ -59,7 +67,7 @@ function SignupCustomer() {
                 id="student-number"
                 name="studentNumber"
                 value={studentNumber}
-                onChange={(e) => setStudentNumber(e.target.value)} // I added this so I can still capture student number from the form
+                onChange={(e) => setStudentNumber(e.target.value)}
                 required
               />
 
@@ -69,7 +77,7 @@ function SignupCustomer() {
                 id="email"
                 name="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)} // I added this because Firebase signup uses email
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
 
@@ -79,7 +87,7 @@ function SignupCustomer() {
                 id="password"
                 name="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)} // I added this because Firebase signup uses password
+                onChange={(e) => setPassword(e.target.value)}
                 required
               />
             </fieldset>
@@ -88,7 +96,6 @@ function SignupCustomer() {
           </form>
 
           {error && <p style={{ color: "red" }}>{error}</p>}
-          {/* I added this to show signup errors coming from Firebase */}
 
           <nav>
             <p>

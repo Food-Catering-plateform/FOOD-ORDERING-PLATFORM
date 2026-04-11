@@ -2,10 +2,10 @@ import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 // I fixed the paths to match folder structure
-import Login from "./components/Login/Login";
-import SignupRole from "./components/SignupRole/SignupRole";
-import SignupCustomer from "./components/SignupCustomer/SignupCustomer";
-import SignupVendor from "./components/SignupVendor/SignupVendor";
+import Login from "./components/login-and-signup/login";
+import SignupRole from "./components/login-and-signup/signup-role";
+import SignupCustomer from "./components/login-and-signup/signupCustomer";
+import SignupVendor from "./components/login-and-signup/signupVendor";
 
 const App = () => {
   return (

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./style-login.css";
-import { useLogin } from "../services/Login";
+import { useLogin } from "../../Services/Login-backend";
 
 function Login() {
 
@@ -64,10 +64,10 @@ function Login() {
             <button type="submit">Login</button>
           </form>
 
-          /* 🔹 Show error from Firebase login */
+          {/* 🔹 Show error from Firebase login */}
           {error && <p style={{ color: "red" }}>{error}</p>}
 
-          /* 🔹 Google login button */
+          {/* 🔹 Google login button */}
           <button type="button" onClick={handleGoogleLogin}>
             Sign in with Google
           </button>
