@@ -10,6 +10,8 @@ function SignupCustomer() {
     handleRegister,
     name,
     setName,
+    businessName,
+    setBusinessName,
     email,
     setEmail,
     password,
@@ -18,15 +20,6 @@ function SignupCustomer() {
     error,
   } = Register();
 
-  const onSubmit = async (e) => {
-    e.preventDefault();
-
-    setRole("vendor"); 
-    // I kept this so the customer is marked as a student role
-
-    await handleRegister(e);
-    // I kept this to run my teammate's Firebase signup logic
-  };
 
   return (
     <>
@@ -36,7 +29,13 @@ function SignupCustomer() {
 
       <main>
         <section>
-          <form id="create-account" onSubmit={onSubmit}>
+
+          <form id="create-account" 
+          onSubmit={(e) =>{
+            e.preventDefault(); //I kept preventDefault here so page does not refresh
+              setRole("vendor");  //I moved role setting here before calling register
+              handleRegister(e);  //I now directly call the backend signup logic
+          }}>
             <h1>Please fill in your details to create an account</h1>
 
             <fieldset>
@@ -71,11 +70,11 @@ function SignupCustomer() {
                 required
               />
 
-              <label htmlFor="first-name">Business Name</label>
+              <label htmlFor="Business-name">Business Name</label>
               <input
                 type="text"
-                id="first-name"
-                name="firstName"
+                id="business-name"
+                name="businessName"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
