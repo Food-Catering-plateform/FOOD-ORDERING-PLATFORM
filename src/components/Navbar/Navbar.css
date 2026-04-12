@@ -1,80 +1,57 @@
 .navbar {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 15px 40px; 
-  background-color: #ffffff;
-  color: #333333;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  align-items: right;
+  padding: 22px 50px;
+  background: rgb(255, 255, 255);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
   position: sticky;
   top: 0;
-  z-index: 100;
-  font-family: 'Segoe UI', sans-serif;
+  z-index: 1000;
+  height: 80px;
 }
-
-
-.navbar-left {
-  display: flex;
-  align-items: center;
-}
-
 
 .logo {
-  height: 55px;      
-  width: auto;
-  object-fit: contain;
+  height: 65px;
 }
 
-
-.navbar-center {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  margin: 0 40px;
-}
-
-.search-input {
-  width: 100%;
-  max-width: 500px;
-  padding: 12px 20px;
+.search-bar input {
+  width: 420px;
+  padding: 10px 18px;
   border-radius: 25px;
-  border: 1px solid #ccc;
+  border: 1px solid #ddd;
   outline: none;
-  font-size: 16px;
-  transition: all 0.3s ease;
 }
 
-.search-input:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 5px rgba(0,123,255,0.3);
+.search-bar input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 10px rgba(99,102,241,0.3);
 }
 
-.navbar-right {
+.nav-actions {
   display: flex;
-  align-items: center;
-  gap: 15px;
+  gap: 18px;
+  width:45px;
+  height: 45px;
+
 }
 
-.icon {
-  height: 35px;
-  width: 35px;
+.nav-actions button {
+  background: #f3f4f6;
+  border: none;
+  padding: 8px;
+  border-radius: 33px;
+  
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: 0.2s;
 }
 
-.icon:hover {
+.nav-actions button:hover {
+  background: #e0e7ff;
   transform: scale(1.1);
 }
 
-.profile-pic {
-  height: 45px;
-  width: 45px;
-  border-radius: 50%;
-  cursor: pointer;
-  object-fit: cover;
-  transition: transform 0.2s;
-}
-
-.profile-pic:hover {
-  transform: scale(1.05);
+.nav-actions img {
+  width: 26px;
 }
