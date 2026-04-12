@@ -84,7 +84,7 @@ const App = () => {
         <Route path="/signup-vendor" element={<SignupVendor />} />
 
         {/* Dashboard Routes */}
-        <Route path="/student/dashboard" element={<CustomerDashboard />} />
+        <Route path="/student/dashboard" element={<Shops />} />
         <Route path="/vendor/dashboard" element={<VendorDashboard />} />
       </Routes>
     </BrowserRouter>
