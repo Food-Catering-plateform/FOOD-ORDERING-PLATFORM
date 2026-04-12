@@ -19,12 +19,6 @@ function SignupCustomer() {
     error,
   } = Register(); // I added this to connect my form to the Firebase/Firestore register logic
 
-  const onSubmit = async (e) => {
-    e.preventDefault(); // I added this so the page does not refresh when the form submits
-    setRole("student"); // I added this so the customer is saved with the student role
-    await handleRegister(e); // I added this to run my teammate's signup function
-  };
-
   return (
     <>
       <header>
@@ -33,7 +27,12 @@ function SignupCustomer() {
 
       <main>
         <section>
-          <form id="create-account" onSubmit={onSubmit}>
+          <form id="create-account" 
+          onSubmit={(e) =>{
+            e.preventDefault(); //I kept preventDefault here so page does not refresh
+              setRole("student");  //I moved role setting here before calling register
+              handleRegister(e);  //I now directly call the backend signup logic
+          }}>
             <h1>Please fill in your details to create an account</h1>
 
             <fieldset>
