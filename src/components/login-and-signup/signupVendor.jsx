@@ -21,7 +21,7 @@ function SignupCustomer() {
   const onSubmit = async (e) => {
     e.preventDefault();
 
-    setRole("student"); 
+    setRole("vendor"); 
     // I kept this so the customer is marked as a student role
 
     await handleRegister(e);
@@ -61,7 +61,7 @@ function SignupCustomer() {
                 required
               />
 
-              <label htmlFor="student-number">Student/Staff Number</label>
+              <label htmlFor="student-number">Staff Number</label>
               <input
                 type="text"
                 id="student-number"
