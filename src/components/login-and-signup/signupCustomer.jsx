@@ -29,9 +29,8 @@ function SignupCustomer() {
         <section>
           <form id="create-account" 
           onSubmit={(e) =>{
-            e.preventDefault(); //I kept preventDefault here so page does not refresh
-              setRole("student");  //I moved role setting here before calling register
-              handleRegister(e);  //I now directly call the backend signup logic
+            e.preventDefault(); //kept preventDefault here so page does not refresh
+            handleRegister(e, "student");//It pass the role directly to Register instead of relying on setRole
           }}>
             <h1>Please fill in your details to create an account</h1>
 
