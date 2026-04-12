@@ -1,47 +1,47 @@
-import React from "react";
-import create from "../../Assets/create.png"
-import updateLogo from "../../Assets/updateLogo.png"
+import React, { useState } from "react";
+import create from "../../Assets/create.png";
+import updateLogo from "../../Assets/updateLogo.png";
+import "./VendorPage.css";
 
-function MenuTasks(){
+function VendorPage() {
+  const handleCreateMenu = () => {
+    alert("CREATE A NEW MENU PAGE");
+  };
 
-     const handleCreateMenu = () => {
-        alert("CREATE A NEW MENU PAGE");
-     };
-     const handleUpdateMenu = () => {
-        alert ("UPDATE A MENU");
-     };
-     
-     return(
+  const handleUpdateMenu = () => {
+    alert("UPDATE A MENU");
+  };
 
-        <main> 
-            <section aria-label = "vendor menu options">
-            <button onClick = {handleCreateMenu}>
-                <figure>
-                    <img
-                        src = {create}
-                        alt = "CREATE A NEW MENU"
-                        width = "150"
-                    />
-                    <figcaption> Create a new menu</figcaption>
-                </figure>
-            </button>    
+  return (
 
-            <button onClick = {handleUpdateMenu}>
-                <figure>
+    <div className="layout">
 
-                    <img
-                        src = {updateLogo}
-                        alt = "Update the existing menu"
-                        width = "150"
-                     /> 
-                <figcaption>Update Menu</figcaption>       
+      {/* MAIN CONTENT */}
+      <main className="content">
 
-                </figure>
-                
-                </button> 
-            </section>
-        </main>
-     );
+        <section aria-label="vendor menu options" className="menu-cards">
+
+          <button onClick={handleCreateMenu}>
+            <figure>
+              <img src={create} alt="Create a new menu" width="150" />
+              <figcaption>Create A New Menu</figcaption>
+            </figure>
+          </button>
+
+          <button onClick={handleUpdateMenu}>
+            <figure>
+              <img src={updateLogo} alt="Update existing menu" width="150" />
+              <figcaption>Update Existing Menu</figcaption>
+            </figure>
+          </button>
+
+        </section>
+
+      </main>
+
+    </div>
+
+  );
 }
 
-export default MenuTasks;
+export default VendorPage;
