@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import "";
 import Register from "../../Services/Register";
 
 function SignupVendor() {
@@ -18,9 +17,8 @@ function SignupVendor() {
     setEmail,
     password,
     setPassword,
-    setRole,
     error,
-  } = Register();
+  } = Register("vendor");
 
 
   return (
