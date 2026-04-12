@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import "./style-signupCustomer.css";
+import "";
 import Register from "../../Services/Register";
 
-function SignupCustomer() {
+function SignupVendor() {
 
   const {
     handleRegister,
@@ -34,9 +34,9 @@ function SignupCustomer() {
 
           <form id="create-account" 
           onSubmit={(e) =>{
-            e.preventDefault(); //kept preventDefault here so page does not refresh
-              setRole("vendor");  //moved role setting here before calling register
-              handleRegister(e);  //directly call the backend signup logic
+            e.preventDefault(); //I kept preventDefault here so page does not refresh
+              setRole("vendor");  //I moved role setting here before calling register
+              handleRegister(e);  //I now directly call the backend signup logic
           }}>
             <h1>Please fill in your details to create an account</h1>
 
@@ -77,8 +77,8 @@ function SignupCustomer() {
                 type="text"
                 id="business-name"
                 name="businessName"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                value={businessName}
+                onChange={(e) => setBusinessName(e.target.value)}
                 required
               />
 
@@ -128,4 +128,4 @@ function SignupCustomer() {
   );
 }
 
-export default SignupCustomer;
+export default SignupVendor;
