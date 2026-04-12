@@ -11,6 +11,8 @@ function SignupCustomer() {
     setName,
     lastName,
     setLastName,
+    staffNumber,
+    setStaffNumber,
     businessName,
     setBusinessName,
     email,
@@ -33,9 +35,9 @@ function SignupCustomer() {
 
           <form id="create-account" 
           onSubmit={(e) =>{
-            e.preventDefault(); //I kept preventDefault here so page does not refresh
-              setRole("vendor");  //I moved role setting here before calling register
-              handleRegister(e);  //I now directly call the backend signup logic
+            e.preventDefault(); //kept preventDefault here so page does not refresh
+              setRole("vendor");  //moved role setting here before calling register
+              handleRegister(e);  //directly call the backend signup logic
           }}>
             <h1>Please fill in your details to create an account</h1>
 
@@ -57,17 +59,17 @@ function SignupCustomer() {
                 name="lastName"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                // I added this so the last name is captured from the form
+                //added this so the last name is captured from the form
                 required
               />
 
               <label htmlFor="student-number">Staff Number</label>
               <input
                 type="text"
-                id="student-number"
-                name="studentNumber"
-                value={studentNumber}
-                onChange={(e) => setStudentNumber(e.target.value)}
+                id="staff-number"
+                name="staffNumber"
+                value={staffNumber}
+                onChange={(e) => setStaffNumber(e.target.value)}
                 required
               />
 
