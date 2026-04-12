@@ -1,12 +1,15 @@
-import React, { useState } from "react"; //added useState so that what the user types is be stored.
+import React from "react";
 import Register from "../../Services/Register"; //added this to use the signup logic
 
 function SignupCustomer() {
-  const [studentNumber, setStudentNumber] = useState(""); // I added this to keep the student number value
   const {
     handleRegister,
     name,
-    setName,
+    setName,// I added these because Register now also stores last name and student number in Firebase/Firestore
+    lastName,
+    setLastName,
+    studentNumber,
+    setStudentNumber,
     email,
     setEmail,
     password,
@@ -49,6 +52,8 @@ function SignupCustomer() {
                 type="text"
                 id="last-name"
                 name="lastName"
+                value={lastName}// I added this so the last name typed by the user is also captured and sent to Register for storage
+                onChange={(e) => setLastName(e.target.value)}
                 required
               />
 
