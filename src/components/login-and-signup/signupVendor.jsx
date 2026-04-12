@@ -4,12 +4,13 @@ import Register from "../../Services/Register";
 
 function SignupCustomer() {
   const [studentNumber, setStudentNumber] = useState("");
-  const [lastName, setLastName] = useState(""); // I added this so the last name is also captured in React state
 
   const {
     handleRegister,
     name,
     setName,
+    lastName,
+    setLastName,
     businessName,
     setBusinessName,
     email,
