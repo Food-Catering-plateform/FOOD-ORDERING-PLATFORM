@@ -11,6 +11,8 @@ function SignupCustomer() {
     setName,
     lastName,
     setLastName,
+    staffNumber,
+    setStaffNumber,
     businessName,
     setBusinessName,
     email,
@@ -57,17 +59,17 @@ function SignupCustomer() {
                 name="lastName"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                // I added this so the last name is captured from the form
+                //added this so the last name is captured from the form
                 required
               />
 
               <label htmlFor="student-number">Staff Number</label>
               <input
                 type="text"
-                id="student-number"
-                name="studentNumber"
-                value={studentNumber}
-                onChange={(e) => setStudentNumber(e.target.value)}
+                id="staff-number"
+                name="staffNumber"
+                value={staffNumber}
+                onChange={(e) => setStaffNumber(e.target.value)}
                 required
               />
 
