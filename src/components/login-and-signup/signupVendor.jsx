@@ -3,7 +3,6 @@ import "./style-signupCustomer.css";
 import Register from "../../Services/Register";
 
 function SignupCustomer() {
-  const [studentNumber, setStudentNumber] = useState("");
 
   const {
     handleRegister,
