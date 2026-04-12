@@ -16,6 +16,9 @@ import Notifications from "./components/Customer/jsFiles/Notifications";
 import Orders from "./components/Customer/jsFiles/Orders";
 import Basket from "./components/Customer/jsFiles/Basket";
 
+// Vendor Dashboard
+import VendorPage from "./components/Vendor/create";
+
 // Customer Dashboard Layout
 const CustomerDashboard = () => {
   const [activePage, setActivePage] = useState("shops");
@@ -60,6 +63,15 @@ const CustomerDashboard = () => {
   );
 };
 
+// Vendor Dashboard Layout
+const VendorDashboard = () => {
+  return (
+    <main>
+      <VendorPage />
+    </main>
+  );
+};
+
 const App = () => {
   return (
     <BrowserRouter>
@@ -73,6 +85,7 @@ const App = () => {
 
         {/* Dashboard Routes */}
         <Route path="/student/dashboard" element={<CustomerDashboard />} />
+        <Route path="/vendor/dashboard" element={<VendorDashboard />} />
       </Routes>
     </BrowserRouter>
   );
