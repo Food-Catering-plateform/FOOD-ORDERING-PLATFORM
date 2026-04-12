@@ -17,9 +17,8 @@ function SignupVendor() {
     setEmail,
     password,
     setPassword,
-    setRole,
     error,
-  } = Register();
+  } = Register("vendor");
 
 
   return (

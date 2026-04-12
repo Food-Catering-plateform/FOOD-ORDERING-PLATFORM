@@ -1,4 +1,5 @@
 import React from "react";
+import "./style-signupCustomer.css";
 import Register from "../../Services/Register"; //added this to use the signup logic
 
 function SignupCustomer() {
@@ -14,10 +15,8 @@ function SignupCustomer() {
     setEmail,
     password,
     setPassword,
-    role,
-    setRole,
     error,
-  } = Register(); // I added this to connect my form to the Firebase/Firestore register logic
+  } = Register("student"); // I added this to connect my form to the Firebase/Firestore register logic
 
   return (
     <>
