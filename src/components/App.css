@@ -1,0 +1,20 @@
+main {
+  margin-left: 187px;
+  padding: 30px;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fb, #eef2f7);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.page {
+  background: white;
+  border-radius: 16px;
+  padding: 25px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.05);
+  transition: 0.3s;
+}
+
+.page:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+}

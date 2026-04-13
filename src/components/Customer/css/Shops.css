@@ -1,0 +1,10 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.head{
+    text-align: center;
+font-size: 20px;
+}
