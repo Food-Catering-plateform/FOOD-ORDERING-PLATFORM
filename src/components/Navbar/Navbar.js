@@ -2,30 +2,28 @@ import React from 'react';
 import './Navbar.css';
 import { assets } from '../../Assets/assets';
 
-const Navbar = () => {
+export default function Navbar({ setActivePage }) {
   return (
     <header className="navbar">
-      
-      <section className="navbar-left">
+
+      <a href="#" className="logo-area">
         <img src={assets.colourlesslogo} alt="Logo" className="logo" />
-      </section>
+      </a>
 
-      <section className="navbar-center">
-        <input
-          type="search"
-          placeholder="Search..."
-          className="search-input"
-        />
-      </section>
+      <form className="search-bar" role="search">
+        <input type="search" placeholder="Search..." />
+      </form>
 
-      <nav className="navbar-right">
-        <img src={assets.notificationbell} alt="Notifications" className="icon" />
-        <img src={assets.trolly} alt="Basket" className="icon" />
-        <img src={assets.profile} alt="Profile" className="profile-pic" />
+      <nav className="nav-actions" aria-label="User actions">
+
+        <button onClick={() => setActivePage('basket')}>
+          <img src={assets.trolly} alt="Basket" />
+        </button>
+
+       
+
       </nav>
 
     </header>
   );
-};
-
-export default Navbar;
+}
