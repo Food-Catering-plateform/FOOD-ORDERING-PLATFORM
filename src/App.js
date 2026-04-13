@@ -86,7 +86,8 @@ const App = () => {
         {/* Dashboard Routes */}
         <Route path="/student/dashboard" element={<Shops />} />
         <Route path="/vendor/dashboard" element={<VendorDashboard />} />
-      </Routes>
+        <Route path= "/admin/dashboard" element={<h1>AdminDashboard</h1>}
+/>      </Routes>
     </BrowserRouter>
   );
 };

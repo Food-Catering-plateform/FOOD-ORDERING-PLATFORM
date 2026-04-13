@@ -1,0 +1,86 @@
+.special{
+    color:#800080
+}
+
+footer{
+    border-style: solid;
+    border-width: inherit;
+    border-color: rgb(23, 20, 20);
+    background-color: gray;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    display: flex;
+}
+
+aside {
+    width: 220px;
+    height: 100vh;
+    background-color: #1e1e2f;
+    color: white;
+    padding-top: 20px;
+}
+
+aside h2 {
+    text-align: center;
+}
+
+aside ul {
+    list-style: none;
+    padding: 0;
+}
+
+aside li {
+    padding: 15px;
+    cursor: pointer;
+}
+
+aside li:hover {
+    background-color: #333;
+}
+
+main {
+    flex: 1;
+    background-color: #f4f4f4;
+}
+
+header {
+    background-color: white;
+    padding: 15px;
+    border-bottom: 1px solid #ccc;
+}
+
+section {
+    padding: 20px;
+}
+
+section.cards {
+    display: flex;
+    gap: 20px;
+}
+
+article {
+    background: white;
+    padding: 20px;
+    flex: 1;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+th, td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+}
+
+th {
+    background-color: #eee;
+}

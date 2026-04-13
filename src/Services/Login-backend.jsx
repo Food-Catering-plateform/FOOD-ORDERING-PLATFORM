@@ -8,11 +8,11 @@ import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../Firebase/firebaseConfig";
 import { useNavigate } from "react-router-dom";
 
-export const useLogin = () => {
+export const useLogin = () => {it 
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  // 🔐 Redirect user based on role
+  // Redirect user based on role
   const redirectByRole = async (user) => {
     try {
       const userRef = doc(db, "users", user.uid);
@@ -40,7 +40,7 @@ export const useLogin = () => {
     }
   };
 
-  // 🔐 Email/Password Login
+  //  Email/Password Login
   const handleLogin = async (email, password) => {
     setError("");
 
@@ -67,7 +67,7 @@ export const useLogin = () => {
     }
   };
 
-  // 🔐 Google Login
+  //  Google Login
   const handleGoogleLogin = async () => {
     setError("");
 
