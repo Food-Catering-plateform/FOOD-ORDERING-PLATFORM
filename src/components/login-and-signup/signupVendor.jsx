@@ -59,7 +59,7 @@ function SignupVendor() {
                 required
               />
 
-              <label htmlFor="student-number">Staff Number</label>
+              <label htmlFor="staff-number">Staff Number</label>
               <input
                 type="text"
                 id="staff-number"
@@ -69,7 +69,7 @@ function SignupVendor() {
                 required
               />
 
-              <label htmlFor="Business-name">Business Name</label>
+              <label htmlFor="business-name">Business Name</label>
               <input
                 type="text"
                 id="business-name"
