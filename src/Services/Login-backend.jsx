@@ -8,7 +8,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../Firebase/firebaseConfig";
 import { useNavigate } from "react-router-dom";
 
-export const useLogin = () => {it 
+export const useLogin = () => { 
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
