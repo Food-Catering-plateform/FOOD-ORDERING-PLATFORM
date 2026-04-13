@@ -1,0 +1,117 @@
+.card {
+  background: #fff9f0;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+h1 {
+  color: #3e2723;
+}
+
+.sidebar h2 {
+  color: #3e2723;
+}
+
+.card h2 {
+  margin-bottom: 15px;
+  color: #3e2723;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+input, textarea {
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+#submitBtn {
+  padding: 6px 10px;
+  border: none;
+  background: #7a4e27;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#submitBtn:hover {
+  background: #5c371b;
+}
+
+#productList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#productList li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff9f0;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+#productList li.editing {
+  border: 2px solid #7a4e27;
+  background: #fdf0e0;
+}
+
+#productList li img {
+  width: 60px;
+  height: 60px;
+  border-radius: 6px;
+}
+
+#productList li .info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+#productList li .info strong {
+  color: #3e2723;
+}
+
+#productList li .info span,
+#productList li .info em {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+#productList li button {
+  padding: 6px 10px;
+  border: none;
+  background: #7a4e27;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#productList li button:hover {
+  background: #5c371b;
+}
+
+#productList li .delete-btn {
+  background: #c0392b;
+}
+
+#productList li .delete-btn:hover {
+  background: #96281b;
+}
+
+#emptyMsg {
+  color: #aaa;
+  font-style: italic;
+}

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Menu | Vendor Portal</title>
+  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="menu.css">
+</head>
+
+<body>
+
+  <aside class="sidebar">
+    <h2>🍔 Vendor</h2>
+  </aside>
+
+  <main class="main">
+
+    <header class="topbar">
+    </header>
+
+    <section class="page">
+
+      <h1>🍔 Menu Management</h1>
+
+      <section class="card">
+        <h2>Add Food Item</h2>
+
+        <form id="addProductForm">
+
+          <label for="foodName">Food Name</label>
+          <input id="foodName" type="text" placeholder="e.g. Burger" required>
+
+          <label for="foodPrice">Price</label>
+          <input id="foodPrice" type="number" placeholder="0.00" min="0" step="0.01" required>
+
+          <label for="foodQty">Quantity</label>
+          <input id="foodQty" type="number" placeholder="1" min="1" required>
+
+          <label for="foodDesc">Description</label>
+          <textarea id="foodDesc" placeholder="Describe food..."></textarea>
+
+          <label for="foodImage">Image</label>
+          <input id="foodImage" type="file" accept="image/*">
+
+          <button type="submit" id="submitBtn">Add Product</button>
+
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Existing Menu Items</h2>
+
+        <p id="emptyMsg">No items yet. Add one above.</p>
+
+        <ul id="productList"></ul>
+      </section>
+
+    </section>
+
+  </main>
+
+  <script src="menu.js"></script>
+
+</body>
+</html>
