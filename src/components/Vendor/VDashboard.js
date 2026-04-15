@@ -1,28 +1,31 @@
 import React, { useState } from 'react';
-import './dashboard.css';
-import MenuManagement from './Vendor/MenuManagement';
-import Orders from './Vendor/Orders';
-import Analytics from './Vendor/Analytics';
-import AccSettings from './Vendor/VenAccSettings';
+import './VDashboard.css';
+import VenHome from './VenHome';
+import MenuManagement from './MenuManagement';
+import Orders from './Orders';
+import Analytics from './Analytics';
+import AccSettings from './VenAccSettings';
 
 const navItems = [
+  { key: 'home',      label: 'Dashboard'        },
   { key: 'menu',      label: 'Menu Management'  },
   { key: 'orders',    label: 'Orders'            },
   { key: 'analytics', label: 'Analytics'         },
   { key: 'settings',  label: 'Account Settings'  },
 ];
 
-function Dashboard() {
-  const [activeSection, setActiveSection] = useState('menu');
+function VDashboard() {
+  const [activeSection, setActiveSection] = useState('home');
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const renderSection = () => {
     switch (activeSection) {
+      case 'home':      return <VenHome />;
       case 'menu':      return <MenuManagement />;
       case 'orders':    return <Orders />;
       case 'analytics': return <Analytics />;
       case 'settings':  return <AccSettings />;
-      default:          return <MenuManagement />;
+      default:          return <VenHome />;
     }
   };
 
@@ -70,4 +73,4 @@ function Dashboard() {
   );
 }
 
-export default Dashboard;
+export default VDashboard;

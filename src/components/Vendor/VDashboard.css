@@ -1,0 +1,118 @@
+/* ── Layout ─────────────────────────────────────────── */
+.vendor-dashboard {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ── Sidebar ────────────────────────────────────────── */
+.vendor-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  background-color: #1a1a1a;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease;
+  z-index: 100;
+  overflow: hidden;
+}
+
+.vendor-sidebar.open  { width: 210px; }
+.vendor-sidebar.closed { width: 54px; }
+
+/* ── Sidebar header ─────────────────────────────────── */
+.vendor-sidebar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 12px;
+  border-bottom: 1px solid #333;
+  min-height: 60px;
+}
+
+.vendor-sidebar__title {
+  font-size: 1rem;
+  font-weight: 600;
+  white-space: nowrap;
+  margin: 0;
+  letter-spacing: 0.03em;
+}
+
+.vendor-sidebar__toggle {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 22px;
+  height: 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.toggle-line {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background-color: #fff;
+  border-radius: 2px;
+}
+
+/* ── Nav list ───────────────────────────────────────── */
+.vendor-sidebar__nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 12px 0;
+}
+
+.vendor-sidebar__nav li {
+  width: 100%;
+}
+
+.vendor-sidebar__item {
+  width: 100%;
+  background: none;
+  border: none;
+  color: #ccc;
+  font-size: 0.95rem;
+  text-align: left;
+  padding: 14px 16px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s, color 0.2s;
+  border-left: 3px solid transparent;
+}
+
+.vendor-sidebar__item:hover {
+  background-color: #2a2a2a;
+  color: #fff;
+}
+
+.vendor-sidebar__item.active {
+  background-color: #2a2a2a;
+  color: #fff;
+  border-left-color: #f97316;
+  font-weight: 600;
+}
+
+/* collapsed — show only first letter, centred */
+.vendor-sidebar.closed .vendor-sidebar__item {
+  text-align: center;
+  padding: 14px 0;
+  font-size: 0.85rem;
+}
+
+/* ── Main content ───────────────────────────────────── */
+.vendor-main {
+  flex: 1;
+  background: #f5f6fa;
+  padding: 32px 28px;
+  min-height: 100vh;
+  transition: margin-left 0.3s ease;
+}
+
+.vendor-main.sidebar-open  { margin-left: 210px; }
+.vendor-main.sidebar-closed { margin-left: 54px; }
