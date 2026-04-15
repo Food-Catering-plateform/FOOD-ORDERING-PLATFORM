@@ -1,11 +1,21 @@
 .signup-flow {
   box-sizing: border-box;
-  min-height: 100vh;
+  /* Component lives inside App's <main>; avoid double-100vh scroll/jiggle */
+  min-height: 100%;
   display: flex;
   flex-direction: column;
   font-family: Arial, sans-serif;
   background: #f3f4f6;
   color: #1f2937;
+}
+
+/* Neutralize global `main { ... }` rules inside the signup flow (e.g. from App.css) */
+.signup-flow main {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  min-height: 0;
+  font-family: inherit;
 }
 
 .signup-flow *,
@@ -101,7 +111,7 @@
 
 .signup-flow fieldset.signup-fieldset input:focus {
   outline: none;
-  border-color: #63f1cb;
+  border-color: #6366f1;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
@@ -123,7 +133,7 @@
 }
 
 .signup-flow a {
-  color: #63f1c9;
+  color: #6366f1;
   text-decoration: none;
 }
 
