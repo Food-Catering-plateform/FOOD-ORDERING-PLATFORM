@@ -13,6 +13,16 @@ body{
 
 }
 
+/* Prevent horizontal jank when pages use full-width layouts */
+body {
+  overflow-x: hidden;
+}
+
+/* Ensure auth pages can size predictably inside the app shell */
+html, body, #root {
+  height: 100%;
+}
+
 a{
   text-decoration: none;
   color:inherit;

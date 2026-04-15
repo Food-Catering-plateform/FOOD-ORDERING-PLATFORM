@@ -1,25 +1,21 @@
+/* Login styles must be scoped to avoid fighting app-wide CSS */
+
 html, body {
     width: 100%;
     height: 100%;
-}/* RESET */
-
-
-body {
-    font-family: Arial, sans-serif;
-    background: #f3f4f6;
-    color: #1f2937;
-    min-height: 100vh;
-     width: 100%;
 }
 
-/* PAGE WRAPPER - was targeting main which broke the grid */
+/* PAGE WRAPPER */
 .login-page {
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
-    width: calc(100% + 40px);
-    margin: -20px;              
-    background: #f3f4f6;        
+    /* Component lives inside App's <main>; avoid layout hacks/overflows */
+    min-height: 100%;
+    width: 100%;
+    margin: 0;
+    background: #f3f4f6;
+    font-family: Arial, sans-serif;
+    color: #1f2937;
 }
 
 /* HEADER */
@@ -62,27 +58,27 @@ body {
     color: #6b7280;
 }
 
-/* FORM */
-form {
+/* FORM (scoped) */
+.login-page form {
     margin-bottom: 1rem;
 }
 
-fieldset {
+.login-page fieldset {
     border: none;
 }
 
-legend {
+.login-page legend {
     font-weight: bold;
     margin-bottom: 1rem;
 }
 
-label {
+.login-page label {
     display: block;
     margin-top: 1rem;
     font-weight: 600;
 }
 
-input {
+.login-page input {
     width: 100%;
     padding: 0.8rem;
     margin-top: 0.3rem;
@@ -90,14 +86,14 @@ input {
     border-radius: 8px;
 }
 
-input:focus {
+.login-page input:focus {
     outline: none;
     border-color: #6366f1;
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
 /* BUTTONS */
-button {
+.login-page button {
     width: 100%;
     padding: 0.9rem;
     margin-top: 1.2rem;
@@ -108,13 +104,13 @@ button {
 }
 
 /* Login button */
-button[type="submit"] {
+.login-page button[type="submit"] {
     background: linear-gradient(to right, #6366f1, #9333ea);
     color: white;
 }
 
 /* Google button - was #googleSignIn but button has no id in JSX */
-button[type="button"] {
+.login-page button[type="button"] {
     background: white;
     border: 1px solid #d1d5db;
     display: flex;
@@ -131,12 +127,12 @@ button[type="button"] {
 }
 
 /* LINKS */
-nav {
+.login-page nav {
     margin-top: 1rem;
     text-align: center;
 }
 
-a {
+.login-page a {
     color: #6366f1;
     text-decoration: none;
 }

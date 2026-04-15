@@ -1,33 +1,34 @@
-name: CI with Coverage
+name: CI Pipeline
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main, dev ]
   pull_request:
+    branches: [ main ]
 
 jobs:
-  test:
+  build-and-test:
     runs-on: ubuntu-latest
-    continue-on-error: true   
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      # Step 1 - Get the code
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      # Step 2 - Set up Node
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: '18'
 
+      # Step 3 - Install dependencies
       - name: Install dependencies
         run: npm install
 
-      - name: Run tests with coverage
-        run: npm run test -- --coverage
+      # Step 4 - Run tests
+      - name: Run tests
+        run: npm test -- --watchAll=false
 
-      - name: Upload coverage reports to Codecov
-        if: always()
-        uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          slug: Food-Catering-plateform/FOOD-ORDERING-PLATFORM
+      # Step 5 - Build the app
+      - name: Build app
+        run: npm run build
