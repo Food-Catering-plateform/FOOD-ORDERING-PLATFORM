@@ -6,22 +6,16 @@ export default function Navbar({ setActivePage }) {
   return (
     <header className="navbar">
 
-      <a href="#" className="logo-area">
-        <img src={assets.colourlesslogo} alt="Logo" className="logo" />
-      </a>
+      <img src={assets.colourlesslogo} alt="logo" className="logo" />
 
-      <form className="search-bar" role="search">
-        <input type="search" placeholder="Search..." />
+      <form className="search-bar">
+        <input type="search" placeholder="Search" />
       </form>
 
-      <nav className="nav-actions" aria-label="User actions">
-
+      <nav className="nav-actions">
         <button onClick={() => setActivePage('basket')}>
-          <img src={assets.trolly} alt="Basket" />
+          <img src={assets.trolly} alt="cart" />
         </button>
-
-       
-
       </nav>
 
     </header>

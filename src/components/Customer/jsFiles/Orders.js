@@ -7,7 +7,7 @@ const Orders = () => {
         <h1>Orders</h1>
 
         <article>
-          <h3>You have no orders</h3>
+          <p>You have no orders</p>
           
         </article>
       </section>

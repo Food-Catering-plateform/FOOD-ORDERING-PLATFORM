@@ -14,8 +14,9 @@ export default function Profile({ setActivePage }) {
 
   return (
     <main className="profile page">
-
-      <header className="top-actions">
+      <header className="">
+      <h1>Personal info</h1>
+        
         <button
           className="logout"
           type="button"
@@ -25,7 +26,7 @@ export default function Profile({ setActivePage }) {
         </button>
       </header>
 
-      <h1>Personal info</h1>
+      
 
       <figure className="avatar-wrapper">
         <div className="avatar" role="img" aria-label="Profile picture">
