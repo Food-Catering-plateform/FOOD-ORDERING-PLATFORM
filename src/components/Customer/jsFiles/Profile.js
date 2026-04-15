@@ -20,26 +20,32 @@ export default function Profile({ setActivePage }) {
         <button
           className="logout"
           type="button"
-          onClick={() => setActivePage('logout')}
+          onClick={() => setActivePage('login')}
         >
           Logout
         </button>
       </header>
 
+<<<<<<< Updated upstream
       
+=======
+      <section>
+        <h1>Personal info</h1>
+>>>>>>> Stashed changes
 
-      <figure className="avatar-wrapper">
-        <div className="avatar" role="img" aria-label="Profile picture">
-          <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
-          </svg>
-          <button className="avatar-edit" type="button">
+        <figure className="avatar-wrapper">
+          <picture className="avatar" role="img" aria-label="Profile picture">
             <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+              <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
             </svg>
-          </button>
-        </div>
-      </figure>
+            <button className="avatar-edit" type="button">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+              </svg>
+            </button>
+          </picture>
+        </figure>
+      </section>
 
       {editing ? (
         <form
@@ -49,34 +55,36 @@ export default function Profile({ setActivePage }) {
             setEditing(false);
           }}
         >
-          <label htmlFor="name">Name</label>
-          <input
-            id="name"
-            name="name"
-            type="text"
-            value={form.name}
-            onChange={handleChange}
-          />
+          <fieldset>
+            <label htmlFor="name">Name</label>
+            <input
+              id="name"
+              name="name"
+              type="text"
+              value={form.name}
+              onChange={handleChange}
+            />
 
-          <label htmlFor="phone">Phone number</label>
-          <input
-            id="phone"
-            name="phone"
-            type="tel"
-            value={form.phone}
-            onChange={handleChange}
-          />
+            <label htmlFor="phone">Phone number</label>
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              value={form.phone}
+              onChange={handleChange}
+            />
 
-          <label htmlFor="email">Email</label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            value={form.email}
-            onChange={handleChange}
-          />
+            <label htmlFor="email">Email</label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              value={form.email}
+              onChange={handleChange}
+            />
+          </fieldset>
 
-          <div className="form-actions">
+          <footer className="form-actions">
             <button className="save-btn" type="submit">Save</button>
             <button
               className="cancel-btn"
@@ -85,7 +93,7 @@ export default function Profile({ setActivePage }) {
             >
               Cancel
             </button>
-          </div>
+          </footer>
         </form>
       ) : (
         <section className="details">
@@ -94,10 +102,10 @@ export default function Profile({ setActivePage }) {
             className="info-row"
             onClick={() => setEditing(true)}
           >
-            <div>
+            <section>
               <h4>Name</h4>
               <p>{form.name}</p>
-            </div>
+            </section>
             <span>›</span>
           </article>
 
@@ -105,10 +113,10 @@ export default function Profile({ setActivePage }) {
             className="info-row"
             onClick={() => setEditing(true)}
           >
-            <div>
+            <section>
               <h4>Phone</h4>
               <p>{form.phone}</p>
-            </div>
+            </section>
             <span>›</span>
           </article>
 
@@ -116,10 +124,10 @@ export default function Profile({ setActivePage }) {
             className="info-row"
             onClick={() => setEditing(true)}
           >
-            <div>
+            <section>
               <h4>Email</h4>
               <p>{form.email}</p>
-            </div>
+            </section>
             <span>›</span>
           </article>
 
