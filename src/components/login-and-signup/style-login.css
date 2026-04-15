@@ -1,30 +1,44 @@
-/* RESET */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
+html, body {
+    width: 100%;
+    height: 100%;
+}/* RESET */
+
 
 body {
     font-family: Arial, sans-serif;
     background: #f3f4f6;
     color: #1f2937;
+    min-height: 100vh;
+     width: 100%;
+}
+
+/* PAGE WRAPPER - was targeting main which broke the grid */
+.login-page {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    width: calc(100% + 40px);
+    margin: -20px;              
+    background: #f3f4f6;        
 }
 
 /* HEADER */
-header {
+.login-header {
     text-align: center;
     padding: 1.5rem;
     font-weight: bold;
+    background: white;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
 }
 
-/* MAIN LAYOUT */
-main {
+/* MAIN CONTAINER - this is now the 2-column grid */
+.login-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    min-height: 80vh;
+    flex: 1;
     max-width: 1000px;
-    margin: auto;
+    width: 100%;
+    margin: 2rem auto;
     background: white;
     border-radius: 12px;
     overflow: hidden;
@@ -33,7 +47,10 @@ main {
 
 /* LEFT SIDE */
 .auth {
-    padding: 2rem;
+    padding: 2.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .auth h2 {
@@ -73,6 +90,12 @@ input {
     border-radius: 8px;
 }
 
+input:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
 /* BUTTONS */
 button {
     width: 100%;
@@ -90,14 +113,21 @@ button[type="submit"] {
     color: white;
 }
 
-/* Google button */
-#googleSignIn {
+/* Google button - was #googleSignIn but button has no id in JSX */
+button[type="button"] {
     background: white;
     border: 1px solid #d1d5db;
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 0.5rem;
+}
+
+/* ERROR */
+.login-error {
+    color: red;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
 }
 
 /* LINKS */
@@ -111,15 +141,18 @@ a {
     text-decoration: none;
 }
 
-/* RIGHT SIDE */
+/* RIGHT SIDE - was .promo in CSS but .sider in JSX */
 .sider {
-    background-repeat: no-repeat; /* prevents tiling */
-
+    background: linear-gradient(135deg, #6366f1 0%, #9333ea 60%, #ec4899 100%);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     color: white;
     padding: 2rem;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    min-height: 400px;
 }
 
 .sider h2 {
@@ -127,8 +160,10 @@ a {
 }
 
 /* FOOTER */
-footer {
+.login-footer {
     text-align: center;
     padding: 1rem;
     font-size: 0.9rem;
+    background: white;
+    border-top: 1px solid #e5e7eb;
 }

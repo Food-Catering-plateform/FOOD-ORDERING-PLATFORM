@@ -1,34 +1,34 @@
 import React from "react";
-import "./style-signup-role.css";
+import { Link } from "react-router-dom";
+import "./style-signup.css";
 
 function SignupRole() {
   return (
-    <>
+    <section className="signup-flow" aria-label="Choose how to register">
       <header>
         <h1>Eats</h1>
       </header>
 
-      <main>
-        <section className="auth-up">
+      <main className="signup-layout">
+        <section className="auth-up" aria-labelledby="signup-heading">
           <h2 id="signup-heading">Create an Account</h2>
           <p>Select your role to continue</p>
 
-          <nav>
-            <a href="/signup-customer" className="role-btn">
+          <nav aria-label="Registration options">
+            <Link to="/signup-customer" className="role-btn">
               Sign up as Customer
-            </a>
-
-            <a href="/signup-vendor" className="role-btn">
+            </Link>
+            <Link to="/signup-vendor" className="role-btn">
               Sign up as Vendor
-            </a>
+            </Link>
           </nav>
 
           <p>
-            Already have an account? <a href="/login">Log in</a>
+            Already have an account? <Link to="/">Log in</Link>
           </p>
         </section>
 
-        <aside className="sider">
+        <aside className="sider" aria-label="About EaziEats">
           <h2>Join EaziEats</h2>
           <p>Order food or manage your store on campus.</p>
         </aside>
@@ -37,7 +37,7 @@ function SignupRole() {
       <footer>
         <p>&copy; 2026 Eats</p>
       </footer>
-    </>
+    </section>
   );
 }
 

@@ -9,10 +9,17 @@
 body{
 
   min-height: 100vh;
+  width: 100%;
 
 }
 
 a{
   text-decoration: none;
   color:inherit;
+}
+#root {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }

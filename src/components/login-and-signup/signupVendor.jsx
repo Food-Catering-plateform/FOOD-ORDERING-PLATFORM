@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
+import { Link } from "react-router-dom";
+import "./style-signup.css";
 import Register from "../../Services/Register";
 
 function SignupVendor() {
-
   const {
     handleRegister,
     name,
@@ -20,24 +21,29 @@ function SignupVendor() {
     error,
   } = Register("vendor");
 
-
   return (
-    <>
+    <section className="signup-flow" aria-label="Vendor account registration">
       <header>
         <h1>Eats</h1>
       </header>
 
-      <main>
-        <section>
+      <main className="signup-layout">
+        <section
+          className="signup-form-section"
+          aria-labelledby="vendor-signup-form-title"
+        >
+          <form
+            id="create-account"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleRegister(e, "vendor");
+            }}
+          >
+            <h2 id="vendor-signup-form-title">
+              Please fill in your details to create an account
+            </h2>
 
-          <form id="create-account" 
-          onSubmit={(e) =>{
-            e.preventDefault(); //I kept preventDefault here so page does not refresh
-            handleRegister(e, "vendor");//It pass the role directly to Register instead of relying on setRole
-          }}>
-            <h1>Please fill in your details to create an account</h1>
-
-            <fieldset>
+            <fieldset className="signup-fieldset">
               <label htmlFor="first-name">First Name</label>
               <input
                 type="text"
@@ -55,7 +61,6 @@ function SignupVendor() {
                 name="lastName"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                //added this so the last name is captured from the form
                 required
               />
 
@@ -86,6 +91,7 @@ function SignupVendor() {
                 name="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
                 required
               />
 
@@ -96,23 +102,28 @@ function SignupVendor() {
                 name="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
                 required
               />
             </fieldset>
 
+            {error && (
+              <p className="signup-error" role="alert">
+                {error}
+              </p>
+            )}
+
             <button type="submit">Create Account</button>
           </form>
 
-          {error && <p style={{ color: "red" }}>{error}</p>}
-
-          <nav>
+          <nav aria-label="Account sign-in">
             <p>
-              Already have an account? <a href="/login">Log in</a>
+              Already have an account? <Link to="/">Log in</Link>
             </p>
           </nav>
         </section>
 
-        <aside className="sider">
+        <aside className="sider" aria-label="Why join Eats">
           <h2>Join Eats</h2>
           <p>One step away from skipping the queue.</p>
         </aside>
@@ -121,7 +132,7 @@ function SignupVendor() {
       <footer>
         <p>&copy; 2026 Eats</p>
       </footer>
-    </>
+    </section>
   );
 }
 

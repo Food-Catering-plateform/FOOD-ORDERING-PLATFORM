@@ -40,8 +40,7 @@ const useRegister = (defaultRole) => {
 
       await setDoc(doc(db, "users", user.uid), userData);
 
-      if (activateRole === "student") navigate("/student/dashboard");
-      else if (activateRole === "vendor") navigate("/vendor/dashboard");
+      navigate("/", { replace: true });
 
     } catch (err) {
       switch (err.code) {

@@ -1,12 +1,13 @@
 import React from "react";
-import "./style-signupCustomer.css";
-import Register from "../../Services/Register"; //added this to use the signup logic
+import { Link } from "react-router-dom";
+import "./style-signup.css";
+import Register from "../../Services/Register";
 
 function SignupCustomer() {
   const {
     handleRegister,
     name,
-    setName,// I added these because Register now also stores last name and student number in Firebase/Firestore
+    setName,
     lastName,
     setLastName,
     studentNumber,
@@ -16,31 +17,38 @@ function SignupCustomer() {
     password,
     setPassword,
     error,
-  } = Register("student"); // I added this to connect my form to the Firebase/Firestore register logic
+  } = Register("student");
 
   return (
-    <>
+    <section className="signup-flow" aria-label="Customer account registration">
       <header>
         <h1>Eats</h1>
       </header>
 
-      <main>
-        <section>
-          <form id="create-account" 
-          onSubmit={(e) =>{
-            e.preventDefault(); //kept preventDefault here so page does not refresh
-            handleRegister(e, "student");//It pass the role directly to Register instead of relying on setRole
-          }}>
-            <h1>Please fill in your details to create an account</h1>
+      <main className="signup-layout">
+        <section
+          className="signup-form-section"
+          aria-labelledby="customer-signup-form-title"
+        >
+          <form
+            id="create-account"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleRegister(e, "student");
+            }}
+          >
+            <h2 id="customer-signup-form-title">
+              Please fill in your details to create an account
+            </h2>
 
-            <fieldset>
+            <fieldset className="signup-fieldset">
               <label htmlFor="first-name">First Name</label>
               <input
                 type="text"
                 id="first-name"
                 name="firstName"
                 value={name}
-                onChange={(e) => setName(e.target.value)} // I added this so the first name is stored in React state
+                onChange={(e) => setName(e.target.value)}
                 required
               />
 
@@ -49,7 +57,7 @@ function SignupCustomer() {
                 type="text"
                 id="last-name"
                 name="lastName"
-                value={lastName}// I added this so the last name typed by the user is also captured and sent to Register for storage
+                value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 required
               />
@@ -60,7 +68,7 @@ function SignupCustomer() {
                 id="student-number"
                 name="studentNumber"
                 value={studentNumber}
-                onChange={(e) => setStudentNumber(e.target.value)} // I added this so I can still capture student number from the form
+                onChange={(e) => setStudentNumber(e.target.value)}
                 required
               />
 
@@ -70,7 +78,8 @@ function SignupCustomer() {
                 id="email"
                 name="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)} // I added this because Firebase signup uses email
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
                 required
               />
 
@@ -80,25 +89,29 @@ function SignupCustomer() {
                 id="password"
                 name="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)} // I added this because Firebase signup uses password
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
                 required
               />
             </fieldset>
 
+            {error && (
+              <p className="signup-error" role="alert">
+                {error}
+              </p>
+            )}
+
             <button type="submit">Create Account</button>
           </form>
 
-          {error && <p style={{ color: "red" }}>{error}</p>}
-          {/* I added this to show signup errors coming from Firebase */}
-
-          <nav>
+          <nav aria-label="Account sign-in">
             <p>
-              Already have an account? <a href="/login">Log in</a>
+              Already have an account? <Link to="/">Log in</Link>
             </p>
           </nav>
         </section>
 
-        <aside className="sider">
+        <aside className="sider" aria-label="Why join Eats">
           <h2>Join Eats</h2>
           <p>One step away from skipping the queue.</p>
         </aside>
@@ -107,7 +120,7 @@ function SignupCustomer() {
       <footer>
         <p>&copy; 2026 Eats</p>
       </footer>
-    </>
+    </section>
   );
 }
 
