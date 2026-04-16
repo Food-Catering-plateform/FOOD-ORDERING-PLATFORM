@@ -3,6 +3,9 @@
   padding: 2rem;
   max-width: 1200px;
   margin: 0 auto;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 header {

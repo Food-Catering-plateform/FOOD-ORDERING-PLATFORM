@@ -8,11 +8,13 @@ import Notifications from './components/Customer/jsFiles/Notifications';
 import Orders from './components/Customer/jsFiles/Orders';
 import Basket from './components/Customer/jsFiles/Basket';
 import VendorPage from './components/Vendor/create';
+import MenuView from './components/Customer/jsFiles/MenuView';
 import AdminDashboard from './components/Admin/AdminDashboard';
 
 function App() {
   const [activePage, setActivePage] = useState('login');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [selectedShop, setSelectedShop] = useState(null);
 
   const toggleSidebar = () => {
     setSidebarOpen((prev) => !prev);
@@ -46,7 +48,20 @@ function App() {
       case 'basket':
         return <Basket />;
       case 'shops':
-        return <Shops />;
+        return( <Shops 
+                onSelectShop={(shop) => {
+                setSelectedShop(shop); 
+                setActivePage('menu-view'); 
+            }}
+        />
+      );
+      case 'menu-view':
+        return (
+          <MenuView 
+            shop={selectedShop} 
+            onBack={() => setActivePage('shops')} 
+          />
+        );
       case 'vendor-dashboard':
         return <VendorPage />;
       case 'admin-dashboard':
@@ -82,6 +97,7 @@ function App() {
           style={{
             marginLeft: useCustomerChrome ? (sidebarOpen ? '187px' : '60px') : '0',
             transition: '0.3s ease',
+            paddingTop: useCustomerChrome ? '80px' : '0',
             padding: isAuthScreen ? '0' : '20px',
             flex: 1,
             background: isAuthScreen ? '#f3f4f6' : '#f5f6fa',
