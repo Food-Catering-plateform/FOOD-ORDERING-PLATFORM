@@ -20,11 +20,17 @@ html, body {
 
 /* HEADER */
 .login-header {
-    text-align: center;
-    padding: 1.5rem;
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 1.5rem 2rem;
     font-weight: bold;
-    background: white;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    font-size: 1.4rem;
+    color: #6366f1;
+    z-index: 10;
+    border: none;        /* ADD THIS */
+    box-shadow: none;    /* ADD THIS */
+    background: transparent; /* ADD THIS */
 }
 
 /* MAIN CONTAINER - this is now the 2-column grid */
@@ -148,7 +154,7 @@ html, body {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    min-height: 400px;
+    min-height: unset;
 }
 
 .sider h2 {
@@ -157,9 +163,88 @@ html, body {
 
 /* FOOTER */
 .login-footer {
+    position: static;    /* CHANGED - from fixed to static so it flows naturally */
+    width: 100%;         /* CHANGED - full width not 50% */
     text-align: center;
     padding: 1rem;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+    color: #9ca3af;
     background: white;
     border-top: 1px solid #e5e7eb;
+}
+
+/* SUBTITLE */
+.auth-subtitle {
+    color: #6b7280;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+}
+
+/* FORGOT PASSWORD */
+.forgot-password {
+    text-align: right;
+    margin-top: 0.5rem;
+}
+
+.forgot-password a {
+    font-size: 0.85rem;
+    color: #6366f1;
+}
+
+/* LOGIN BUTTON */
+.login-btn {
+    background: linear-gradient(to right, #6366f1, #9333ea);
+    color: white;
+    width: 100%;
+    padding: 0.9rem;
+    margin-top: 1.2rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+/* DIVIDER */
+.divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 1.2rem 0;
+    color: #9ca3af;
+    font-size: 0.85rem;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.divider span {
+    padding: 0 0.75rem;
+}
+
+/* GOOGLE BUTTON */
+.google-btn {
+    width: 100%;
+    padding: 0.9rem;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem;
+    color: #1f2937;
+    transition: 0.2s ease, box-shadow 0.2s ease;
+}
+
+.google-btn:hover {
+    background: #f9fafb;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
