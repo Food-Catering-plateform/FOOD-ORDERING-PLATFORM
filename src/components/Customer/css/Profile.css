@@ -2,208 +2,256 @@
 
 * {
   box-sizing: border-box;
-}
-
-.page {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  font-family: 'DM Sans', sans-serif;
-  background: #fff;
-  width: 100%;
-  padding: 0 40px 40px;
-}
-.top-actions {
-  display: flex;
-  justify-content: flex-end;
-  padding: 16px 0 8px;
-}
-
-.logout {
-  background: transparent;
-  color: #ef4444;
+  margin: 0;
   padding: 0;
-  border: none;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  font-family: inherit;
 }
 
-.page > h1 {
-  font-size: 22px;
-  font-weight: 700;
-  margin: 0 0 28px;
+.profile-page {
+  margin: 0 auto;
+  padding: 24px 20px 80px;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: #f8fafc;
+  min-height: 100vh;
+}
+
+/* Header */
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  margin-top:40px;
+}
+
+.profile-header h1 {
+  font-size: 24px;
+  font-weight: 600;
   color: #0f172a;
 }
 
-.avatar-wrapper {
+/* Logout */
+.logout-btn {
+  padding: 8px 16px;
+  background: #f1f5f9;
+  color: #64748b;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+/* Avatar */
+.avatar-section {
   display: flex;
-  justify-content: flex-start;
-  margin-bottom: 32px;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.avatar-wrapper {
+  position: relative;
+  width: 110px;
+  height: 110px;
 }
 
 .avatar {
-  width: 72px;
-  height: 72px;
+  width: 110px;
+  height: 110px;
   border-radius: 50%;
   background: #e2e8f0;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
-  overflow: visible;
+  border: 4px solid white;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
 }
 
 .avatar svg {
-  width: 38px;
-  height: 38px;
-  color: #94a3b8;
+  width: 48px;
+  height: 48px;
+  color: #64748b;
 }
 
-.avatar-edit {
+.avatar-edit-btn {
   position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 24px;
-  height: 24px;
-  background: #1e293b;
+  bottom: 4px;
+  right: 4px;
+  width: 32px;
+  height: 32px;
+  background: #1e2937;
+  border: 2px solid white;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
 }
 
-.avatar-edit svg {
-  width: 13px;
-  height: 13px;
-  color: #fff;
+.avatar-edit-btn svg {
+  width: 16px;
+  height: 16px;
+  color: white;
 }
-.details {
-  background: transparent;
-  padding: 0;
-  border-radius: 0;
-  display: flex;
-  flex-direction: column;
-}
-.details,
-.edit-form {
-  width: 100%;
-  max-width: 640px;
+
+/* Info Card */
+.info-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  margin-bottom: 48px;
 }
 
 .info-row {
+  padding: 18px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 0;
   border-bottom: 1px solid #f1f5f9;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.2s;
+}
+
+.info-row:last-child {
+  border-bottom: none;
 }
 
 .info-row:hover {
   background: #f8fafc;
-  margin: 0 -8px;
-  padding-left: 8px;
-  padding-right: 8px;
-  border-radius: 6px;
 }
 
-.info-label {
+.info-row .label {
   font-size: 13px;
-  font-weight: 600;
-  color: #0f172a;
-  margin-bottom: 3px;
-}
-
-.info-value {
-  font-size: 14px;
+  font-weight: 500;
   color: #64748b;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  display: block;
+  margin-bottom: 4px;
 }
 
-.verified-dot {
-  width: 8px;
-  height: 8px;
-  background: #22c55e;
-  border-radius: 50%;
-  display: inline-block;
-}
-
-.chevron {
-  color: #cbd5e1;
-  font-size: 18px;
-  line-height: 1;
-}
-
-
-.edit-form input {
-  padding: 10px 14px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 14px;
-  font-family: inherit;
+.info-row .value {
+  font-size: 16px;
   color: #0f172a;
-  outline: none;
-  transition: border-color 0.2s;
+  font-weight: 500;
 }
 
-.edit-form input:focus {
-  border-color: #6366f1;
+.info-row .arrow {
+  color: #94a3b8;
+  font-size: 20px;
+}
+
+/* Edit Form */
+.edit-form {
+  background: white;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  margin-bottom: 48px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 16px;
+  transition: all 0.2s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.save-btn, .cancel-btn {
+  flex: 1;
+  padding: 14px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  border: none;
 }
 
 .save-btn {
-  margin-top: 8px;
-  padding: 12px;
   background: #0f172a;
   color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 600;
-  font-family: inherit;
-  cursor: pointer;
-  width: 100%;
-  transition: background 0.2s;
 }
 
 .save-btn:hover {
-  background: #1e293b;
+  background: #1e2937;
 }
 
+.cancel-btn {
+  background: transparent;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
 
-.danger {
-  margin-top: 48px;
-  padding: 20px;
+.cancel-btn:hover {
+  background: #f8fafc;
+}
+
+/* Danger Zone - Much better now */
+.danger-zone {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
   border-radius: 12px;
-  background: #fff1f2;
-  border: 1px solid #fecdd3;
+  padding: 20px;
 }
 
-.danger h3 {
-  font-size: 14px;
+.danger-zone h3 {
+  color: #ef4444;
+  font-size: 16px;
+  margin-bottom: 6px;
   font-weight: 600;
-  color: #be123c;
-  margin: 0 0 12px;
 }
 
-.delete {
+.danger-desc {
+  color: #b91c1c;
+  font-size: 14px;
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+
+.delete-account-btn {
+  width: 100%;
+  padding: 12px;
   background: #ef4444;
   color: white;
   border: none;
-  padding: 10px 18px;
-  border-radius: 8px;
-  font-size: 13px;
+  border-radius: 10px;
   font-weight: 600;
-  font-family: inherit;
+  font-size: 15px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
 }
 
-.delete:hover {
+.delete-account-btn:hover {
   background: #dc2626;
+  transform: translateY(-1px);
 }

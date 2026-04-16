@@ -1,67 +1,55 @@
 import React from 'react';
 import './Sidebar.css';
 
-const menuItems = [
-  { label: 'Home', page: 'shops' },
-  { label: 'Orders', page: 'orders' },
-  { label: 'Notifications', page: 'notifications' },
-  { label: 'Manage Profile', page: 'profile'},
-];
-
-
-export default function Sidebar({ setActivePage, activePage, sidebarOpen, toggleSidebar }) {
-  const handleNavigate = (page) => {
-    setActivePage(page);
-  };
-
+export default function Sidebar({ activePage, setActivePage }) {
   return (
-    <>
-      <button
-        className={`toggle-btn ${sidebarOpen ? 'is-open' : ''}`}
-        onClick={toggleSidebar}
-        type="button"
-        aria-label={sidebarOpen ? 'Close navigation menu' : 'Open navigation menu'}
-        aria-expanded={sidebarOpen}
-        aria-controls="sidebar-nav"
-      >
-        <span aria-hidden="true" />
-        <span aria-hidden="true" />
-        <span aria-hidden="true" />
-      </button>
+    <aside className="sidebar">
 
-      <div
-        className={`sidebar-overlay ${sidebarOpen ? 'visible' : ''}`}
-        aria-hidden="true"
-      />
+      <nav className="sidebar-menu">
+        <ul>
+          <li>
+            <button
+              className={activePage === 'shops' ? 'active' : ''}
+              onClick={() => setActivePage('shops')}
+            >
+              Home
+            </button>
+          </li>
 
-      <aside
-        id="sidebar-nav"
-        className={`sidebar ${sidebarOpen ? 'open' : ''}`}
-        aria-label="Main navigation"
-        aria-hidden={!sidebarOpen}
-      >
-        <nav className="sidebar-menu">
-          <ul role="list">
-            {menuItems.map(({ label, page, icon }) => (
-              <li key={page}>
-                <button
-                  type="button"
-                  className={activePage === page ? 'active' : ''}
-                  onClick={() => handleNavigate(page)}
-                  aria-current={activePage === page ? 'page' : undefined}
-                >
-                  <span aria-hidden="true">{icon}</span>
-                  {label}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </nav>
+          <li>
+            <button
+              className={activePage === 'orders' ? 'active' : ''}
+              onClick={() => setActivePage('orders')}
+            >
+              Orders
+            </button>
+          </li>
 
-        <footer className="sidebar-footer">
-          <small>© 2026 UniEats</small>
-        </footer>
-      </aside>
-    </>
+          <li>
+            <button
+              className={activePage === 'notifications' ? 'active' : ''}
+              onClick={() => setActivePage('notifications')}
+            >
+              Notifications
+            </button>
+          </li>
+
+          <li>
+            <button
+              className={activePage === 'profile' ? 'active' : ''}
+              onClick={() => setActivePage('profile')}
+            >
+              Manage Profile
+            </button>
+          </li>
+        </ul>
+      </nav>
+
+      <footer className="sidebar-footer">
+        <small>© 2026 UniEats</small>
+      </footer>
+
+    </aside>
   );
 }
+
