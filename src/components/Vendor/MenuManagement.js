@@ -111,7 +111,7 @@ function MenuManagement() {
     };
 
     fetchItems();
-  }, []);
+  }, [itemCollectionRef]);
 
   function editItem(index) {
     const item = items[index];

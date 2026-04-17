@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link } from 'react-router-dom';
 import "./style-login.css";
 import { useLogin } from "../../Services/Login-backend";
 
@@ -55,7 +55,7 @@ function Login({ onLoginSuccess }) {
 
             {/* FORGOT PASSWORD LINK */}
             <div className="forgot-password">
-              <a href="#">Forgot password?</a>
+              <button type="button" className="forgot-password-btn">Forgot password?</button>
             </div>
 
             <button type="submit" className="login-btn" disabled={loading}>

@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import '../css/Basket.css';
 const Basket = () => {
   
