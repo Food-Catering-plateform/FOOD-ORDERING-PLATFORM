@@ -7,14 +7,19 @@ import Profile from './components/Customer/jsFiles/Profile';
 import Notifications from './components/Customer/jsFiles/Notifications';
 import Orders from './components/Customer/jsFiles/Orders';
 import Basket from './components/Customer/jsFiles/Basket';
-import VendorPage from './components/Vendor/create';
+import VDashboard from './components/Vendor/VDashboard';
+import StoreSetup from './components/Vendor/StoreSetup';
 import MenuView from './components/Customer/jsFiles/MenuView';
 import AdminDashboard from './components/Admin/AdminDashboard';
+import { auth, db } from './Firebase/firebaseConfig';
+import { doc, getDoc } from 'firebase/firestore';
 
 function App() {
   const [activePage, setActivePage] = useState('login');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [selectedShop, setSelectedShop] = useState(null);
+  const [vendorUid, setVendorUid] = useState(null);
+  const [checking, setChecking] = useState(false);
 
   const toggleSidebar = () => {
     setSidebarOpen((prev) => !prev);
@@ -24,20 +29,33 @@ function App() {
   const useCustomerChrome =
     !isAuthScreen &&
     activePage !== 'vendor-dashboard' &&
+    activePage !== 'store-setup' &&
     activePage !== 'admin-dashboard';
 
-  const handleLoginSuccess = useCallback((role) => {
+  const handleLoginSuccess = useCallback(async (role) => {
     if (role === 'admin') {
       setActivePage('admin-dashboard');
     } else if (role === 'vendor') {
-      setActivePage('vendor-dashboard');
+      const uid = auth.currentUser.uid;
+      setVendorUid(uid);
+      setChecking(true);
+      const storeSnap = await getDoc(doc(db, 'stores', uid));
+      setChecking(false);
+      setActivePage(storeSnap.exists() ? 'vendor-dashboard' : 'store-setup');
     } else {
-      // student/customer → shops (customer home)
       setActivePage('shops');
     }
   }, []);
 
   const renderPage = () => {
+    if (checking) {
+      return (
+        <p style={{ textAlign: 'center', marginTop: '40vh', fontSize: '1rem', color: '#999' }}>
+          Loading...
+        </p>
+      );
+    }
+
     switch (activePage) {
       case 'profile':
         return <Profile setActivePage={setActivePage} />;
@@ -48,22 +66,24 @@ function App() {
       case 'basket':
         return <Basket />;
       case 'shops':
-        return( <Shops 
+        return( <Shops
                 onSelectShop={(shop) => {
-                setSelectedShop(shop); 
-                setActivePage('menu-view'); 
+                setSelectedShop(shop);
+                setActivePage('menu-view');
             }}
         />
       );
       case 'menu-view':
         return (
-          <MenuView 
-            shop={selectedShop} 
-            onBack={() => setActivePage('shops')} 
+          <MenuView
+            shop={selectedShop}
+            onBack={() => setActivePage('shops')}
           />
         );
+      case 'store-setup':
+        return <StoreSetup uid={vendorUid} onComplete={() => setActivePage('vendor-dashboard')} />;
       case 'vendor-dashboard':
-        return <VendorPage />;
+        return <VDashboard uid={vendorUid} />;
       case 'admin-dashboard':
         return <AdminDashboard />;
       case 'login':
@@ -73,6 +93,10 @@ function App() {
         return <Login onLoginSuccess={handleLoginSuccess} />;
     }
   };
+
+  if (activePage === 'vendor-dashboard' || activePage === 'store-setup' || activePage === 'admin-dashboard') {
+    return <>{renderPage()}</>;
+  }
 
   return (
     <>
@@ -112,3 +136,12 @@ function App() {
 }
 
 export default App;
+
+/*import VDashboard from './components/Vendor/VDashboard';
+
+function App() {
+  return <VDashboard />;
+}
+
+export default App;*/
+

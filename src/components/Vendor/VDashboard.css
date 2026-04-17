@@ -1,14 +1,15 @@
 /* ── Layout ─────────────────────────────────────────── */
 .vendor-dashboard {
+  position: fixed;
+  inset: 0;
   display: flex;
-  min-height: 100vh;
+  z-index: 200;
+  background: #f5f6fa;
 }
 
 /* ── Sidebar ────────────────────────────────────────── */
 .vendor-sidebar {
-  position: sticky;
-  top: 0;
-  height: 100vh;
+  height: 100%;
   flex-shrink: 0;
   background-color: #1a1a1a;
   color: #fff;
@@ -109,9 +110,5 @@
   flex: 1;
   background: #f5f6fa;
   padding: 32px 28px;
-  min-height: 100vh;
-  transition: margin-left 0.3s ease;
+  overflow-y: auto;
 }
-
-.vendor-main.sidebar-open  { margin-left: 0; }
-.vendor-main.sidebar-closed { margin-left: 0; }

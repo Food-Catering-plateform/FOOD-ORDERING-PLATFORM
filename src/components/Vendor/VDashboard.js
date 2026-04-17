@@ -46,9 +46,21 @@ function VDashboard({ uid }) {
 
 
   return (
-    <section className="vendor-dashboard">
+    <section className="vendor-dashboard" style={{ position: 'fixed', inset: 0, display: 'flex', zIndex: 200 }}>
 
-      <aside className={`vendor-sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
+      <aside
+        className={`vendor-sidebar ${sidebarOpen ? 'open' : 'closed'}`}
+        style={{
+          backgroundColor: '#1a1a1a',
+          width: sidebarOpen ? '210px' : '54px',
+          height: '100%',
+          flexShrink: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          transition: 'width 0.3s ease',
+        }}
+      >
 
         <header className="vendor-sidebar__header">
           {sidebarOpen && <h2 className="vendor-sidebar__title">Vendor Panel</h2>}
@@ -57,9 +69,9 @@ function VDashboard({ uid }) {
             onClick={() => setSidebarOpen(prev => !prev)}
             aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
           >
-            <i className="toggle-line" />
-            <i className="toggle-line" />
-            <i className="toggle-line" />
+            <span className="toggle-line" />
+            <span className="toggle-line" />
+            <span className="toggle-line" />
           </button>
         </header>
 
