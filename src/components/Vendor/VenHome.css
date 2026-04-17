@@ -1,0 +1,67 @@
+/* ── Home wrapper ───────────────────────────────────── */
+.ven-home {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* ── Header ─────────────────────────────────────────── */
+.ven-home__header {
+  border-bottom: 1px solid #e2e5ea;
+  padding-bottom: 20px;
+}
+
+.ven-home__greeting {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 6px;
+}
+
+.ven-home__sub {
+  color: #666;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+/* ── Stat cards ─────────────────────────────────────── */
+.ven-home__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 20px;
+}
+
+.stat-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px 20px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+.stat-card h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #f97316;
+  margin: 0 0 6px;
+}
+
+.stat-card p {
+  font-size: 0.85rem;
+  color: #888;
+  margin: 0;
+}
+
+/* ── Tip banner ─────────────────────────────────────── */
+.ven-home__tip {
+  background: #fff7ed;
+  border-left: 4px solid #f97316;
+  border-radius: 8px;
+  padding: 14px 18px;
+  color: #92400e;
+  font-size: 0.9rem;
+}
+
+.ven-home__tip p {
+  margin: 0;
+}
