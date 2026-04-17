@@ -222,7 +222,7 @@ html, body {
     border-bottom: 1px solid #e5e7eb;
 }
 
-.divider span {
+.divider{
     padding: 0 0.75rem;
 }
 

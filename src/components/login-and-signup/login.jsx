@@ -53,10 +53,10 @@ function Login({ onLoginSuccess }) {
               required
             />
 
-            {/* FORGOT PASSWORD LINK */}
-            <div className="forgot-password">
+            {/* FORGOT PASSWORD - p is semantic for a short text/link */}
+            <p className="forgot-password">
               <a href="#">Forgot password?</a>
-            </div>
+            </p>
 
             <button type="submit" className="login-btn" disabled={loading}>
               {loading ? "Signing in..." : "Login"}
@@ -65,20 +65,17 @@ function Login({ onLoginSuccess }) {
 
           {error && <p className="login-error">{error}</p>}
 
-          {/* DIVIDER */}
-          <div className="divider">
-            <span>or</span>
-          </div>
+          {/* DIVIDER - hr is the semantic tag for a thematic break */}
+          <p className="divider" role="separator">or</p>
 
-          {/* GOOGLE BUTTON - fixed with icon and proper text */}
+          {/* GOOGLE BUTTON */}
           <button
             type="button"
             className="google-btn"
             onClick={handleGoogleLogin}
             disabled={loading}
           >
-            {/* Google SVG Icon */}
-            <svg width="20" height="20" viewBox="0 0 48 48">
+            <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
               <path fill="#EA4335" d="M24 9.5c3.14 0 5.95 1.08 8.17 2.86l6.08-6.08C34.46 3.39 29.5 1.5 24 1.5 14.82 1.5 7.01 7.1 3.58 15.04l7.1 5.52C12.43 14.48 17.74 9.5 24 9.5z"/>
               <path fill="#4285F4" d="M46.5 24c0-1.64-.15-3.22-.42-4.75H24v9h12.7c-.55 2.98-2.2 5.5-4.68 7.2l7.18 5.58C43.46 37.06 46.5 30.98 46.5 24z"/>
               <path fill="#FBBC05" d="M10.68 28.44A14.6 14.6 0 0 1 9.5 24c0-1.55.27-3.06.74-4.44l-7.1-5.52A22.4 22.4 0 0 0 1.5 24c0 3.61.86 7.02 2.38 10.04l6.8-5.6z"/>
