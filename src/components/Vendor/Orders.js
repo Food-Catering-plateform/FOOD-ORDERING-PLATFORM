@@ -119,7 +119,7 @@ function Orders() {
       <section className="orders-summary" aria-label="Order summary">
         {FILTER_OPTIONS.slice(1).map(s => (
           <article key={s} className={`summary-badge summary-badge--${s}`}>
-            <span className="summary-count">{counts[s]}</span>
+            <data className="summary-count" value={counts[s]}>{counts[s]}</data>
             <span className="summary-label">{STATUS_LABELS[s]}</span>
           </article>
         ))}
@@ -133,7 +133,7 @@ function Orders() {
             onClick={() => setFilter(f)}
           >
             {f === 'all' ? 'All' : STATUS_LABELS[f]}
-            {f !== 'all' && <span className="filter-count">{counts[f]}</span>}
+            {f !== 'all' && <data className="filter-count" value={counts[f]}>{counts[f]}</data>}
           </button>
         ))}
       </nav>
@@ -146,8 +146,8 @@ function Orders() {
             <article key={order.id} className={`order-card order-card--${order.status}`}>
               <header className="order-card__header">
                 <p className="order-card__meta">
-                  <span className="order-id">{order.id}</span>
-                  <span className="order-time">{order.time}</span>
+                  <b className="order-id">{order.id}</b>
+                  <time className="order-time" dateTime={order.time}>{order.time}</time>
                 </p>
                 <span className={`status-badge status-badge--${order.status}`}>
                   {STATUS_LABELS[order.status]}
@@ -161,9 +161,9 @@ function Orders() {
               <ul className="order-items">
                 {order.items.map((item, i) => (
                   <li key={i} className="order-item">
-                    <span className="item-qty">x{item.qty}</span>
+                    <data className="item-qty" value={item.qty}>x{item.qty}</data>
                     <span className="item-name">{item.name}</span>
-                    <span className="item-price">R {(item.qty * item.price).toFixed(2)}</span>
+                    <data className="item-price" value={(item.qty * item.price).toFixed(2)}>R {(item.qty * item.price).toFixed(2)}</data>
                   </li>
                 ))}
               </ul>
@@ -203,4 +203,3 @@ function Orders() {
 }
 
 export default Orders;
-

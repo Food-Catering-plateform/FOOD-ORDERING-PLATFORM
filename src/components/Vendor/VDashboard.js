@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db } from '../../Firebase/firebaseConfig';
 import './VDashboard.css';
 import VenHome from './VenHome';
 import MenuManagement from './MenuManagement';
 import Orders from './Orders';
 import Analytics from './Analytics';
 import AccSettings from './AccSettings';
-// import StoreSetup from './StoreSetup';
 
 const navItems = [
   { key: 'home',      label: 'Dashboard'        },
@@ -15,11 +16,22 @@ const navItems = [
   { key: 'settings',  label: 'Account Settings'  },
 ];
 
-function VDashboard() {
+function VDashboard({ uid }) {
   const [activeSection, setActiveSection] = useState('home');
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [storeCreated, setStoreCreated] = useState(false);
   const [storeData, setStoreData] = useState(null);
+
+  useEffect(() => {
+    if (!uid) return;
+    getDoc(doc(db, 'stores', uid)).then(snap => {
+      if (snap.exists()) setStoreData(snap.data());
+    });
+  }, [uid]);
+
+  const handleStoreUpdate = async (updatedData) => {
+    setStoreData(updatedData);
+    await setDoc(doc(db, 'stores', uid), updatedData);
+  };
 
   const renderSection = () => {
     switch (activeSection) {
@@ -27,7 +39,7 @@ function VDashboard() {
       case 'menu':      return <MenuManagement />;
       case 'orders':    return <Orders />;
       case 'analytics': return <Analytics />;
-      case 'settings':  return <AccSettings storeData={storeData} onStoreUpdate={setStoreData} />;
+      case 'settings':  return <AccSettings storeData={storeData} onStoreUpdate={handleStoreUpdate} />;
       default:          return <VenHome />;
     }
   };
@@ -45,9 +57,9 @@ function VDashboard() {
             onClick={() => setSidebarOpen(prev => !prev)}
             aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
           >
-            <span className="toggle-line" />
-            <span className="toggle-line" />
-            <span className="toggle-line" />
+            <i className="toggle-line" />
+            <i className="toggle-line" />
+            <i className="toggle-line" />
           </button>
         </header>
 

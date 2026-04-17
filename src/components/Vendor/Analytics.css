@@ -1,0 +1,246 @@
+/* ── Page ────────────────────────────────────────────── */
+.analytics {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ── Header ──────────────────────────────────────────── */
+.analytics__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.analytics__header h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.period-tabs {
+  display: flex;
+  gap: 6px;
+  background: #fff;
+  border: 1px solid #e2e5ea;
+  border-radius: 10px;
+  padding: 4px;
+}
+
+.period-tab {
+  padding: 7px 16px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.period-tab.active {
+  background: #f97316;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ── Stat cards ──────────────────────────────────────── */
+.analytics__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+.stat-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 22px 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.stat-card__label {
+  font-size: 0.82rem;
+  color: #888;
+  margin: 0 0 8px;
+  font-weight: 500;
+}
+
+.stat-card__value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #f97316;
+  margin: 0;
+}
+
+/* ── Bottom row ──────────────────────────────────────── */
+.analytics__bottom {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 780px) {
+  .analytics__bottom { grid-template-columns: 1fr; }
+}
+
+/* ── Cards ───────────────────────────────────────────── */
+.analytics__card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 24px 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.analytics__card h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+/* ── Bar chart ───────────────────────────────────────── */
+.bar-chart {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 160px;
+}
+
+.bar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+}
+
+.bar-track {
+  flex: 1;
+  width: 100%;
+  background: #f5f6fa;
+  border-radius: 6px 6px 0 0;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.bar-fill {
+  width: 100%;
+  background: #f97316;
+  border-radius: 6px 6px 0 0;
+  transition: height 0.4s ease;
+  min-height: 4px;
+}
+
+.bar-label {
+  font-size: 0.72rem;
+  color: #aaa;
+}
+
+.bar-value {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #555;
+}
+
+/* ── Breakdown legend ────────────────────────────────── */
+.orders-breakdown {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.breakdown-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: #555;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.breakdown-item--completed .dot { background: #22c55e; }
+.breakdown-item--cancelled .dot  { background: #ef4444; }
+.breakdown-item--pending .dot    { background: #f97316; }
+
+/* ── Top items ───────────────────────────────────────── */
+.top-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.top-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.top-item__info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.top-item__rank {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #f97316;
+  width: 20px;
+}
+
+.top-item__name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.bar-track {
+  margin: 0;
+}
+
+.top-item__bar-wrap {
+  display: block;
+  margin: 0;
+  height: 6px;
+  background: #f5f6fa;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.top-item__bar {
+  display: block;
+  height: 100%;
+  background: #f97316;
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+.top-item__meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: #888;
+}

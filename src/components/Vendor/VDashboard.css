@@ -6,16 +6,15 @@
 
 /* ── Sidebar ────────────────────────────────────────── */
 .vendor-sidebar {
-  position: fixed;
+  position: sticky;
   top: 0;
-  left: 0;
   height: 100vh;
+  flex-shrink: 0;
   background-color: #1a1a1a;
   color: #fff;
   display: flex;
   flex-direction: column;
   transition: width 0.3s ease;
-  z-index: 100;
   overflow: hidden;
 }
 
@@ -114,5 +113,5 @@
   transition: margin-left 0.3s ease;
 }
 
-.vendor-main.sidebar-open  { margin-left: 210px; }
-.vendor-main.sidebar-closed { margin-left: 54px; }
+.vendor-main.sidebar-open  { margin-left: 0; }
+.vendor-main.sidebar-closed { margin-left: 0; }

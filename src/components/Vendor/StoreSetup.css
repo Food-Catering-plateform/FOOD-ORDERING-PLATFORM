@@ -1,0 +1,367 @@
+/* ── Wrapper ─────────────────────────────────────────── */
+.store-setup {
+  max-width: 680px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ── Header & progress ───────────────────────────────── */
+.store-setup__title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 20px;
+}
+
+.store-setup__steps {
+  display: flex;
+  gap: 0;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  counter-reset: step;
+}
+
+.store-setup__step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  position: relative;
+  color: #aaa;
+  font-size: 0.82rem;
+}
+
+.store-setup__step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 13px;
+  left: calc(50% + 16px);
+  right: calc(-50% + 16px);
+  height: 2px;
+  background: #e2e5ea;
+  z-index: 0;
+}
+
+.store-setup__step.done::after {
+  background: #f97316;
+}
+
+.step-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #e2e5ea;
+  color: #888;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.store-setup__step.active .step-dot {
+  background: #f97316;
+  color: #fff;
+}
+
+.store-setup__step.done .step-dot {
+  background: #f97316;
+  color: #fff;
+}
+
+.store-setup__step.active .step-label,
+.store-setup__step.done .step-label {
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+/* ── Card ────────────────────────────────────────────── */
+.store-setup__card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 32px 28px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* ── Fieldset reset ──────────────────────────────────── */
+.store-setup__fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.store-setup__fieldset legend {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 24px;
+  padding: 0;
+}
+
+/* ── Fields ──────────────────────────────────────────── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.field__label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.field input[type="text"],
+.field input[type="tel"],
+.field select,
+.field textarea {
+  padding: 10px 12px;
+  border: 1px solid #dde0e7;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #1a1a1a;
+  background: #fafafa;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: #f97316;
+  background: #fff;
+}
+
+.field textarea {
+  resize: vertical;
+}
+
+.field__error {
+  font-size: 0.8rem;
+  color: #dc2626;
+}
+
+.field__count {
+  font-size: 0.78rem;
+  color: #999;
+  text-align: right;
+}
+
+.field__hint {
+  font-size: 0.8rem;
+  color: #999;
+}
+
+/* ── Hours grid ──────────────────────────────────────── */
+.hours-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+  list-style: none;
+  padding: 0;
+}
+
+.hours-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.88rem;
+}
+
+.hours-day {
+  width: 32px;
+  font-weight: 600;
+  color: #555;
+  flex-shrink: 0;
+}
+
+.hours-closed {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #777;
+  cursor: pointer;
+  width: 72px;
+  flex-shrink: 0;
+}
+
+.hours-time {
+  padding: 6px 8px;
+  border: 1px solid #dde0e7;
+  border-radius: 6px;
+  font-size: 0.88rem;
+  background: #fafafa;
+  outline: none;
+}
+
+.hours-time:focus {
+  border-color: #f97316;
+}
+
+.hours-sep {
+  color: #aaa;
+}
+
+/* ── Upload boxes ────────────────────────────────────── */
+.upload-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed #dde0e7;
+  border-radius: 10px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.2s;
+  height: 120px;
+  width: 120px;
+}
+
+.upload-box--wide {
+  width: 100%;
+  height: 140px;
+}
+
+.upload-box:hover {
+  border-color: #f97316;
+}
+
+.upload-placeholder {
+  font-size: 0.82rem;
+  color: #aaa;
+  text-align: center;
+  padding: 10px;
+}
+
+.upload-preview {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+}
+
+/* ── Review ──────────────────────────────────────────── */
+.store-setup__review h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 20px;
+  color: #1a1a1a;
+}
+
+.review-banner {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+
+.review-profile {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.review-logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  flex-shrink: 0;
+}
+
+.review-profile h3 {
+  margin: 0 0 4px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.review-category {
+  font-size: 0.82rem;
+  color: #f97316;
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+
+.review-desc {
+  font-size: 0.88rem;
+  color: #555;
+  margin: 0;
+}
+
+.review-details {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 10px 16px;
+  font-size: 0.88rem;
+}
+
+.review-details dt {
+  font-weight: 600;
+  color: #555;
+}
+
+.review-details dd {
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.review-hour-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 4px;
+}
+
+.review-hour-row span:first-child {
+  width: 32px;
+  font-weight: 600;
+  color: #555;
+}
+
+/* ── Bottom nav ──────────────────────────────────────── */
+.store-setup__nav {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btn {
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s, opacity 0.2s;
+}
+
+.btn--primary {
+  background: #f97316;
+  color: #fff;
+}
+
+.btn--primary:hover {
+  background: #ea6c0a;
+}
+
+.btn--ghost {
+  background: transparent;
+  color: #555;
+  border: 1px solid #dde0e7;
+}
+
+.btn--ghost:hover {
+  background: #f5f6fa;
+}

@@ -1,0 +1,233 @@
+/* ── Page wrapper ────────────────────────────────────── */
+.acc-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  max-width: 720px;
+}
+
+/* ── Header ──────────────────────────────────────────── */
+.acc-settings__header h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 6px;
+}
+
+.acc-settings__header p {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
+}
+
+/* ── Toast ───────────────────────────────────────────── */
+.acc-settings__toast {
+  margin: 0;
+  background: #ecfdf5;
+  border-left: 4px solid #22c55e;
+  color: #15803d;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* ── Cards ───────────────────────────────────────────── */
+.acc-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 28px 24px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.acc-card__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 4px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+/* ── Fields ──────────────────────────────────────────── */
+.acc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+}
+
+.acc-field label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.acc-field input[type="text"],
+.acc-field input[type="email"],
+.acc-field input[type="tel"],
+.acc-field input[type="password"],
+.acc-field select,
+.acc-field textarea {
+  padding: 10px 12px;
+  border: 1px solid #dde0e7;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #1a1a1a;
+  background: #fafafa;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.acc-field input:focus,
+.acc-field select:focus,
+.acc-field textarea:focus {
+  border-color: #f97316;
+  background: #fff;
+}
+
+.acc-field textarea { resize: vertical; }
+
+.acc-field__count {
+  font-size: 0.78rem;
+  color: #999;
+  text-align: right;
+}
+
+/* ── Side-by-side row ────────────────────────────────── */
+.acc-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* ── Hours ───────────────────────────────────────────── */
+.hours-grid {
+  list-style: none;
+  padding: 0;
+  margin: 4px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hours-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.88rem;
+}
+
+.hours-day {
+  width: 32px;
+  font-weight: 600;
+  color: #555;
+  flex-shrink: 0;
+}
+
+.hours-closed {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #777;
+  cursor: pointer;
+  width: 72px;
+  flex-shrink: 0;
+}
+
+.hours-time {
+  padding: 6px 8px;
+  border: 1px solid #dde0e7;
+  border-radius: 6px;
+  font-size: 0.88rem;
+  background: #fafafa;
+  outline: none;
+}
+
+.hours-time:focus { border-color: #f97316; }
+.hours-sep { color: #aaa; }
+
+/* ── Image uploads ───────────────────────────────────── */
+.acc-images {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.upload-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed #dde0e7;
+  border-radius: 10px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.upload-box:hover { border-color: #f97316; }
+
+.upload-box--logo   { width: 110px; height: 110px; border-radius: 50%; }
+.upload-box--banner { width: 100%;  height: 130px; }
+
+.upload-placeholder {
+  font-size: 0.78rem;
+  color: #aaa;
+  text-align: center;
+  padding: 10px;
+}
+
+.upload-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ── Divider ─────────────────────────────────────────── */
+.acc-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  color: #aaa;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.acc-divider::before,
+.acc-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #f0f0f0;
+}
+
+/* ── Footer ──────────────────────────────────────────── */
+.acc-settings__footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn {
+  padding: 10px 26px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s;
+}
+
+.btn--primary {
+  background: #f97316;
+  color: #fff;
+}
+
+.btn--primary:hover { background: #ea6c0a; }
