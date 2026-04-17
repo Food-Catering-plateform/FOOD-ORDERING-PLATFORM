@@ -152,34 +152,47 @@ function MenuManagement() {
 
       <section className="card" ref={formRef}>
         <h2>Add Food Item</h2>
-
         <form onSubmit={handleSubmit}>
-          
-          <input id="foodName" placeholder="Food Name" value={form.name} onChange={handleChange} />
-          <input id="foodPrice" placeholder="price" value={form.price} onChange={handleChange} />
-          <input id="foodQty" placeholder="quantity" value={form.qty} onChange={handleChange} />
-          <textarea id="foodDesc" value={form.desc} onChange={handleChange} />
-          <input id="foodImage" placeholder="food image" type="file" onChange={handleChange} />
+          <label htmlFor="foodName">Food Name</label>
+          <input id="foodName" type="text" placeholder="e.g. Burger" value={form.name} onChange={handleChange} required />
 
-          <button type="submit">
+          <label htmlFor="foodPrice">Price</label>
+          <input id="foodPrice" type="number" placeholder="0.00" min="0" step="0.01" value={form.price} onChange={handleChange} required />
+
+          <label htmlFor="foodQty">Quantity</label>
+          <input id="foodQty" type="number" placeholder="1" min="1" value={form.qty} onChange={handleChange} required />
+
+          <label htmlFor="foodDesc">Description</label>
+          <textarea id="foodDesc" placeholder="Describe food..." value={form.desc} onChange={handleChange} />
+
+          <label htmlFor="foodImage">Image</label>
+          <input id="foodImage" type="file" accept="image/*" onChange={handleChange} />
+
+          <button type="submit" id="submitBtn">
             {editingIndex !== null ? 'Save Changes' : 'Add Product'}
           </button>
         </form>
       </section>
 
-      <ul>
-        {items.map((item, index) => (
-          <li key={item.id}>
-            <img src={item.image} alt={item.name} />
-
-            <h3>{item.name}</h3>
-            <p>R {item.price}</p>
-
-            <button onClick={() => editItem(index)}>Edit</button>
-            <button onClick={() => deleteItem(index)}>Delete</button>
-          </li>
-        ))}
-      </ul>
+      <section className="card">
+        <h2>Existing Menu Items</h2>
+        {items.length === 0 && <p id="emptyMsg">No items yet. Add one above.</p>}
+        <ul id="productList">
+          {items.map((item, index) => (
+            <li key={item.id} className={editingIndex === index ? 'editing' : ''}>
+              <img src={item.image} alt={item.name} />
+              <section className="info" aria-label={item.name}>
+                <h3>{item.name}</h3>
+                <p>Price: R {item.price}</p>
+                <p>Qty: {item.qty}</p>
+                {item.desc && <em>{item.desc}</em>}
+              </section>
+              <button onClick={() => editItem(index)}>Edit</button>
+              <button className="delete-btn" onClick={() => deleteItem(index)}>Delete</button>
+            </li>
+          ))}
+        </ul>
+      </section>
     </section>
   );
 }
