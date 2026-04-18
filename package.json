@@ -40,5 +40,10 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "jest": "^27.5.1"
-  }
+  },
+  "jest": {
+  "collectCoverage": true,
+  "coverageDirectory": "coverage",
+  "coverageReporters": ["lcov", "text"]
+}
 }
