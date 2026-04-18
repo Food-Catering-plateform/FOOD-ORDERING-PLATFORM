@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import Navbar from './components/Navbar/Navbar';
 import Sidebar from './components/Sidebar/Sidebar';
 import Login from './components/login-and-signup/login';
@@ -13,13 +13,14 @@ import MenuView from './components/Customer/jsFiles/MenuView';
 import AdminDashboard from './components/Admin/AdminDashboard';
 import { auth, db } from './Firebase/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
 
 function App() {
   const [activePage, setActivePage] = useState('login');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [selectedShop, setSelectedShop] = useState(null);
   const [vendorUid, setVendorUid] = useState(null);
-  const [checking, setChecking] = useState(false);
+  const [checking, setChecking] = useState(true);
 
   const toggleSidebar = () => {
     setSidebarOpen((prev) => !prev);
@@ -54,6 +55,19 @@ function App() {
       setActivePage('shops');
     }
   }, []);
+
+  useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      const userSnap = await getDoc(doc(db, 'users', user.uid));
+      if (userSnap.exists()) {
+        await handleLoginSuccess(userSnap.data().role);
+      }
+    }
+    setChecking(false);
+  });
+  return () => unsubscribe();
+}, [handleLoginSuccess]);
 
   const renderPage = () => {
     if (checking) {

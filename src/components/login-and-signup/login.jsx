@@ -21,7 +21,7 @@ function Login({ onLoginSuccess }) {
 
       {/* HEADER */}
       <header className="login-header">
-        <h1>Eats</h1>
+        <h1>UniEats</h1>
       </header>
 
       {/* MAIN CONTENT */}
