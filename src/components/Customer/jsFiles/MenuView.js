@@ -1,16 +1,35 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import '../css/Shops.css';
+import { db } from "../../../Firebase/firebaseConfig";
+import { collection, getDocs } from "firebase/firestore";
 
-const dummyMenu = [
-  { id: 101, name: "Beef Burger", price: 55, dietary: "Halal", description: "Grilled patty with secret sauce." },
-  { id: 102, name: "Vegan Wrap", price: 45, dietary: "Vegan", description: "Fresh greens and chickpeas." }
-];
+const MenuView = ({ shop, onBack }) => {
+  const [menuItems, setMenuItems] = useState([]);
 
-const MenuView = ({ menuItems = dummyMenu, shopName = "Matrix Grill" }) => {
+  useEffect(() => {
+    const fetchMenu = async () => {
+      if (!shop?.id) return; 
+
+      const menuSnapshot = await getDocs(
+        collection(db, "Vendors", shop.id, "menu")
+      );
+
+      const items = [];
+      menuSnapshot.forEach((doc) => {
+        items.push({ id: doc.id, ...doc.data() });
+      });
+
+      console.log(items); 
+      setMenuItems(items);
+    };
+
+    fetchMenu();
+  }, [shop]);
+
   return (
     <section className="menu-container">
       <header>
-        <h2>{shopName} Menu</h2>
+        <h2>{shop?.name || "Menu"} Menu</h2>
         <p>Select items to add to your order.</p>
       </header>
 
@@ -21,22 +40,23 @@ const MenuView = ({ menuItems = dummyMenu, shopName = "Matrix Grill" }) => {
               <h3>{item.name}</h3>
               <data value={item.price}>R{item.price}</data>
             </header>
-            
+
             <p>{item.description}</p>
-            
+
             <footer>
-              {/* SA Data/Dietary info  */}
-              <small>Tag: {item.dietary}</small>
-              <button type="button" onClick={() => console.log('Added to Basket')}>
+              <small>Qty: {item.qty}</small>
+              <button type="button">
                 Add to Basket
               </button>
             </footer>
           </article>
         ))}
       </section>
-      
+
       <nav>
-        <button type="button" className="back-btn">Back to Shops</button>
+        <button type="button" className="back-btn" onClick={onBack}>
+          Back to Shops
+        </button>
       </nav>
     </section>
   );
