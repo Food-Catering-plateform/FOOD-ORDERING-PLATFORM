@@ -114,7 +114,7 @@ function Login({ onLoginSuccess }) {
 
       {/* FOOTER */}
       <footer className="login-footer">
-        <p>&copy; 2026 Eats</p>
+        <p>&copy; 2026 UniEats</p>
       </footer>
 
     </article>
