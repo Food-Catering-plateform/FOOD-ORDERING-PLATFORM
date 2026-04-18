@@ -3,6 +3,7 @@ import {
   signInWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithPopup,
+  sendPasswordResetEmail,
 } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../Firebase/firebaseConfig";
@@ -98,10 +99,27 @@ export const useLogin = (options = {}) => {
     }
   };
 
+  const handlePasswordReset = async (email) => {
+    setError("");
+    if (!email){
+      setError("Please enter your email address.");
+      return;
+    }
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setError("Password reset email sent. Please check your inbox.");
+    } catch (err) {
+      console.error("Password reset error:", err);
+      setError("Failed to send password reset email.");
+    }
+  }
+
   return {
     handleLogin,
     handleGoogleLogin,
+    handlePasswordReset,
     error,
     loading,
+    
   };
 };
