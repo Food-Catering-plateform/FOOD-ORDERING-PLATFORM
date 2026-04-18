@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './Orders.css';
+
 import { collection, addDoc, updateDoc, getDocs, doc, deleteDoc,query,where } from "firebase/firestore";
 import { db } from "../../Firebase/firebaseConfig";
 import { useAuth } from "../../Services/AuthContext";
@@ -39,15 +40,18 @@ useEffect(() => {
         collection(db, "Orders"),
         where("vendorID", "==", vendorId)
       );
+
       const data = await getDocs(q);
       const fetched = data.docs.map(d => ({ id: d.id, ...d.data() }));
       setOrders(fetched);
+
     } catch (error) {
       console.error("Unable to fetch orders", error);
     }
   };
 
   fetchOrders();
+
 },[vendorId])
 
   const visibleOrders =
@@ -88,7 +92,7 @@ useEffect(() => {
         <h1>Orders</h1>
       </header>
 
-      {/* Summary badges */}
+
       <section className="orders-summary">
         {FILTER_OPTIONS.slice(1).map(s => (
           <article key={s} className={`summary-badge summary-badge--${s}`}>
@@ -97,8 +101,7 @@ useEffect(() => {
           </article>
         ))}
       </section>
-
-      {/* Filter tabs */}
+//filter tabs
       <nav className="orders-filters">
         {FILTER_OPTIONS.map(f => (
           <button
@@ -114,7 +117,6 @@ useEffect(() => {
         ))}
       </nav>
 
-      {/* Orders list */}
       <section className="orders-list">
         {visibleOrders.length === 0 ? (
           <p className="no-orders">

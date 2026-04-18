@@ -92,219 +92,221 @@ function StoreSetup({ onComplete }) {
   if (!vendorId) return <p>Loading...</p>;
 
   return (
-    <article className="store-setup">
+    <div className="store-setup-page">
+      <article className="store-setup">
 
-      <header className="store-setup__header">
-        <h1 className="store-setup__title">Set Up Your Store</h1>
-        <ol className="store-setup__steps" aria-label="Setup progress">
-          {STEPS.map((label, i) => (
-            <li
-              key={label}
-              className={`store-setup__step ${i === step ? 'active' : ''} ${i < step ? 'done' : ''}`}
-            >
-              <b className="step-dot">{i < step ? '✓' : i + 1}</b>
-              <small className="step-label">{label}</small>
-            </li>
-          ))}
-        </ol>
-      </header>
+        <header className="store-setup__header">
+          <h1 className="store-setup__title">Set Up Your Store</h1>
+          <ol className="store-setup__steps" aria-label="Setup progress">
+            {STEPS.map((label, i) => (
+              <li
+                key={label}
+                className={`store-setup__step ${i === step ? 'active' : ''} ${i < step ? 'done' : ''}`}
+              >
+                <b className="step-dot">{i < step ? '✓' : i + 1}</b>
+                <small className="step-label">{label}</small>
+              </li>
+            ))}
+          </ol>
+        </header>
 
-      <section className="store-setup__card">
+        <section className="store-setup__card">
 
-        {step === 0 && (
-          <fieldset className="store-setup__fieldset">
-            <legend>Basic Information</legend>
+          {step === 0 && (
+            <fieldset className="store-setup__fieldset">
+              <legend>Basic Information</legend>
 
-            <label className="field">
-              <b className="field__label">Store Name</b>
-              <input
-                type="text"
-                value={form.name}
-                onChange={e => update('name', e.target.value)}
-                placeholder="e.g. Mama's Kitchen"
-              />
-              {errors.name && <em className="field__error">{errors.name}</em>}
-            </label>
-
-            <label className="field">
-              <b className="field__label">Category</b>
-              <select value={form.category} onChange={e => update('category', e.target.value)}>
-                <option value="">-- Select a category --</option>
-                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-              {errors.category && <em className="field__error">{errors.category}</em>}
-            </label>
-
-            <label className="field">
-              <b className="field__label">Short Description</b>
-              <textarea
-                value={form.description}
-                onChange={e => update('description', e.target.value)}
-                placeholder="Tell customers what makes your store special..."
-                rows={3}
-                maxLength={200}
-              />
-              <output className="field__count">{form.description.length}/200</output>
-              {errors.description && <em className="field__error">{errors.description}</em>}
-            </label>
-          </fieldset>
-        )}
-
-        {step === 1 && (
-          <fieldset className="store-setup__fieldset">
-            <legend>Location &amp; Hours</legend>
-
-            <label className="field">
-              <b className="field__label">Address</b>
-              <input
-                type="text"
-                value={form.address}
-                onChange={e => update('address', e.target.value)}
-                placeholder="e.g. 12 Main Street, Soweto"
-              />
-              {errors.address && <em className="field__error">{errors.address}</em>}
-            </label>
-
-            <label className="field">
-              <b className="field__label">Contact Number</b>
-              <input
-                type="tel"
-                value={form.phone}
-                onChange={e => update('phone', e.target.value)}
-                placeholder="e.g. 011 123 4567"
-              />
-              {errors.phone && <em className="field__error">{errors.phone}</em>}
-            </label>
-
-            <section className="field">
-              <b className="field__label">Operating Hours</b>
-              <ul className="hours-grid">
-                {DAYS.map(day => (
-                  <li key={day} className="hours-row">
-                    <abbr className="hours-day" title={day}>{day.slice(0, 3)}</abbr>
-
-                    <label className="hours-closed">
-                      <input
-                        type="checkbox"
-                        checked={form.hours[day].closed}
-                        onChange={e => updateHours(day, 'closed', e.target.checked)}
-                      />
-                      Closed
-                    </label>
-
-                    {!form.hours[day].closed && (
-                      <>
-                        <input
-                          type="time"
-                          value={form.hours[day].open}
-                          onChange={e => updateHours(day, 'open', e.target.value)}
-                          className="hours-time"
-                        />
-                        <i className="hours-sep">–</i>
-                        <input
-                          type="time"
-                          value={form.hours[day].close}
-                          onChange={e => updateHours(day, 'close', e.target.value)}
-                          className="hours-time"
-                        />
-                      </>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          </fieldset>
-        )}
-
-        {step === 2 && (
-          <fieldset className="store-setup__fieldset">
-            <legend>Branding</legend>
-
-            <section className="field">
-              <b className="field__label">Store Logo</b>
-              <label className="upload-box">
-                {form.logoPreview
-                  ? <img src={form.logoPreview} alt="Logo preview" className="upload-preview upload-preview--logo" />
-                  : <small className="upload-placeholder">Click to upload logo</small>}
+              <label className="field">
+                <b className="field__label">Store Name</b>
                 <input
-                  type="file"
-                  accept="image/*"
-                  hidden
-                  onChange={e => handleImage('logo', 'logoPreview', e.target.files[0])}
+                  type="text"
+                  value={form.name}
+                  onChange={e => update('name', e.target.value)}
+                  placeholder="e.g. Mama's Kitchen"
                 />
+                {errors.name && <em className="field__error">{errors.name}</em>}
               </label>
-            </section>
 
-            <section className="field">
-              <b className="field__label">Store Banner</b>
-              <label className="upload-box upload-box--wide">
-                {form.bannerPreview
-                  ? <img src={form.bannerPreview} alt="Banner preview" className="upload-preview upload-preview--banner" />
-                  : <small className="upload-placeholder">Click to upload banner image</small>}
+              <label className="field">
+                <b className="field__label">Category</b>
+                <select value={form.category} onChange={e => update('category', e.target.value)}>
+                  <option value="">-- Select a category --</option>
+                  {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+                {errors.category && <em className="field__error">{errors.category}</em>}
+              </label>
+
+              <label className="field">
+                <b className="field__label">Short Description</b>
+                <textarea
+                  value={form.description}
+                  onChange={e => update('description', e.target.value)}
+                  placeholder="Tell customers what makes your store special..."
+                  rows={3}
+                  maxLength={200}
+                />
+                <output className="field__count">{form.description.length}/200</output>
+                {errors.description && <em className="field__error">{errors.description}</em>}
+              </label>
+            </fieldset>
+          )}
+
+          {step === 1 && (
+            <fieldset className="store-setup__fieldset">
+              <legend>Location &amp; Hours</legend>
+
+              <label className="field">
+                <b className="field__label">Address</b>
                 <input
-                  type="file"
-                  accept="image/*"
-                  hidden
-                  onChange={e => handleImage('banner', 'bannerPreview', e.target.files[0])}
+                  type="text"
+                  value={form.address}
+                  onChange={e => update('address', e.target.value)}
+                  placeholder="e.g. 12 Main Street, Soweto"
                 />
+                {errors.address && <em className="field__error">{errors.address}</em>}
               </label>
-              <small className="field__hint">Optional — displayed at the top of your store page</small>
-            </section>
-          </fieldset>
-        )}
 
-        {step === 3 && (
-          <section className="store-setup__review">
-            <h2>Review Your Store</h2>
+              <label className="field">
+                <b className="field__label">Contact Number</b>
+                <input
+                  type="tel"
+                  value={form.phone}
+                  onChange={e => update('phone', e.target.value)}
+                  placeholder="e.g. 011 123 4567"
+                />
+                {errors.phone && <em className="field__error">{errors.phone}</em>}
+              </label>
 
-            {form.bannerPreview && (
-              <img src={form.bannerPreview} alt="Store banner" className="review-banner" />
-            )}
+              <section className="field">
+                <b className="field__label">Operating Hours</b>
+                <ul className="hours-grid">
+                  {DAYS.map(day => (
+                    <li key={day} className="hours-row">
+                      <abbr className="hours-day" title={day}>{day.slice(0, 3)}</abbr>
 
-            <figure className="review-profile">
-              {form.logoPreview && (
-                <img src={form.logoPreview} alt="Store logo" className="review-logo" />
+                      <label className="hours-closed">
+                        <input
+                          type="checkbox"
+                          checked={form.hours[day].closed}
+                          onChange={e => updateHours(day, 'closed', e.target.checked)}
+                        />
+                        Closed
+                      </label>
+
+                      {!form.hours[day].closed && (
+                        <>
+                          <input
+                            type="time"
+                            value={form.hours[day].open}
+                            onChange={e => updateHours(day, 'open', e.target.value)}
+                            className="hours-time"
+                          />
+                          <i className="hours-sep">–</i>
+                          <input
+                            type="time"
+                            value={form.hours[day].close}
+                            onChange={e => updateHours(day, 'close', e.target.value)}
+                            className="hours-time"
+                          />
+                        </>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </fieldset>
+          )}
+
+          {step === 2 && (
+            <fieldset className="store-setup__fieldset">
+              <legend>Branding</legend>
+
+              <section className="field">
+                <b className="field__label">Store Logo</b>
+                <label className="upload-box">
+                  {form.logoPreview
+                    ? <img src={form.logoPreview} alt="Logo preview" className="upload-preview upload-preview--logo" />
+                    : <small className="upload-placeholder">Click to upload logo</small>}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    onChange={e => handleImage('logo', 'logoPreview', e.target.files[0])}
+                  />
+                </label>
+              </section>
+
+              <section className="field">
+                <b className="field__label">Store Banner</b>
+                <label className="upload-box upload-box--wide">
+                  {form.bannerPreview
+                    ? <img src={form.bannerPreview} alt="Banner preview" className="upload-preview upload-preview--banner" />
+                    : <small className="upload-placeholder">Click to upload banner image</small>}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    onChange={e => handleImage('banner', 'bannerPreview', e.target.files[0])}
+                  />
+                </label>
+                <small className="field__hint">Optional — displayed at the top of your store page</small>
+              </section>
+            </fieldset>
+          )}
+
+          {step === 3 && (
+            <section className="store-setup__review">
+              <h2>Review Your Store</h2>
+
+              {form.bannerPreview && (
+                <img src={form.bannerPreview} alt="Store banner" className="review-banner" />
               )}
-              <figcaption>
-                <h3>{form.name || '—'}</h3>
-                <p className="review-category">{form.category || '—'}</p>
-                <p className="review-desc">{form.description || '—'}</p>
-              </figcaption>
-            </figure>
 
-            <dl className="review-details">
-              <dt>Address</dt>      <dd>{form.address || '—'}</dd>
-              <dt>Phone</dt>        <dd>{form.phone || '—'}</dd>
-              <dt>Hours</dt>
-              <dd>
-                {DAYS.map(day => (
-                  <p key={day} className="review-hour-row">
-                    <abbr title={day}>{day.slice(0, 3)}</abbr>
-                    <output>
-                      {form.hours[day].closed
-                        ? 'Closed'
-                        : `${form.hours[day].open} – ${form.hours[day].close}`}
-                    </output>
-                  </p>
-                ))}
-              </dd>
-            </dl>
-          </section>
-        )}
+              <figure className="review-profile">
+                {form.logoPreview && (
+                  <img src={form.logoPreview} alt="Store logo" className="review-logo" />
+                )}
+                <figcaption>
+                  <h3>{form.name || '—'}</h3>
+                  <p className="review-category">{form.category || '—'}</p>
+                  <p className="review-desc">{form.description || '—'}</p>
+                </figcaption>
+              </figure>
 
-      </section>
+              <dl className="review-details">
+                <dt>Address</dt>      <dd>{form.address || '—'}</dd>
+                <dt>Phone</dt>        <dd>{form.phone || '—'}</dd>
+                <dt>Hours</dt>
+                <dd>
+                  {DAYS.map(day => (
+                    <p key={day} className="review-hour-row">
+                      <abbr title={day}>{day.slice(0, 3)}</abbr>
+                      <output>
+                        {form.hours[day].closed
+                          ? 'Closed'
+                          : `${form.hours[day].open} – ${form.hours[day].close}`}
+                      </output>
+                    </p>
+                  ))}
+                </dd>
+              </dl>
+            </section>
+          )}
 
-      <footer className="store-setup__nav">
-        {step > 0 && (
-          <button className="btn btn--ghost" onClick={back}>Back</button>
-        )}
-        {step < STEPS.length - 1
-          ? <button className="btn btn--primary" onClick={next}>Next</button>
-          : <button className="btn btn--primary" onClick={handleSubmit}>Launch Store</button>
-        }
-      </footer>
+        </section>
 
-    </article>
+        <footer className="store-setup__nav">
+          {step > 0 && (
+            <button className="btn btn--ghost" onClick={back}>Back</button>
+          )}
+          {step < STEPS.length - 1
+            ? <button className="btn btn--primary" onClick={next}>Next</button>
+            : <button className="btn btn--primary" onClick={handleSubmit}>Launch Store</button>
+          }
+        </footer>
+
+      </article>
+    </div>
   );
 }
 
