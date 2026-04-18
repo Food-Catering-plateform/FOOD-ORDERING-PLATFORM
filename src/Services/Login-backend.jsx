@@ -16,6 +16,7 @@ import { useNavigate } from "react-router-dom";
 export const useLogin = (options = {}) => {
   const { onLoginSuccess } = options;
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -49,6 +50,7 @@ export const useLogin = (options = {}) => {
 
   const handleLogin = async (email, password) => {
     setError("");
+    setInfo("");
     setLoading(true);
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
@@ -73,9 +75,11 @@ export const useLogin = (options = {}) => {
 
   const handleGoogleLogin = async () => {
     setError("");
+    setInfo("");
     setLoading(true);
     try {
       const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: "select_account" });
       const result = await signInWithPopup(auth, provider);
 
       const userRef = doc(db, "users", result.user.uid);
@@ -91,6 +95,16 @@ export const useLogin = (options = {}) => {
       console.error("Google login error:", err);
       if (err.code === "auth/popup-closed-by-user") {
         setError("");
+      } else if (err.code === "auth/unauthorized-domain") {
+        setError(
+          "Google sign-in is not authorized for this domain yet. Add your Vercel domain in Firebase Authentication > Settings > Authorized domains."
+        );
+      } else if (err.code === "auth/account-exists-with-different-credential") {
+        setError(
+          "This email already exists with another sign-in method. Log in with email/password, then link Google from account settings."
+        );
+      } else if (err.code === "auth/popup-blocked") {
+        setError("Popup was blocked by your browser. Allow popups and try again.");
       } else {
         setError("Google sign-in failed.");
       }
@@ -101,16 +115,23 @@ export const useLogin = (options = {}) => {
 
   const handlePasswordReset = async (email) => {
     setError("");
+    setInfo("");
     if (!email){
       setError("Please enter your email address.");
       return;
     }
     try {
       await sendPasswordResetEmail(auth, email);
-      setError("Password reset email sent. Please check your inbox.");
+      setInfo("Password reset email sent. Please check your inbox.");
     } catch (err) {
       console.error("Password reset error:", err);
-      setError("Failed to send password reset email.");
+      if (err.code === "auth/user-not-found") {
+        setError("No user found with that email.");
+      } else if (err.code === "auth/invalid-email") {
+        setError("Please enter a valid email address.");
+      } else {
+        setError("Failed to send password reset email.");
+      }
     }
   }
 
@@ -119,6 +140,7 @@ export const useLogin = (options = {}) => {
     handleGoogleLogin,
     handlePasswordReset,
     error,
+    info,
     loading,
     
   };

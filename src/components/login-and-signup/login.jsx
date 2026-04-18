@@ -7,7 +7,14 @@ function Login({ onLoginSuccess }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const { handleLogin, handleGoogleLogin, error, loading } = useLogin({
+  const {
+    handleLogin,
+    handleGoogleLogin,
+    handlePasswordReset,
+    error,
+    info,
+    loading,
+  } = useLogin({
     onLoginSuccess,
   });
 
@@ -55,7 +62,14 @@ function Login({ onLoginSuccess }) {
 
             {/* FORGOT PASSWORD - p is semantic for a short text/link */}
             <p className="forgot-password">
-              <a href="#">Forgot password?</a>
+              <button
+                type="button"
+                className="forgot-password-btn"
+                onClick={() => handlePasswordReset(email)}
+                disabled={loading}
+              >
+                Forgot password?
+              </button>
             </p>
 
             <button type="submit" className="login-btn" disabled={loading}>
@@ -64,6 +78,7 @@ function Login({ onLoginSuccess }) {
           </form>
 
           {error && <p className="login-error">{error}</p>}
+          {info && <p className="login-info">{info}</p>}
 
           {/* DIVIDER - hr is the semantic tag for a thematic break */}
           <p className="divider" role="separator">or</p>
