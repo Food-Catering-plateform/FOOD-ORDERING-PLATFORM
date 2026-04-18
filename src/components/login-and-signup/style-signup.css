@@ -34,12 +34,12 @@
   min-height: 80vh;
   max-width: 1000px;
   margin: auto;
-  margin-bottom: 2rem; /* ADDED - creates space between card and footer */
+  margin-bottom: 2rem;
   width: 100%;
   flex: 1;
   background: white;
   border-radius: 12px;
-  overflow: hidden;
+  overflow: auto; /* ✅ FIXED */
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
 }
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../../Firebase/firebaseConfig';
+import { useAuth } from '../../Services/AuthContext';
 import './StoreSetup.css';
 
 const STEPS = ['Basic Info', 'Location & Hours', 'Branding', 'Review'];
@@ -17,7 +18,9 @@ const defaultHours = DAYS.reduce((acc, day) => {
   return acc;
 }, {});
 
-function StoreSetup({ uid, onComplete }) {
+function StoreSetup({ onComplete }) {
+  const { vendorId } = useAuth();
+
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({
     name: '',
@@ -70,17 +73,23 @@ function StoreSetup({ uid, onComplete }) {
   const back = () => setStep(s => s - 1);
 
   const handleSubmit = async () => {
+    if (!vendorId) return;
+
     const storeData = {
-      name:        form.name,
-      category:    form.category,
-      description: form.description,
-      address:     form.address,
-      phone:       form.phone,
-      hours:       form.hours,
+      businessName: form.name,
+      category:     form.category,
+      description:  form.description,
+      address:      form.address,
+      phoneNumber:  form.phone,
+      hours:        form.hours,
+      status:       'active',
     };
-    await setDoc(doc(db, 'stores', uid), storeData);
+
+    await setDoc(doc(db, 'Vendors', vendorId), storeData, { merge: true });
     if (onComplete) onComplete();
   };
+
+  if (!vendorId) return <p>Loading...</p>;
 
   return (
     <article className="store-setup">

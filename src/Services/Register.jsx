@@ -18,7 +18,7 @@ const useRegister = (defaultRole) => {
   const handleRegister = async (e) => {
     e.preventDefault();
     setError("");
-    const activateRole = defaultRole; // comes from hook argument, always reliable
+    const activateRole = defaultRole;
 
     try {
       const result = await createUserWithEmailAndPassword(auth, email, password);
@@ -39,6 +39,17 @@ const useRegister = (defaultRole) => {
       }
 
       await setDoc(doc(db, "users", user.uid), userData);
+
+      if (activateRole === "vendor") {
+        await setDoc(doc(db, "vendors", user.uid), {
+          businessName,
+          email,
+          staffNumber,
+          ownerId: user.uid,
+          createdAt: new Date(),
+          status: "active",
+        });
+      }
 
       navigate("/", { replace: true });
 

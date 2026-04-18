@@ -30,7 +30,7 @@ function VDashboard({ uid }) {
 
   const handleStoreUpdate = async (updatedData) => {
     setStoreData(updatedData);
-    await setDoc(doc(db, 'stores', uid), updatedData);
+    await setDoc(doc(db, 'Vendors', uid), updatedData);
   };
 
   const renderSection = () => {

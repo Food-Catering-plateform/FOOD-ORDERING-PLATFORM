@@ -26,6 +26,7 @@ function App() {
   };
 
   const isAuthScreen = activePage === 'login' || activePage === 'logout';
+
   const useCustomerChrome =
     !isAuthScreen &&
     activePage !== 'vendor-dashboard' &&
@@ -39,9 +40,16 @@ function App() {
       const uid = auth.currentUser.uid;
       setVendorUid(uid);
       setChecking(true);
-      const storeSnap = await getDoc(doc(db, 'stores', uid));
+
+      const storeSnap = await getDoc(doc(db, 'Vendors', uid));
+
       setChecking(false);
-      setActivePage(storeSnap.exists() ? 'vendor-dashboard' : 'store-setup');
+
+      setActivePage(
+        storeSnap.exists()
+          ? 'vendor-dashboard'
+          : 'store-setup'
+      );
     } else {
       setActivePage('shops');
     }
@@ -50,7 +58,12 @@ function App() {
   const renderPage = () => {
     if (checking) {
       return (
-        <p style={{ textAlign: 'center', marginTop: '40vh', fontSize: '1rem', color: '#999' }}>
+        <p style={{
+          textAlign: 'center',
+          marginTop: '40vh',
+          fontSize: '1rem',
+          color: '#999'
+        }}>
           Loading...
         </p>
       );
@@ -66,13 +79,14 @@ function App() {
       case 'basket':
         return <Basket />;
       case 'shops':
-        return( <Shops
-                onSelectShop={(shop) => {
-                setSelectedShop(shop);
-                setActivePage('menu-view');
+        return (
+          <Shops
+            onSelectShop={(shop) => {
+              setSelectedShop(shop);
+              setActivePage('menu-view');
             }}
-        />
-      );
+          />
+        );
       case 'menu-view':
         return (
           <MenuView
@@ -81,7 +95,12 @@ function App() {
           />
         );
       case 'store-setup':
-        return <StoreSetup uid={vendorUid} onComplete={() => setActivePage('vendor-dashboard')} />;
+        return (
+          <StoreSetup
+            uid={vendorUid}
+            onComplete={() => setActivePage('vendor-dashboard')}
+          />
+        );
       case 'vendor-dashboard':
         return <VDashboard uid={vendorUid} />;
       case 'admin-dashboard':
@@ -94,17 +113,22 @@ function App() {
     }
   };
 
-  if (activePage === 'vendor-dashboard' || activePage === 'store-setup' || activePage === 'admin-dashboard') {
+  if (
+    activePage === 'vendor-dashboard' ||
+    activePage === 'store-setup' ||
+    activePage === 'admin-dashboard'
+  ) {
     return <>{renderPage()}</>;
   }
 
   return (
     <>
-      {useCustomerChrome && <Navbar setActivePage={setActivePage} />}
+      {useCustomerChrome && (
+        <Navbar setActivePage={setActivePage} />
+      )}
 
       <section
         className="app-shell"
-        aria-label={isAuthScreen ? 'Sign in or register' : 'Main workspace'}
         style={{ display: 'flex' }}
       >
         {useCustomerChrome && (
@@ -117,7 +141,6 @@ function App() {
         )}
 
         <main
-          className="main-content"
           style={{
             marginLeft: useCustomerChrome ? (sidebarOpen ? '187px' : '60px') : '0',
             transition: '0.3s ease',
@@ -136,7 +159,6 @@ function App() {
 }
 
 export default App;
-
 /*import VDashboard from './components/Vendor/VDashboard';
 
 function App() {

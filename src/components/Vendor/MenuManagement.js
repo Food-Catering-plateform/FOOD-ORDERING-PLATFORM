@@ -2,20 +2,19 @@ import React, { useState, useRef, useEffect } from 'react';
 import './MenuManagement.css';
 import { collection, addDoc, updateDoc, getDocs, doc, deleteDoc } from "firebase/firestore";
 import { db } from "../../Firebase/firebaseConfig";
-
+import { useAuth } from "../../Services/AuthContext";
 
 function MenuManagement() {
-  const itemCollectionRef = collection(db, "menuItems");
+  const { vendorId } = useAuth();
 
   const [items, setItems] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
-
   const [form, setForm] = useState({
     name: '',
     price: '',
     qty: '',
-    desc: '',
-    image: null
+    description: '',
+    imageUrl: null
   });
 
   const formRef = useRef(null);
@@ -28,7 +27,7 @@ function MenuManagement() {
       if (file) {
         const reader = new FileReader();
         reader.onload = () =>
-          setForm(f => ({ ...f, image: reader.result }));
+          setForm(f => ({ ...f, imageUrl: reader.result }));
         reader.readAsDataURL(file);
       }
     } else {
@@ -36,7 +35,7 @@ function MenuManagement() {
         foodName: 'name',
         foodPrice: 'price',
         foodQty: 'qty',
-        foodDesc: 'desc'
+        foodDesc: 'description'
       }[id];
 
       setForm(f => ({ ...f, [key]: value }));
@@ -45,10 +44,13 @@ function MenuManagement() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (!vendorId) return;
 
-    const image = form.image || (
+    const menuCollectionRef = collection(db, "Vendors", vendorId, "menuItems");
+
+    const imageUrl = form.imageUrl || (
       editingIndex !== null
-        ? items[editingIndex].image
+        ? items[editingIndex].imageUrl
         : 'https://placehold.co/60x60/f5e6d3/7a4e27?text=Food'
     );
 
@@ -56,8 +58,8 @@ function MenuManagement() {
       name: form.name.trim(),
       price: parseFloat(form.price).toFixed(2),
       qty: form.qty,
-      desc: form.desc.trim(),
-      image
+      description: form.description.trim(),
+      imageUrl
     };
 
     try {
@@ -65,7 +67,7 @@ function MenuManagement() {
         const itemToEdit = items[editingIndex];
 
         await updateDoc(
-          doc(db, "menuItems", itemToEdit.id),
+          doc(db, "Vendors", vendorId, "menuItems", itemToEdit.id),
           newItem
         );
 
@@ -78,7 +80,7 @@ function MenuManagement() {
         setEditingIndex(null);
 
       } else {
-        const docRef = await addDoc(itemCollectionRef, newItem);
+        const docRef = await addDoc(menuCollectionRef, newItem);
 
         setItems(prev => [
           ...prev,
@@ -86,7 +88,7 @@ function MenuManagement() {
         ]);
       }
 
-      setForm({ name: '', price: '', qty: '', desc: '', image: null });
+      setForm({ name: '', price: '', qty: '', description: '', imageUrl: null });
 
     } catch (error) {
       console.error("Error saving item:", error);
@@ -94,13 +96,16 @@ function MenuManagement() {
   }
 
   useEffect(() => {
+    if (!vendorId) return;
+
     const fetchItems = async () => {
       try {
-        const data = await getDocs(itemCollectionRef);
+        const menuCollectionRef = collection(db, "Vendors", vendorId, "menuItems");
+        const data = await getDocs(menuCollectionRef);
 
-        const filteredData = data.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
+        const filteredData = data.docs.map(d => ({
+          id: d.id,
+          ...d.data()
         }));
 
         setItems(filteredData);
@@ -111,7 +116,8 @@ function MenuManagement() {
     };
 
     fetchItems();
-  }, [itemCollectionRef]);
+  
+  }, [vendorId]);
 
   function editItem(index) {
     const item = items[index];
@@ -121,8 +127,8 @@ function MenuManagement() {
       name: item.name,
       price: item.price,
       qty: item.qty,
-      desc: item.desc,
-      image: item.image
+      description: item.description,
+      imageUrl: item.imageUrl
     });
 
     formRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -132,13 +138,13 @@ function MenuManagement() {
     const item = items[index];
 
     try {
-      await deleteDoc(doc(db, "menuItems", item.id));
+      await deleteDoc(doc(db, "Vendors", vendorId, "menuItems", item.id));
 
       setItems(prev => prev.filter((_, i) => i !== index));
 
       if (editingIndex === index) {
         setEditingIndex(null);
-        setForm({ name: '', price: '', qty: '', desc: '', image: null });
+        setForm({ name: '', price: '', qty: '', description: '', imageUrl: null });
       }
 
     } catch (error) {
@@ -146,27 +152,21 @@ function MenuManagement() {
     }
   }
 
+  if (!vendorId) return <p>Loading...</p>;
+
   return (
     <section className="page">
       <h1>Menu Management</h1>
 
       <section className="card" ref={formRef}>
-        <h2>Add Food Item</h2>
+        <h2>{editingIndex !== null ? 'Edit Food Item' : 'Add Food Item'}</h2>
+
         <form onSubmit={handleSubmit}>
-          <label htmlFor="foodName">Food Name</label>
-          <input id="foodName" type="text" placeholder="e.g. Burger" value={form.name} onChange={handleChange} required />
-
-          <label htmlFor="foodPrice">Price</label>
-          <input id="foodPrice" type="number" placeholder="0.00" min="0" step="0.01" value={form.price} onChange={handleChange} required />
-
-          <label htmlFor="foodQty">Quantity</label>
-          <input id="foodQty" type="number" placeholder="1" min="1" value={form.qty} onChange={handleChange} required />
-
-          <label htmlFor="foodDesc">Description</label>
-          <textarea id="foodDesc" placeholder="Describe food..." value={form.desc} onChange={handleChange} />
-
-          <label htmlFor="foodImage">Image</label>
-          <input id="foodImage" type="file" accept="image/*" onChange={handleChange} />
+          <input id="foodName" placeholder="Food Name" value={form.name} onChange={handleChange} />
+          <input id="foodPrice" placeholder="Price" value={form.price} onChange={handleChange} />
+          <input id="foodQty" placeholder="Quantity" value={form.qty} onChange={handleChange} />
+          <textarea id="foodDesc" placeholder="Description" value={form.description} onChange={handleChange} />
+          <input id="foodImage" type="file" onChange={handleChange} />
 
           <button type="submit" id="submitBtn">
             {editingIndex !== null ? 'Save Changes' : 'Add Product'}
@@ -174,25 +174,17 @@ function MenuManagement() {
         </form>
       </section>
 
-      <section className="card">
-        <h2>Existing Menu Items</h2>
-        {items.length === 0 && <p id="emptyMsg">No items yet. Add one above.</p>}
-        <ul id="productList">
-          {items.map((item, index) => (
-            <li key={item.id} className={editingIndex === index ? 'editing' : ''}>
-              <img src={item.image} alt={item.name} />
-              <section className="info" aria-label={item.name}>
-                <h3>{item.name}</h3>
-                <p>Price: R {item.price}</p>
-                <p>Qty: {item.qty}</p>
-                {item.desc && <em>{item.desc}</em>}
-              </section>
-              <button onClick={() => editItem(index)}>Edit</button>
-              <button className="delete-btn" onClick={() => deleteItem(index)}>Delete</button>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <ul>
+        {items.map((item, index) => (
+          <li key={item.id}>
+            <img src={item.imageUrl} alt={item.name} />
+            <h3>{item.name}</h3>
+            <p>R {item.price}</p>
+            <button onClick={() => editItem(index)}>Edit</button>
+            <button onClick={() => deleteItem(index)}>Delete</button>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

@@ -37,6 +37,7 @@ export const useLogin = (options = {}) => {
     if (role === "student") {
       navigate("/student/dashboard");
     } else if (role === "vendor") {
+      
       navigate("/vendor/dashboard");
     } else if (role === "admin") {
       navigate("/admin/dashboard");

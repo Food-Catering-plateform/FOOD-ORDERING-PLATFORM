@@ -28,14 +28,14 @@ function SignupRole() {
           </p>
         </section>
 
-        <aside className="sider" aria-label="About EaziEats">
-          <h2>Join EaziEats</h2>
+        <aside className="sider" aria-label="About UniEats">
+          <h2>Join UniEats</h2>
           <p>Order food or manage your store on campus.</p>
         </aside>
       </main>
 
       <footer>
-        <p>&copy; 2026 Eats</p>
+        <p>&copy; 2026 UniEats</p>
       </footer>
     </section>
   );

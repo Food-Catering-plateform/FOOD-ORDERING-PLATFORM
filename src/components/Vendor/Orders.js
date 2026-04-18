@@ -1,67 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './Orders.css';
+import { collection, addDoc, updateDoc, getDocs, doc, deleteDoc,query,where } from "firebase/firestore";
+import { db } from "../../Firebase/firebaseConfig";
+import { useAuth } from "../../Services/AuthContext";
 
-const INITIAL_ORDERS = [
-  {
-    id: 'ORD-001',
-    customerName: 'Thabo Nkosi',
-    items: [
-      { name: 'Grilled Chicken Burger', qty: 2, price: 89.99 },
-      { name: 'Cheese Fries', qty: 1, price: 34.99 },
-    ],
-    total: 214.97,
-    status: 'pending',
-    time: '08:14',
-    notes: 'No pickles on the burger please',
-  },
-  {
-    id: 'ORD-002',
-    customerName: 'Lerato Dlamini',
-    items: [
-      { name: 'Veggie Wrap', qty: 1, price: 69.99 },
-      { name: 'Fresh Orange Juice', qty: 2, price: 29.99 },
-    ],
-    total: 129.97,
-    status: 'preparing',
-    time: '08:22',
-    notes: '',
-  },
-  {
-    id: 'ORD-003',
-    customerName: 'Sipho Molefe',
-    items: [
-      { name: 'Beef Stew & Rice', qty: 1, price: 99.99 },
-    ],
-    total: 99.99,
-    status: 'ready',
-    time: '08:05',
-    notes: 'Extra sauce on the side',
-  },
-  {
-    id: 'ORD-004',
-    customerName: 'Nomsa Zulu',
-    items: [
-      { name: 'Grilled Chicken Burger', qty: 3, price: 89.99 },
-      { name: 'Soft Drink', qty: 3, price: 19.99 },
-    ],
-    total: 329.94,
-    status: 'completed',
-    time: '07:50',
-    notes: '',
-  },
-  {
-    id: 'ORD-005',
-    customerName: 'Kagiso Sithole',
-    items: [
-      { name: 'Cheese Fries', qty: 2, price: 34.99 },
-      { name: 'Iced Tea', qty: 1, price: 24.99 },
-    ],
-    total: 94.97,
-    status: 'cancelled',
-    time: '08:01',
-    notes: 'Customer requested cancellation',
-  },
-];
+
+
 
 const STATUS_FLOW = {
   pending: 'preparing',
@@ -80,12 +24,36 @@ const STATUS_LABELS = {
 const FILTER_OPTIONS = ['all', 'pending', 'preparing', 'ready', 'completed', 'cancelled'];
 
 function Orders() {
-  const [orders, setOrders] = useState(INITIAL_ORDERS);
+  const [orders, setOrders] = useState([]);
   const [filter, setFilter] = useState('all');
+  const { vendorId } = useAuth();
 
-  const visibleOrders = filter === 'all'
-    ? orders
-    : orders.filter(o => o.status === filter);
+///function to fetch the data from the orders table into to display them 
+
+useEffect(() => {
+  if (!vendorId) return;
+
+  const fetchOrders = async () => {
+    try {
+      const q = query(
+        collection(db, "Orders"),
+        where("vendorID", "==", vendorId)
+      );
+      const data = await getDocs(q);
+      const fetched = data.docs.map(d => ({ id: d.id, ...d.data() }));
+      setOrders(fetched);
+    } catch (error) {
+      console.error("Unable to fetch orders", error);
+    }
+  };
+
+  fetchOrders();
+},[vendorId])
+
+  const visibleOrders =
+    filter === 'all'
+      ? orders
+      : orders.filter(o => o.status === filter);
 
   function advanceStatus(id) {
     setOrders(prev =>
@@ -100,7 +68,9 @@ function Orders() {
   function cancelOrder(id) {
     setOrders(prev =>
       prev.map(o =>
-        o.id === id && o.status !== 'completed' && o.status !== 'cancelled'
+        o.id === id &&
+        o.status !== 'completed' &&
+        o.status !== 'cancelled'
           ? { ...o, status: 'cancelled' }
           : o
       )
@@ -113,10 +83,13 @@ function Orders() {
   }, {});
 
   return (
-    <section className="orders-page">
-      <h1>Orders</h1>
+    <main className="orders-page">
+      <header>
+        <h1>Orders</h1>
+      </header>
 
-      <section className="orders-summary" aria-label="Order summary">
+      {/* Summary badges */}
+      <section className="orders-summary">
         {FILTER_OPTIONS.slice(1).map(s => (
           <article key={s} className={`summary-badge summary-badge--${s}`}>
             <data className="summary-count" value={counts[s]}>{counts[s]}</data>
@@ -125,7 +98,8 @@ function Orders() {
         ))}
       </section>
 
-      <nav className="orders-filters" aria-label="Filter orders">
+      {/* Filter tabs */}
+      <nav className="orders-filters">
         {FILTER_OPTIONS.map(f => (
           <button
             key={f}
@@ -133,17 +107,25 @@ function Orders() {
             onClick={() => setFilter(f)}
           >
             {f === 'all' ? 'All' : STATUS_LABELS[f]}
-            {f !== 'all' && <data className="filter-count" value={counts[f]}>{counts[f]}</data>}
+            {f !== 'all' && (
+              <span className="filter-count">{counts[f]}</span>
+            )}
           </button>
         ))}
       </nav>
 
-      {visibleOrders.length === 0 ? (
-        <p className="no-orders">No {filter === 'all' ? '' : STATUS_LABELS[filter].toLowerCase() + ' '}orders at the moment.</p>
-      ) : (
-        <section className="orders-list" aria-label="Orders list">
-          {visibleOrders.map(order => (
-            <article key={order.id} className={`order-card order-card--${order.status}`}>
+      {/* Orders list */}
+      <section className="orders-list">
+        {visibleOrders.length === 0 ? (
+          <p className="no-orders">
+            No {filter === 'all' ? '' : STATUS_LABELS[filter].toLowerCase() + ' '}orders at the moment.
+          </p>
+        ) : (
+          visibleOrders.map(order => (
+            <article
+              key={order.id}
+              className={`order-card order-card--${order.status}`}
+            >
               <header className="order-card__header">
                 <p className="order-card__meta">
                   <b className="order-id">{order.id}</b>
@@ -154,28 +136,32 @@ function Orders() {
                 </span>
               </header>
 
-              <p className="order-card__customer">
+              <section className="order-card__customer">
                 <strong>{order.customerName}</strong>
-              </p>
+              </section>
 
               <ul className="order-items">
                 {order.items.map((item, i) => (
                   <li key={i} className="order-item">
                     <data className="item-qty" value={item.qty}>x{item.qty}</data>
                     <span className="item-name">{item.name}</span>
-                    <data className="item-price" value={(item.qty * item.price).toFixed(2)}>R {(item.qty * item.price).toFixed(2)}</data>
+                    <span className="item-price">
+                      R {(item.qty * item.price).toFixed(2)}
+                    </span>
                   </li>
                 ))}
               </ul>
 
-              {order.notes ? (
+              {order.notes && (
                 <p className="order-notes">Note: {order.notes}</p>
-              ) : null}
+              )}
 
               <footer className="order-card__footer">
-                <span className="order-total">Total: <strong>R {order.total.toFixed(2)}</strong></span>
+                <span className="order-total">
+                  Total: <strong>R {order.total.toFixed(2)}</strong>
+                </span>
 
-                <nav className="order-actions" aria-label="Order actions">
+                <section className="order-actions">
                   {STATUS_FLOW[order.status] && (
                     <button
                       className="btn btn--advance"
@@ -184,21 +170,23 @@ function Orders() {
                       Mark as {STATUS_LABELS[STATUS_FLOW[order.status]]}
                     </button>
                   )}
-                  {order.status !== 'completed' && order.status !== 'cancelled' && (
-                    <button
-                      className="btn btn--cancel"
-                      onClick={() => cancelOrder(order.id)}
-                    >
-                      Cancel
-                    </button>
-                  )}
-                </nav>
+
+                  {order.status !== 'completed' &&
+                    order.status !== 'cancelled' && (
+                      <button
+                        className="btn btn--cancel"
+                        onClick={() => cancelOrder(order.id)}
+                      >
+                        Cancel
+                      </button>
+                    )}
+                </section>
               </footer>
             </article>
-          ))}
-        </section>
-      )}
-    </section>
+          ))
+        )}
+      </section>
+    </main>
   );
 }
 
