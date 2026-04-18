@@ -113,10 +113,13 @@ function App() {
           <StoreSetup
             uid={vendorUid}
             onComplete={() => setActivePage('vendor-dashboard')}
+            // onCancel: signs vendor out and sends them back to login
+            onCancel={() => setActivePage('login')}
           />
         );
       case 'vendor-dashboard':
-        return <VDashboard uid={vendorUid} />;
+        // onLogout: resets the page to login when vendor clicks logout button in VDashboard
+        return <VDashboard uid={vendorUid} onLogout={() => setActivePage('login')} />;
       case 'admin-dashboard':
         return <AdminDashboard />;
       case 'login':

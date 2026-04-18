@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../../Firebase/firebaseConfig';
+import { auth } from '../../Firebase/firebaseConfig';
+import { signOut } from 'firebase/auth';
 import './VDashboard.css';
 import VenHome from './VenHome';
 import MenuManagement from './MenuManagement';
@@ -16,7 +18,7 @@ const navItems = [
   { key: 'settings',  label: 'Account Settings'  },
 ];
 
-function VDashboard({ uid }) {
+function VDashboard({ uid, onLogout }) {
   const [activeSection, setActiveSection] = useState('home');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [storeData, setStoreData] = useState(null);
@@ -39,7 +41,8 @@ function VDashboard({ uid }) {
       case 'menu':      return <MenuManagement />;
       case 'orders':    return <Orders />;
       case 'analytics': return <Analytics />;
-      case 'settings':  return <AccSettings storeData={storeData} onStoreUpdate={handleStoreUpdate} />;
+      // uid and onLogout passed so AccSettings can delete the account and redirect to login
+      case 'settings':  return <AccSettings storeData={storeData} onStoreUpdate={handleStoreUpdate} uid={uid} onLogout={onLogout} />;
       default:          return <VenHome />;
     }
   };
@@ -75,6 +78,7 @@ function VDashboard({ uid }) {
           </button>
         </header>
 
+        {/* handleLogout: signs out of Firebase then calls onLogout from App.js to go back to login */}
         <nav className="vendor-sidebar__nav" aria-label="Vendor navigation">
           <ul>
             {navItems.map(item => (
@@ -90,6 +94,13 @@ function VDashboard({ uid }) {
             ))}
           </ul>
         </nav>
+
+        <button
+          className="vendor-sidebar__logout"
+          onClick={() => signOut(auth).then(onLogout)}
+        >
+          {sidebarOpen ? 'Logout' : 'L'}
+        </button>
 
       </aside>
 

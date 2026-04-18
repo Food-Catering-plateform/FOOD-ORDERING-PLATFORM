@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import './AccSettings.css';
+import { auth } from '../../Firebase/firebaseConfig'; // Firebase auth instance needed to delete the account
+import { db } from '../../Firebase/firebaseConfig'; // Firestore instance to delete vendor documents
+import { deleteUser } from 'firebase/auth'; // removes the vendor's Firebase Auth account permanently
+import { deleteDoc, doc } from 'firebase/firestore'; // deletes vendor documents from Firestore collections
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -8,7 +12,9 @@ const CATEGORIES = [
   'Seafood', 'Desserts & Drinks', 'Grills & Braai', 'Other',
 ];
 
-function AccSettings({ storeData, onStoreUpdate }) {
+// uid: vendor's Firebase user ID used to find and delete their Firestore documents
+// onLogout: called after deletion to redirect the vendor back to the login page
+function AccSettings({ storeData, onStoreUpdate, uid, onLogout }) {
   const [storeForm, setStoreForm] = useState({
     name: '', category: '', description: '', address: '', phone: '',
     hours: {}, logoPreview: null, bannerPreview: null,
@@ -19,6 +25,20 @@ function AccSettings({ storeData, onStoreUpdate }) {
   });
 
   const [saved, setSaved] = useState(false);
+  // Admin application state — wire up Firebase here (save to adminApplications collection on submit)
+  const [adminApp, setAdminApp] = useState({ message: '', submitted: false });
+
+  // confirming: shows the final warning before deletion — prevents accidental deletes
+  const [confirming, setConfirming] = useState(false);
+
+  // handleDeleteAccount: deletes vendor's Firestore docs (users + Vendors collections) and their Auth account, then redirects to login
+  const handleDeleteAccount = async () => {
+    if (!uid) return;
+    await deleteDoc(doc(db, 'users', uid));   // remove user role document
+    await deleteDoc(doc(db, 'Vendors', uid)); // remove store document
+    await deleteUser(auth.currentUser);       // delete Firebase Auth account
+    onLogout();                               // redirect to login
+  };
 
   useEffect(() => {
     if (storeData) {
@@ -195,6 +215,57 @@ function AccSettings({ storeData, onStoreUpdate }) {
             <input type="password" value={accountForm.confirmPassword} placeholder="Repeat new password" onChange={e => updateAccount('confirmPassword', e.target.value)} />
           </p>
         </section>
+      </section>
+
+      {/* ── Platform Access — vendor applies for admin role (connect Firebase here) ── */}
+      <section className="acc-card acc-card--muted">
+        <h2 className="acc-card__title acc-card__title--muted">Platform Access</h2>
+        {adminApp.submitted ? (
+          <p className="admin-app__status">Your application has been submitted and is under review.</p>
+        ) : (
+          <>
+            <p className="admin-app__hint">
+              Want to help manage the platform? You can request elevated access here.
+            </p>
+            <p className="acc-field">
+              <label>Reason for applying</label>
+              <textarea
+                rows={3}
+                value={adminApp.message}
+                onChange={e => setAdminApp(prev => ({ ...prev, message: e.target.value }))}
+                placeholder="Briefly describe why you'd like admin access..."
+              />
+            </p>
+            <button
+              className="btn btn--ghost"
+              disabled={!adminApp.message.trim()}
+              onClick={() => setAdminApp(prev => ({ ...prev, submitted: true }))}
+            >
+              Submit Application
+            </button>
+          </>
+        )}
+      </section>
+
+      {/* ── Danger Zone — delete account section ── */}
+      <section className="acc-card acc-card--danger">
+        <h2 className="acc-card__title acc-card__title--danger">Danger Zone</h2>
+        <p className="danger-hint">Deleting your account is permanent and cannot be undone.</p>
+        {!confirming ? (
+          // first click — shows the warning step
+          <button className="btn btn--danger-ghost" onClick={() => setConfirming(true)}>
+            Delete Account
+          </button>
+        ) : (
+          // second step — vendor must confirm before deletion fires
+          <section className="danger-confirm">
+            <p className="danger-confirm__warning">Are you sure? This will delete your store and all your data.</p>
+            <footer className="danger-confirm__actions">
+              <button className="btn btn--ghost" onClick={() => setConfirming(false)}>Cancel</button>
+              <button className="btn btn--danger" onClick={handleDeleteAccount}>Yes, delete my account</button>
+            </footer>
+          </section>
+        )}
       </section>
 
       <footer className="acc-settings__footer">

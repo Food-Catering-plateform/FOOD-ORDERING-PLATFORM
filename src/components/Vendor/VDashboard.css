@@ -105,6 +105,32 @@
   font-size: 0.85rem;
 }
 
+/* ── Logout button — sits at bottom of sidebar ──────── */
+.vendor-sidebar__logout {
+  margin-top: auto;
+  width: 100%;
+  background: none;
+  border: none;
+  border-top: 1px solid #333;
+  color: #888;
+  font-size: 0.9rem;
+  padding: 16px;
+  cursor: pointer;
+  text-align: left;
+  white-space: nowrap;
+  transition: background 0.2s, color 0.2s;
+}
+
+.vendor-sidebar__logout:hover {
+  background-color: #2a2a2a;
+  color: #ff6b6b;
+}
+
+.vendor-sidebar.closed .vendor-sidebar__logout {
+  text-align: center;
+  padding: 16px 0;
+}
+
 /* ── Main content ───────────────────────────────────── */
 .vendor-main {
   flex: 1;

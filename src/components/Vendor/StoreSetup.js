@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../../Firebase/firebaseConfig';
+import { auth } from '../../Firebase/firebaseConfig'; // Firebase auth instance needed to sign the user out
+import { signOut } from 'firebase/auth'; // signs the vendor out of Firebase when they exit setup
 import { useAuth } from '../../Services/AuthContext';
 import './StoreSetup.css';
 
@@ -18,7 +20,7 @@ const defaultHours = DAYS.reduce((acc, day) => {
   return acc;
 }, {});
 
-function StoreSetup({ onComplete }) {
+function StoreSetup({ onComplete, onCancel }) {
   const { vendorId } = useAuth();
 
   const [step, setStep] = useState(0);
@@ -92,7 +94,7 @@ function StoreSetup({ onComplete }) {
   if (!vendorId) return <p>Loading...</p>;
 
   return (
-    <div className="store-setup-page">
+    <main className="store-setup-page">
       <article className="store-setup">
 
         <header className="store-setup__header">
@@ -296,6 +298,10 @@ function StoreSetup({ onComplete }) {
         </section>
 
         <footer className="store-setup__nav">
+          {/* on step 0: exit button signs vendor out and goes back to login via onCancel */}
+          {step === 0 && (
+            <button className="btn btn--ghost" onClick={() => signOut(auth).then(onCancel)}>Exit</button>
+          )}
           {step > 0 && (
             <button className="btn btn--ghost" onClick={back}>Back</button>
           )}
@@ -306,7 +312,7 @@ function StoreSetup({ onComplete }) {
         </footer>
 
       </article>
-    </div>
+    </main>
   );
 }
 
