@@ -39,10 +39,16 @@ function Dashboard() {
 
     <section>
       {menu.map((item,index) =>(
-        <div key = {index} > 
-          <h3>{item.name}</h3>
-          <p>R{item.price}</p>
-          <p>{item.vendorName}</p>
+        <div key = {index} className = "vendor-card"> 
+          <h3 className = "business-name"> {item.businessName} </h3>
+
+          <img
+            src = {item.imageUrl || "https://via.placeholder.com/150"}
+            alt = {item.businessName}
+            className = "vendor-image" />
+
+          <p className = "vendor-description"> {item.description} </p>
+        
         </div>
       ))}
 

@@ -3,15 +3,16 @@ import '../css/Shops.css';
 import { db } from "../../../Firebase/firebaseConfig";
 import { collection, getDocs } from "firebase/firestore";
 
-const MenuView = ({ shop, onBack }) => {
+const MenuView = ({ shop, onBack, addToBasket }) => {
   const [menuItems, setMenuItems] = useState([]);
+  const [addedId, setAddedId] = useState(null);
 
   useEffect(() => {
     const fetchMenu = async () => {
       if (!shop?.id) return; 
 
       const menuSnapshot = await getDocs(
-        collection(db, "Vendors", shop.id, "menu")
+        collection(db, "Vendors", shop.id, "menuItems")
       );
 
       const items = [];
@@ -45,8 +46,16 @@ const MenuView = ({ shop, onBack }) => {
 
             <footer>
               <small>Qty: {item.qty}</small>
-              <button type="button">
-                Add to Basket
+              {/* flashes "Added!" for 1 second so the student knows the click worked */}
+              <button
+                type="button"
+                onClick={() => {
+                  addToBasket(item, shop);
+                  setAddedId(item.id);
+                  setTimeout(() => setAddedId(null), 1000);
+                }}
+              >
+                {addedId === item.id ? 'Added!' : 'Add to Basket'}
               </button>
             </footer>
           </article>

@@ -1,0 +1,21 @@
+  .business-name {
+  font-weight: bold;
+  font-size: 1.4rem;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.vendor-image {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  display: block;
+  margin: 0 auto 10px auto;
+  border-radius: 8px;
+}
+
+.vendor-description {
+  font-size: 0.9rem;
+  text-align: center;
+  color: #555;
+}

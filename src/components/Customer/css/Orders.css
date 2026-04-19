@@ -1,6 +1,6 @@
 .page {
-  margin-left: 20px; /* leaves space for sidebar */
-  margin-top: 80px;   /* leaves space for navbar */
+  margin-left: 20px;
+  margin-top: 80px;   
   align-items: self-start;
   display: flex;
   flex-direction: column;
@@ -11,4 +11,82 @@
   font-size: 18px;
   color: #000000;
   font-weight: 500;
+}
+
+.customer-orders-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 680px;
+}
+
+.customer-order-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  border-left: 4px solid #d1d5db;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.customer-order-card--pending   { border-left-color: #f59e0b; }
+.customer-order-card--preparing { border-left-color: #3b82f6; }
+.customer-order-card--ready     { border-left-color: #16a34a; }
+.customer-order-card--completed { border-left-color: #6b7280; }
+.customer-order-card--cancelled { border-left-color: #ef4444; }
+
+.customer-order__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.customer-order__header section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.customer-order__header time {
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.customer-status-badge {
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.customer-status-badge--pending   { background: #fef3c7; color: #92400e; }
+.customer-status-badge--preparing { background: #dbeafe; color: #1e40af; }
+.customer-status-badge--ready     { background: #dcfce7; color: #15803d; }
+.customer-status-badge--completed { background: #f3f4f6; color: #374151; }
+.customer-status-badge--cancelled { background: #fee2e2; color: #b91c1c; }
+
+.customer-order__items {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.customer-order__items li {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+.customer-order__footer {
+  border-top: 1px solid #f3f4f6;
+  padding-top: 10px;
+  text-align: right;
 }
