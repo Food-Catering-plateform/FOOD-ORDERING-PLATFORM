@@ -181,7 +181,7 @@ function App() {
             flex: 1,
             display:'flex',
             justifyContent: 'center',
-            background: isAuthScreen ? '#f3f4f6' : '#e6f2ff',
+            background: isAuthScreen ? '#f3f4f6' : '#8896a5',
             minHeight: '100vh',
           }}
         >
