@@ -4,12 +4,12 @@ import { db } from '../../../Firebase/firebaseConfig';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { useAuth } from '../../../Services/AuthContext';
 
-const STATUS_LABELS = {
-  pending:   'Pending',
-  preparing: 'Preparing',
-  ready:     'Ready for Pickup',
-  completed: 'Completed',
-  cancelled: 'Cancelled',
+const STATUS_STEPS = {
+  pending:   1,
+  preparing: 2,
+  ready:     3,
+  completed: 3,
+  cancelled: 1,
 };
 
 const Orders = () => {
@@ -26,7 +26,6 @@ const Orders = () => {
 
     const unsubscribe = onSnapshot(q, (snap) => {
       const fetched = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      // show newest orders first
       fetched.sort((a, b) => new Date(b.time) - new Date(a.time));
       setOrders(fetched);
     });
@@ -48,17 +47,12 @@ const Orders = () => {
         ) : (
           <ul className="customer-orders-list">
             {orders.map(order => (
-              <li key={order.id} className={`customer-order-card customer-order-card--${order.status}`}>
-
+              <li key={order.id} className="order-card">
                 <header className="customer-order__header">
                   <section>
                     <strong>{order.vendorName || 'Vendor'}</strong>
                     <time>{order.time}</time>
                   </section>
-                  {/* status badge reflects real-time Firestore status — updates instantly when vendor acts */}
-                  <span className={`customer-status-badge customer-status-badge--${order.status}`}>
-                    {STATUS_LABELS[order.status] || order.status}
-                  </span>
                 </header>
 
                 <ul className="customer-order__items">
@@ -70,10 +64,30 @@ const Orders = () => {
                   ))}
                 </ul>
 
+                <ol className="status-tracker" aria-label="Order status">
+                  <li className={`status-step ${STATUS_STEPS[order.status] >= 1 ? 'active' : ''}`}>
+                    <span className="status-circle">1</span>
+                    <p>Order Received</p>
+                  </li>
+
+                  <div className={`status-line ${STATUS_STEPS[order.status] >= 2 ? 'active' : ''}`}></div>
+
+                  <li className={`status-step ${STATUS_STEPS[order.status] >= 2 ? 'active' : ''}`}>
+                    <span className="status-circle">2</span>
+                    <p>Preparing</p>
+                  </li>
+
+                  <div className={`status-line ${STATUS_STEPS[order.status] >= 3 ? 'active' : ''}`}></div>
+
+                  <li className={`status-step ${STATUS_STEPS[order.status] >= 3 ? 'active' : ''}`}>
+                    <span className="status-circle">3</span>
+                    <p>Ready for Pickup</p>
+                  </li>
+                </ol>
+
                 <footer className="customer-order__footer">
                   <strong>Total: R {order.total?.toFixed(2)}</strong>
                 </footer>
-
               </li>
             ))}
           </ul>
