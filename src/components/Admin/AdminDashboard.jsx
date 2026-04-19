@@ -1,19 +1,19 @@
 import React from "react";
 import "./styles.css";
 
-const AdminDashboard = () => {
+const AdminDashboard = ({ setActivePage }) => {
   return (
-    <div className="dashboard-container">
+    <section className="dashboard-container">
       <aside>
         <h2>Admin</h2>
-        <nav>
+        <nav aria-label="Admin navigation">
           <ul>
-            <li>Dashboard</li>
-            <li>Orders</li>
-            <li>Restaurants</li>
-            <li>Users</li>
-            <li>Payments</li>
-            <li>Settings</li>
+            <li><button onClick={() => {}}>Dashboard</button></li>
+            <li><button onClick={() => {}}>Orders</button></li>
+            <li><button onClick={() => setActivePage('admin-vendor-management')}>Vendors</button></li>
+            <li><button onClick={() => {}}>Users</button></li>
+            <li><button onClick={() => {}}>Payments</button></li>
+            <li><button onClick={() => {}}>Settings</button></li>
           </ul>
         </nav>
       </aside>
@@ -23,48 +23,42 @@ const AdminDashboard = () => {
           <h1>Dashboard</h1>
         </header>
 
-        <section className="cards">
+        <section className="cards" aria-label="Summary statistics">
           <article>
             <h3>Total Orders</h3>
             <p>120</p>
           </article>
-
           <article>
             <h3>Revenue</h3>
             <p>R5,000</p>
           </article>
-
           <article>
             <h3>New Users</h3>
             <p>10</p>
           </article>
         </section>
 
-        <section>
-          <h2>Recent Orders</h2>
-
+        <section aria-labelledby="recent-orders-heading">
+          <h2 id="recent-orders-heading">Recent Orders</h2>
           <table>
             <thead>
               <tr>
-                <th>Order ID</th>
-                <th>Customer</th>
-                <th>Status</th>
+                <th scope="col">Order ID</th>
+                <th scope="col">Customer</th>
+                <th scope="col">Status</th>
               </tr>
             </thead>
-
             <tbody>
               <tr>
                 <td>#001</td>
                 <td>John</td>
                 <td>Delivered</td>
               </tr>
-
               <tr>
                 <td>#002</td>
                 <td>Alice</td>
                 <td>Pending</td>
               </tr>
-
               <tr>
                 <td>#003</td>
                 <td>Mike</td>
@@ -74,9 +68,11 @@ const AdminDashboard = () => {
           </table>
         </section>
 
-        <footer>© 2026 UniEats</footer>
+        <footer>
+          <small>© 2026 UniEats</small>
+        </footer>
       </main>
-    </div>
+    </section>
   );
 };
 

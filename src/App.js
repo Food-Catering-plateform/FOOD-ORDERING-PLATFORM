@@ -11,6 +11,7 @@ import VDashboard from './components/Vendor/VDashboard';
 import StoreSetup from './components/Vendor/StoreSetup';
 import MenuView from './components/Customer/jsFiles/MenuView';
 import AdminDashboard from './components/Admin/AdminDashboard';
+import AdminVendorManagement from './components/Admin/AdminVendorManagement';
 import { auth, db } from './Firebase/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -43,7 +44,8 @@ function App() {
     !isAuthScreen &&
     activePage !== 'vendor-dashboard' &&
     activePage !== 'store-setup' &&
-    activePage !== 'admin-dashboard';
+    activePage !== 'admin-dashboard' &&
+    activePage !== 'admin-vendor-management';
 
   const handleLoginSuccess = useCallback(async (role) => {
     if (role === 'admin') {
@@ -114,7 +116,6 @@ function App() {
         );
       case 'menu-view':
         return (
-          // addToBasket passed here so the "Add to Basket" button in MenuView actually works
           <MenuView
             shop={selectedShop}
             onBack={() => setActivePage('shops')}
@@ -126,15 +127,15 @@ function App() {
           <StoreSetup
             uid={vendorUid}
             onComplete={() => setActivePage('vendor-dashboard')}
-            // onCancel: signs vendor out and sends them back to login
             onCancel={() => setActivePage('login')}
           />
         );
       case 'vendor-dashboard':
-        // onLogout: resets the page to login when vendor clicks logout button in VDashboard
         return <VDashboard uid={vendorUid} onLogout={() => setActivePage('login')} />;
       case 'admin-dashboard':
-        return <AdminDashboard />;
+        return <AdminDashboard setActivePage={setActivePage} />;
+      case 'admin-vendor-management':
+        return <AdminVendorManagement setActivePage={setActivePage} />;
       case 'login':
       case 'logout':
         return <Login onLoginSuccess={handleLoginSuccess} />;
@@ -146,7 +147,8 @@ function App() {
   if (
     activePage === 'vendor-dashboard' ||
     activePage === 'store-setup' ||
-    activePage === 'admin-dashboard'
+    activePage === 'admin-dashboard' ||
+    activePage === 'admin-vendor-management'
   ) {
     return <>{renderPage()}</>;
   }
