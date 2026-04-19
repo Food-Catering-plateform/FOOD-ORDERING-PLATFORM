@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import VenHome from './VenHome';
+import VenHome from '../VenHome';
 
-jest.mock('./VenHome.css', () => ({}));
+jest.mock('../VenHome.css', () => ({}));
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
@@ -24,16 +24,15 @@ describe('VenHome – rendering', () => {
 
   it('renders all four stat cards', () => {
     render(<VenHome />);
-    expect(screen.getByText("New Orders")).toBeInTheDocument();
-    expect(screen.getByText("Menu Items")).toBeInTheDocument();
+    expect(screen.getByText('New Orders')).toBeInTheDocument();
+    expect(screen.getByText('Menu Items')).toBeInTheDocument();
     expect(screen.getByText("Today's Revenue")).toBeInTheDocument();
-    expect(screen.getByText("Customers Served")).toBeInTheDocument();
+    expect(screen.getByText('Customers Served')).toBeInTheDocument();
   });
 
   it('renders zero values for all stats', () => {
     render(<VenHome />);
     expect(screen.getByText('R 0.00')).toBeInTheDocument();
-    // Three stat cards show "0"
     const zeros = screen.getAllByText('0');
     expect(zeros.length).toBeGreaterThanOrEqual(3);
   });

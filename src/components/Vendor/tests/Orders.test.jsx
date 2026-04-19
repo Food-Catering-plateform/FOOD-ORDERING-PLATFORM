@@ -1,12 +1,9 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import Orders from './Orders';
 
-// ─── Mocks ────────────────────────────────────────────────────────────────────
 
-jest.mock('../../Services/AuthContext', () => ({ useAuth: jest.fn() }));
-jest.mock('../../Firebase/firebaseConfig', () => ({ db: {} }));
+//mocks
 jest.mock('firebase/firestore', () => ({
   collection: jest.fn(),
   getDocs:    jest.fn(),
@@ -17,10 +14,13 @@ jest.mock('firebase/firestore', () => ({
   doc:        jest.fn(),
   deleteDoc:  jest.fn(),
 }));
-jest.mock('./Orders.css', () => ({}));
-
+jest.mock('../../../Services/AuthContext',);
+jest.mock('../../../Firebase/firebaseConfig');
+jest.mock('../Orders.css');
+ import Orders from '../Orders';
 import { useAuth } from '../../Services/AuthContext';
-import { getDocs, query, collection, where } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, getDocs, doc, deleteDoc } from 'firebase/firestore';
+
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

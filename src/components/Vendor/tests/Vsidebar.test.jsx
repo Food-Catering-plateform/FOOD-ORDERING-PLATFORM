@@ -1,9 +1,9 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import Sidebar from './Sidebar';
+import Sidebar from '../Sidebar';
 
-jest.mock('./Sidebar.css', () => ({}));
+jest.mock('../Sidebar.css', () => ({}));
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
