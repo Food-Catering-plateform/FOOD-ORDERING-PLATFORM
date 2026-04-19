@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import './Orders.css';
 
-import { collection, addDoc, updateDoc, getDocs, doc, deleteDoc,query,where } from "firebase/firestore";
+// replaced getDocs with onSnapshot so the orders list updates in real-time
+// without the vendor needing to refresh the page when a new student order comes in
+import { collection, updateDoc, onSnapshot, doc, query, where } from "firebase/firestore";
 import { db } from "../../Firebase/firebaseConfig";
 import { useAuth } from "../../Services/AuthContext";
 
@@ -29,55 +31,61 @@ function Orders() {
   const [filter, setFilter] = useState('all');
   const { vendorId } = useAuth();
 
-///function to fetch the data from the orders table into to display them 
-
+// CHANGED: switched from getDocs (one-time fetch) to onSnapshot (real-time listener).
+// previously the vendor had to manually refresh the page to see new orders from students.
+// now onSnapshot opens a live connection to Firestore — any time an order is added,
+// updated, or cancelled by a student, this callback fires automatically and updates the UI.
 useEffect(() => {
   if (!vendorId) return;
 
-  const fetchOrders = async () => {
-    try {
-      const q = query(
-        collection(db, "Orders"),
-        where("vendorID", "==", vendorId)
-      );
+  const q = query(
+    collection(db, "Orders"),
+    where("vendorID", "==", vendorId)
+  );
 
-      const data = await getDocs(q);
-      const fetched = data.docs.map(d => ({ id: d.id, ...d.data() }));
-      setOrders(fetched);
+  // onSnapshot returns an unsubscribe function — we return it from useEffect so React
+  // cleans up the listener when the Orders component unmounts (e.g. vendor switches tab).
+  // without this cleanup the listener would keep running in the background and waste resources.
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    const fetched = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    setOrders(fetched);
+  }, (error) => {
+    console.error("Unable to listen to orders", error);
+  });
 
-    } catch (error) {
-      console.error("Unable to fetch orders", error);
-    }
-  };
+  return () => unsubscribe();
 
-  fetchOrders();
-
-},[vendorId])
+}, [vendorId])
 
   const visibleOrders =
     filter === 'all'
       ? orders
       : orders.filter(o => o.status === filter);
 
-  function advanceStatus(id) {
+  // FIX: was only updating local state — Firestore never knew the status changed,
+  // so the customer's Notifications page never received updates and the status
+  // reverted to its old value on page refresh. Now we write to Firestore first,
+  // then mirror the change in local state so the UI stays in sync.
+  async function advanceStatus(id) {
+    const order = orders.find(o => o.id === id);
+    if (!order || !STATUS_FLOW[order.status]) return;
+
+    const newStatus = STATUS_FLOW[order.status];
+    await updateDoc(doc(db, "Orders", id), { status: newStatus });
+
     setOrders(prev =>
-      prev.map(o =>
-        o.id === id && STATUS_FLOW[o.status]
-          ? { ...o, status: STATUS_FLOW[o.status] }
-          : o
-      )
+      prev.map(o => o.id === id ? { ...o, status: newStatus } : o)
     );
   }
 
-  function cancelOrder(id) {
+  async function cancelOrder(id) {
+    const order = orders.find(o => o.id === id);
+    if (!order || order.status === 'completed' || order.status === 'cancelled') return;
+
+    await updateDoc(doc(db, "Orders", id), { status: 'cancelled' });
+
     setOrders(prev =>
-      prev.map(o =>
-        o.id === id &&
-        o.status !== 'completed' &&
-        o.status !== 'cancelled'
-          ? { ...o, status: 'cancelled' }
-          : o
-      )
+      prev.map(o => o.id === id ? { ...o, status: 'cancelled' } : o)
     );
   }
 
