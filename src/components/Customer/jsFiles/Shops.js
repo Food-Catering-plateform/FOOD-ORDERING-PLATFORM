@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import '../css/Shops.css';
 import { db } from "../../../Firebase/firebaseConfig";
 import { collection, getDocs } from "firebase/firestore";
+import logo from '../../../Assets/logo2.png'
 
 const Shops = ({ onSelectShop }) => {
   const [vendors, setVendors] = useState([]);
@@ -30,17 +31,18 @@ const Shops = ({ onSelectShop }) => {
     fetchVendors();
   }, []);
 
-  const scrollRight = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: 300, behavior: 'smooth' });
-    }
-  };
-
   return (
-    <section className="vendor-container">
+    <section className="shops-header">
       <header>
-        <h1>Campus Dining Options</h1>
+        <h1>
+        Welcome to
+        <img src = {logo} alt ="UniEats logo" className="logo" />
+        </h1>
       </header>
+
+      <section>
+        <h2> The list of all vendors and their menus</h2>
+      </section>
 
       <section className="scroll-wrapper" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
         <div className="vendor-grid" ref={scrollRef}>
@@ -57,10 +59,6 @@ const Shops = ({ onSelectShop }) => {
             </article>
           ))}
         </div>
-
-        <button className="scroll-arrow" onClick={scrollRight}>
-          ➔
-        </button>
       </section>
     </section>
   );

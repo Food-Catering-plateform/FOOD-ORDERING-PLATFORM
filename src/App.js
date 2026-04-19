@@ -164,7 +164,9 @@ function App() {
             paddingTop: useCustomerChrome ? '80px' : '0',
             padding: isAuthScreen ? '0' : '20px',
             flex: 1,
-            background: isAuthScreen ? '#f3f4f6' : '#f5f6fa',
+            display:'flex',
+            justifyContent: 'center',
+            background: isAuthScreen ? '#f3f4f6' : '#e6f2ff',
             minHeight: '100vh',
           }}
         >
