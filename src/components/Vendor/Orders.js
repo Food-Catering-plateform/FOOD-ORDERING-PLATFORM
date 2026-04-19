@@ -109,7 +109,6 @@ useEffect(() => {
           </article>
         ))}
       </section>
-//filter tabs
       <nav className="orders-filters">
         {FILTER_OPTIONS.map(f => (
           <button

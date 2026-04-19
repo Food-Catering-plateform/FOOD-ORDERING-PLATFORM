@@ -84,7 +84,7 @@ function StoreSetup({ onComplete, onCancel }) {
       address:      form.address,
       phoneNumber:  form.phone,
       hours:        form.hours,
-      status:       'active',
+      status:       'Awaiting approval',
     };
 
     await setDoc(doc(db, 'Vendors', vendorId), storeData, { merge: true });

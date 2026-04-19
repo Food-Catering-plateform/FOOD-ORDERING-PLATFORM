@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './AccSettings.css';
-import { auth } from '../../Firebase/firebaseConfig'; // Firebase auth instance needed to delete the account
-import { db } from '../../Firebase/firebaseConfig'; // Firestore instance to delete vendor documents
-import { deleteUser } from 'firebase/auth'; // removes the vendor's Firebase Auth account permanently
-import { deleteDoc, doc } from 'firebase/firestore'; // deletes vendor documents from Firestore collections
+import { auth, db } from '../../Firebase/firebaseConfig';
+import { deleteUser } from 'firebase/auth';
+import { deleteDoc, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -12,9 +11,7 @@ const CATEGORIES = [
   'Seafood', 'Desserts & Drinks', 'Grills & Braai', 'Other',
 ];
 
-// uid: vendor's Firebase user ID used to find and delete their Firestore documents
-// onLogout: called after deletion to redirect the vendor back to the login page
-function AccSettings({ storeData, onStoreUpdate, uid, onLogout }) {
+function AccSettings({ onStoreUpdate, uid, onLogout }) {
   const [storeForm, setStoreForm] = useState({
     name: '', category: '', description: '', address: '', phone: '',
     hours: {}, logoPreview: null, bannerPreview: null,
@@ -24,36 +21,85 @@ function AccSettings({ storeData, onStoreUpdate, uid, onLogout }) {
     fullName: '', email: '', contact: '', currentPassword: '', newPassword: '', confirmPassword: '',
   });
 
-  const [saved, setSaved] = useState(false);
-  // Admin application state — wire up Firebase here (save to adminApplications collection on submit)
-  const [adminApp, setAdminApp] = useState({ message: '', submitted: false });
-
-  // confirming: shows the final warning before deletion — prevents accidental deletes
+  const [loading, setLoading]       = useState(true);
+  const [saved, setSaved]           = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [adminApp, setAdminApp]     = useState({ message: '', submitted: false });
 
-  // handleDeleteAccount: deletes vendor's Firestore docs (users + Vendors collections) and their Auth account, then redirects to login
-  const handleDeleteAccount = async () => {
+  // ── Fetch vendor data + check existing admin application ──────────────────
+  useEffect(() => {
     if (!uid) return;
-    await deleteDoc(doc(db, 'users', uid));   // remove user role document
-    await deleteDoc(doc(db, 'Vendors', uid)); // remove store document
-    await deleteUser(auth.currentUser);       // delete Firebase Auth account
-    onLogout();                               // redirect to login
+
+    const fetchVendorData = async () => {
+      try {
+        const vendorSnap = await getDoc(doc(db, 'Vendors', uid));
+        const userData   = await getDoc(doc(db, 'users',   uid));
+        const appSnap    = await getDoc(doc(db, 'adminApplications', uid));
+
+        if (vendorSnap.exists()) {
+          const v = vendorSnap.data();
+          setStoreForm({
+            name:          v.businessName  || '',
+            category:      v.category      || '',
+            description:   v.description   || '',
+            address:       v.address       || '',
+            phone:         v.phoneNumber   || '',
+            hours:         v.hours         || {},
+            logoPreview:   v.logoURL       || null,
+            bannerPreview: v.bannerURL     || null,
+          });
+        }
+
+        if (userData.exists()) {
+          const u = userData.data();
+          setAccountForm(prev => ({
+            ...prev,
+            fullName: u.fullName || '',
+            email:    u.email    || '',
+            contact:  u.contact  || '',
+          }));
+        }
+
+        // Restore submitted state if application already exists in Firestore
+        if (appSnap.exists()) {
+          setAdminApp({ message: appSnap.data().message, submitted: true });
+        }
+
+      } catch (err) {
+        console.error('Failed to fetch vendor data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVendorData();
+  }, [uid]);
+
+  // ── Submit admin application to Firestore ─────────────────────────────────
+  const handleAdminApplication = async () => {
+    if (!adminApp.message.trim() || !uid) return;
+    try {
+      await setDoc(doc(db, 'adminApplications', uid), {
+        vendorId:    uid,
+        vendorName:  storeForm.name,
+        message:     adminApp.message,
+        status:      'pending',
+        submittedAt: serverTimestamp(),
+      });
+      setAdminApp(prev => ({ ...prev, submitted: true }));
+    } catch (err) {
+      console.error('Failed to submit admin application:', err);
+    }
   };
 
-  useEffect(() => {
-    if (storeData) {
-      setStoreForm({
-        name:          storeData.name          || '',
-        category:      storeData.category      || '',
-        description:   storeData.description   || '',
-        address:       storeData.address       || '',
-        phone:         storeData.phone         || '',
-        hours:         storeData.hours         || {},
-        logoPreview:   storeData.logoPreview   || null,
-        bannerPreview: storeData.bannerPreview || null,
-      });
-    }
-  }, [storeData]);
+  //  Delete account 
+  const handleDeleteAccount = async () => {
+    if (!uid) return;
+    await deleteDoc(doc(db, 'users',   uid));
+    await deleteDoc(doc(db, 'Vendors', uid));
+    await deleteUser(auth.currentUser);
+    onLogout();
+  };
 
   const updateStore   = (field, value) => setStoreForm(prev => ({ ...prev, [field]: value }));
   const updateAccount = (field, value) => setAccountForm(prev => ({ ...prev, [field]: value }));
@@ -70,10 +116,12 @@ function AccSettings({ storeData, onStoreUpdate, uid, onLogout }) {
   };
 
   const handleSave = () => {
-    if (onStoreUpdate) onStoreUpdate({ ...storeData, ...storeForm });
+    if (onStoreUpdate) onStoreUpdate({ ...storeForm });
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
+
+  if (loading) return <p className="acc-settings__loading">Loading your settings…</p>;
 
   return (
     <article className="acc-settings">
@@ -84,9 +132,7 @@ function AccSettings({ storeData, onStoreUpdate, uid, onLogout }) {
       </header>
 
       {saved && (
-        <p className="acc-settings__toast" role="status">
-          Changes saved successfully!
-        </p>
+        <p className="acc-settings__toast" role="status">Changes saved successfully!</p>
       )}
 
       {/* ── Store Details ── */}
@@ -95,7 +141,8 @@ function AccSettings({ storeData, onStoreUpdate, uid, onLogout }) {
 
         <p className="acc-field">
           <label>Store Name</label>
-          <input type="text" value={storeForm.name} onChange={e => updateStore('name', e.target.value)} />
+          <input type="text" value={storeForm.name}
+            onChange={e => updateStore('name', e.target.value)} />
         </p>
 
         <p className="acc-field">
@@ -111,20 +158,21 @@ function AccSettings({ storeData, onStoreUpdate, uid, onLogout }) {
           <textarea
             value={storeForm.description}
             onChange={e => updateStore('description', e.target.value)}
-            rows={3}
-            maxLength={200}
+            rows={3} maxLength={200}
           />
           <output className="acc-field__count">{storeForm.description.length}/200</output>
         </p>
 
         <p className="acc-field">
           <label>Address</label>
-          <input type="text" value={storeForm.address} onChange={e => updateStore('address', e.target.value)} />
+          <input type="text" value={storeForm.address}
+            onChange={e => updateStore('address', e.target.value)} />
         </p>
 
         <p className="acc-field">
           <label>Store Contact Number</label>
-          <input type="tel" value={storeForm.phone} onChange={e => updateStore('phone', e.target.value)} />
+          <input type="tel" value={storeForm.phone}
+            onChange={e => updateStore('phone', e.target.value)} />
         </p>
 
         <section className="acc-field">
@@ -136,18 +184,17 @@ function AccSettings({ storeData, onStoreUpdate, uid, onLogout }) {
                 <li key={day} className="hours-row">
                   <abbr className="hours-day" title={day}>{day.slice(0, 3)}</abbr>
                   <label className="hours-closed">
-                    <input
-                      type="checkbox"
-                      checked={h.closed}
-                      onChange={e => updateHours(day, 'closed', e.target.checked)}
-                    />
+                    <input type="checkbox" checked={h.closed}
+                      onChange={e => updateHours(day, 'closed', e.target.checked)} />
                     Closed
                   </label>
                   {!h.closed && (
                     <>
-                      <input type="time" value={h.open}  className="hours-time" onChange={e => updateHours(day, 'open',  e.target.value)} />
+                      <input type="time" value={h.open} className="hours-time"
+                        onChange={e => updateHours(day, 'open', e.target.value)} />
                       <span className="hours-sep">–</span>
-                      <input type="time" value={h.close} className="hours-time" onChange={e => updateHours(day, 'close', e.target.value)} />
+                      <input type="time" value={h.close} className="hours-time"
+                        onChange={e => updateHours(day, 'close', e.target.value)} />
                     </>
                   )}
                 </li>
@@ -163,7 +210,8 @@ function AccSettings({ storeData, onStoreUpdate, uid, onLogout }) {
               {storeForm.logoPreview
                 ? <img src={storeForm.logoPreview} alt="Logo" className="upload-preview" />
                 : <small className="upload-placeholder">Click to change logo</small>}
-              <input type="file" accept="image/*" hidden onChange={e => handleImage('logoPreview', e.target.files[0])} />
+              <input type="file" accept="image/*" hidden
+                onChange={e => handleImage('logoPreview', e.target.files[0])} />
             </label>
           </p>
 
@@ -173,7 +221,8 @@ function AccSettings({ storeData, onStoreUpdate, uid, onLogout }) {
               {storeForm.bannerPreview
                 ? <img src={storeForm.bannerPreview} alt="Banner" className="upload-preview" />
                 : <small className="upload-placeholder">Click to change banner</small>}
-              <input type="file" accept="image/*" hidden onChange={e => handleImage('bannerPreview', e.target.files[0])} />
+              <input type="file" accept="image/*" hidden
+                onChange={e => handleImage('bannerPreview', e.target.files[0])} />
             </label>
           </p>
         </section>
@@ -185,43 +234,52 @@ function AccSettings({ storeData, onStoreUpdate, uid, onLogout }) {
 
         <p className="acc-field">
           <label>Full Name</label>
-          <input type="text" value={accountForm.fullName} placeholder="Your full name" onChange={e => updateAccount('fullName', e.target.value)} />
+          <input type="text" value={accountForm.fullName} placeholder="Your full name"
+            onChange={e => updateAccount('fullName', e.target.value)} />
         </p>
 
         <p className="acc-field">
           <label>Email Address</label>
-          <input type="email" value={accountForm.email} placeholder="your@email.com" onChange={e => updateAccount('email', e.target.value)} />
+          <input type="email" value={accountForm.email} placeholder="your@email.com"
+            onChange={e => updateAccount('email', e.target.value)} />
         </p>
 
         <p className="acc-field">
           <label>Personal Contact Number</label>
-          <input type="tel" value={accountForm.contact} placeholder="e.g. 083 123 4567" onChange={e => updateAccount('contact', e.target.value)} />
+          <input type="tel" value={accountForm.contact} placeholder="e.g. 083 123 4567"
+            onChange={e => updateAccount('contact', e.target.value)} />
         </p>
 
         <h3 className="acc-divider">Change Password</h3>
 
         <p className="acc-field">
           <label>Current Password</label>
-          <input type="password" value={accountForm.currentPassword} placeholder="Enter current password" onChange={e => updateAccount('currentPassword', e.target.value)} />
+          <input type="password" value={accountForm.currentPassword}
+            placeholder="Enter current password"
+            onChange={e => updateAccount('currentPassword', e.target.value)} />
         </p>
 
         <section className="acc-row">
           <p className="acc-field">
             <label>New Password</label>
-            <input type="password" value={accountForm.newPassword} placeholder="New password" onChange={e => updateAccount('newPassword', e.target.value)} />
+            <input type="password" value={accountForm.newPassword} placeholder="New password"
+              onChange={e => updateAccount('newPassword', e.target.value)} />
           </p>
           <p className="acc-field">
             <label>Confirm Password</label>
-            <input type="password" value={accountForm.confirmPassword} placeholder="Repeat new password" onChange={e => updateAccount('confirmPassword', e.target.value)} />
+            <input type="password" value={accountForm.confirmPassword} placeholder="Repeat new password"
+              onChange={e => updateAccount('confirmPassword', e.target.value)} />
           </p>
         </section>
       </section>
 
-      {/* ── Platform Access — vendor applies for admin role (connect Firebase here) ── */}
+      {/* ── Platform Access ── */}
       <section className="acc-card acc-card--muted">
         <h2 className="acc-card__title acc-card__title--muted">Platform Access</h2>
         {adminApp.submitted ? (
-          <p className="admin-app__status">Your application has been submitted and is under review.</p>
+          <p className="admin-app__status">
+            Your application has been submitted and is under review.
+          </p>
         ) : (
           <>
             <p className="admin-app__hint">
@@ -239,7 +297,7 @@ function AccSettings({ storeData, onStoreUpdate, uid, onLogout }) {
             <button
               className="btn btn--ghost"
               disabled={!adminApp.message.trim()}
-              onClick={() => setAdminApp(prev => ({ ...prev, submitted: true }))}
+              onClick={handleAdminApplication}
             >
               Submit Application
             </button>
@@ -247,22 +305,24 @@ function AccSettings({ storeData, onStoreUpdate, uid, onLogout }) {
         )}
       </section>
 
-      {/* ── Danger Zone — delete account section ── */}
+      {/* ── Danger Zone ── */}
       <section className="acc-card acc-card--danger">
         <h2 className="acc-card__title acc-card__title--danger">Danger Zone</h2>
         <p className="danger-hint">Deleting your account is permanent and cannot be undone.</p>
         {!confirming ? (
-          // first click — shows the warning step
           <button className="btn btn--danger-ghost" onClick={() => setConfirming(true)}>
             Delete Account
           </button>
         ) : (
-          // second step — vendor must confirm before deletion fires
           <section className="danger-confirm">
-            <p className="danger-confirm__warning">Are you sure? This will delete your store and all your data.</p>
+            <p className="danger-confirm__warning">
+              Are you sure? This will delete your store and all your data.
+            </p>
             <footer className="danger-confirm__actions">
               <button className="btn btn--ghost" onClick={() => setConfirming(false)}>Cancel</button>
-              <button className="btn btn--danger" onClick={handleDeleteAccount}>Yes, delete my account</button>
+              <button className="btn btn--danger" onClick={handleDeleteAccount}>
+                Yes, delete my account
+              </button>
             </footer>
           </section>
         )}

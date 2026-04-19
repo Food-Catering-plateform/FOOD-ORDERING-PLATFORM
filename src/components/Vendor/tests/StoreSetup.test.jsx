@@ -1,19 +1,19 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import StoreSetup from './StoreSetup';
+import StoreSetup from '../StoreSetup';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
-jest.mock('../../Services/AuthContext', () => ({ useAuth: jest.fn() }));
-jest.mock('../../Firebase/firebaseConfig', () => ({ db: {} }));
+jest.mock('../../../Services/AuthContext', () => ({ useAuth: jest.fn() }));
+jest.mock('../../../Firebase/firebaseConfig', () => ({ db: {} }));
 jest.mock('firebase/firestore', () => ({
   doc:    jest.fn(),
   setDoc: jest.fn(),
 }));
-jest.mock('./StoreSetup.css', () => ({}));
+jest.mock('../StoreSetup.css', () => ({}));
 
-import { useAuth } from '../../Services/AuthContext';
+import { useAuth } from '../../../Services/AuthContext';
 import { doc, setDoc } from 'firebase/firestore';
 
 const VENDOR_ID = 'vendor-xyz';
@@ -164,10 +164,8 @@ describe('StoreSetup – step 1 (Location & Hours)', () => {
   it('hides time inputs when a day is marked as closed', async () => {
     await goToStep1();
     const checkboxes = screen.getAllByRole('checkbox');
-    await userEvent.click(checkboxes[0]); // close Monday
-    // time inputs for Monday should disappear; count should reduce
+    await userEvent.click(checkboxes[0]);
     const timeInputs = document.querySelectorAll('input[type="time"]');
-    // 7 days × 2 inputs = 14 total; closing one day = 12
     expect(timeInputs.length).toBe(12);
   });
 
@@ -290,7 +288,6 @@ describe('StoreSetup – step 3 (Review & Submit)', () => {
   it('does not call setDoc if vendorId is null', async () => {
     useAuth.mockReturnValue({ vendorId: null });
     render(<StoreSetup />);
-    // Component shows Loading..., submit cannot be triggered
     expect(setDoc).not.toHaveBeenCalled();
   });
 });

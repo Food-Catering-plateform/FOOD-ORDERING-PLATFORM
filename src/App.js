@@ -21,6 +21,17 @@ function App() {
   const [selectedShop, setSelectedShop] = useState(null);
   const [vendorUid, setVendorUid] = useState(null);
   const [checking, setChecking] = useState(true);
+  const [basket, setBasket] = useState([]);
+
+  const addToBasket = (item, shop) => {
+    setBasket(prev => {
+      const existing = prev.find(b => b.id === item.id);
+      if (existing) {
+        return prev.map(b => b.id === item.id ? { ...b, qty: b.qty + 1 } : b);
+      }
+      return [...prev, { ...item, qty: 1, vendorId: shop.id, vendorName: shop.name }];
+    });
+  };
 
   const toggleSidebar = () => {
     setSidebarOpen((prev) => !prev);
@@ -91,7 +102,7 @@ function App() {
       case 'orders':
         return <Orders />;
       case 'basket':
-        return <Basket />;
+        return <Basket basket={basket} setBasket={setBasket} />;
       case 'shops':
         return (
           <Shops
@@ -103,9 +114,11 @@ function App() {
         );
       case 'menu-view':
         return (
+          // addToBasket passed here so the "Add to Basket" button in MenuView actually works
           <MenuView
             shop={selectedShop}
             onBack={() => setActivePage('shops')}
+            addToBasket={addToBasket}
           />
         );
       case 'store-setup':

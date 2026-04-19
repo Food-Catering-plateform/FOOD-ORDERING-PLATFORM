@@ -1,23 +1,23 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import VDashboard from './VDashboard';
+import VDashboard from '../VDashboard';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
-jest.mock('../../Firebase/firebaseConfig', () => ({ db: {} }));
+jest.mock('../../../Firebase/firebaseConfig', () => ({ db: {} }));
 jest.mock('firebase/firestore', () => ({
   doc:    jest.fn(),
   getDoc: jest.fn(),
   setDoc: jest.fn(),
 }));
-jest.mock('./VDashboard.css', () => ({}));
+jest.mock('../VDashboard.css', () => ({}));
 
-jest.mock('./VenHome',        () => ({ storeName }) => <div>VenHome: {storeName || 'Chef'}</div>);
-jest.mock('./MenuManagement', () => ()                => <div>MenuManagement</div>);
-jest.mock('./Orders',         () => ()                => <div>Orders</div>);
-jest.mock('./Analytics',      () => ()                => <div>Analytics</div>);
-jest.mock('./AccSettings',    () => ({ storeData, onStoreUpdate }) =>
+jest.mock('../VenHome',        () => ({ storeName }) => <div>VenHome: {storeName || 'Chef'}</div>);
+jest.mock('../MenuManagement', () => () => <div>MenuManagement</div>);
+jest.mock('../Orders',         () => () => <div>Orders</div>);
+jest.mock('../Analytics',      () => () => <div>Analytics</div>);
+jest.mock('../AccSettings',    () => ({ storeData, onStoreUpdate }) =>
   <div>
     AccSettings
     <button onClick={() => onStoreUpdate({ businessName: 'Updated Store' })}>Save</button>
@@ -27,7 +27,6 @@ jest.mock('./AccSettings',    () => ({ storeData, onStoreUpdate }) =>
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 const UID = 'user-001';
-
 const STORE_DATA = { name: "Mama's Kitchen", category: 'Fast Food' };
 
 beforeEach(() => {
@@ -125,29 +124,25 @@ describe('VDashboard – sidebar toggle', () => {
 
   it('collapses the sidebar when toggle is clicked', async () => {
     render(<VDashboard uid={UID} />);
-    const toggle = screen.getByRole('button', { name: /collapse sidebar/i });
-    await userEvent.click(toggle);
+    await userEvent.click(screen.getByRole('button', { name: /collapse sidebar/i }));
     expect(screen.queryByText('Vendor Panel')).not.toBeInTheDocument();
   });
 
   it('changes toggle aria-label to "Expand sidebar" when collapsed', async () => {
     render(<VDashboard uid={UID} />);
-    const toggle = screen.getByRole('button', { name: /collapse sidebar/i });
-    await userEvent.click(toggle);
+    await userEvent.click(screen.getByRole('button', { name: /collapse sidebar/i }));
     expect(screen.getByRole('button', { name: /expand sidebar/i })).toBeInTheDocument();
   });
 
   it('shows single-character labels when sidebar is collapsed', async () => {
     render(<VDashboard uid={UID} />);
     await userEvent.click(screen.getByRole('button', { name: /collapse sidebar/i }));
-    // Nav items show only first letter when collapsed
     expect(screen.getByRole('button', { name: 'D' })).toBeInTheDocument();
   });
 
   it('re-expands the sidebar on a second toggle click', async () => {
     render(<VDashboard uid={UID} />);
-    const toggle = screen.getByRole('button', { name: /collapse sidebar/i });
-    await userEvent.click(toggle);
+    await userEvent.click(screen.getByRole('button', { name: /collapse sidebar/i }));
     await userEvent.click(screen.getByRole('button', { name: /expand sidebar/i }));
     expect(screen.getByText('Vendor Panel')).toBeInTheDocument();
   });
@@ -162,10 +157,7 @@ describe('VDashboard – store update', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => expect(setDoc).toHaveBeenCalledTimes(1));
-    expect(setDoc).toHaveBeenCalledWith(
-      'doc-ref',
-      { businessName: 'Updated Store' }
-    );
+    expect(setDoc).toHaveBeenCalledWith('doc-ref', { businessName: 'Updated Store' });
   });
 
   it('updates local storeData state after onStoreUpdate', async () => {
@@ -173,10 +165,7 @@ describe('VDashboard – store update', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Account Settings' }));
     await userEvent.click(screen.getByRole('button', { name: 'Save' }));
 
-    // Navigate home — VenHome should now receive the updated storeName
     await userEvent.click(screen.getByRole('button', { name: 'Dashboard' }));
-    // storeName from updated data is undefined since mock returns { businessName }
-    // but the component will not crash
     expect(screen.getByText(/VenHome/i)).toBeInTheDocument();
   });
 });
