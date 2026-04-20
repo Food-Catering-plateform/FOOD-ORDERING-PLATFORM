@@ -53,7 +53,6 @@ function App() {
       setVendorUid(uid);
       setChecking(true);
 
-      // Check vendor approval status first
       const vendorSnap = await getDoc(doc(db, 'vendors', uid));
 
       setChecking(false);
@@ -65,13 +64,14 @@ function App() {
 
       const status = vendorSnap.data().status;
 
-      if (status === 'pending') {
-        setActivePage('vendor-pending');
+      if (status === 'suspended') {
+        setActivePage('vendor-suspended');
         return;
       }
 
-      if (status === 'suspended') {
-        setActivePage('vendor-suspended');
+      // Only explicitly approved vendors can proceed
+      if (status !== 'approved') {
+        setActivePage('vendor-pending');
         return;
       }
 
