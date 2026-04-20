@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { fetchAllVendors, approveVendor, suspendVendor } from "../../Services/vendorService";
 import VendorCard from "./VendorCard";
-import "./AdminVendorManagement.css";
+import "./styles.css";
 
-const STATUS_FILTERS = ["all", "pending", "approved", "suspended"];
+const STATUS_FILTERS = ["all", "Awaiting approval", "approved", "suspended"];
 
 const statusColors = {
-  pending:   { bg: "#FFF8E1", color: "#F59E0B" },
+ Awaitingapproval:   { bg: "#FFF8E1", color: "#F59E0B" },
   approved:  { bg: "#E8F5E9", color: "#22C55E" },
   suspended: { bg: "#FEECEC", color: "#EF4444" },
 };
@@ -121,8 +121,9 @@ export default function AdminVendorManagement({ setActivePage }) {
             </thead>
             <tbody>
               {filtered.map((vendor) => {
+
                 const statusStyle =
-                  statusColors[vendor.status] || statusColors.pending;
+                  statusColors[vendor.status] || statusColors.Awaitingapproval;
                 return (
                   <tr key={vendor.id}>
                     <td>
@@ -143,7 +144,7 @@ export default function AdminVendorManagement({ setActivePage }) {
                         {vendor.status
                           ? vendor.status.charAt(0).toUpperCase() +
                             vendor.status.slice(1)
-                          : "Pending"}
+                          : " Awaitingapproval"}
                       </mark>
                     </td>
                     <td>

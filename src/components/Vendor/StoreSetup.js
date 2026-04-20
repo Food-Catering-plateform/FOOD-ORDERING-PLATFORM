@@ -22,7 +22,7 @@ const defaultHours = DAYS.reduce((acc, day) => {
 
 function StoreSetup({ onComplete, onCancel }) {
   const { vendorId } = useAuth();
-
+//set states
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({
     name: '',
@@ -40,7 +40,7 @@ function StoreSetup({ onComplete, onCancel }) {
 
   const update = (field, value) =>
     setForm(prev => ({ ...prev, [field]: value }));
-
+///literaly what the it says, it update hours on firebase
   const updateHours = (day, field, value) =>
     setForm(prev => ({
       ...prev,
@@ -55,7 +55,7 @@ function StoreSetup({ onComplete, onCancel }) {
       [previewField]: URL.createObjectURL(file),
     }));
   };
-
+//indicates complusory values
   const validate = () => {
     const e = {};
     if (step === 0) {
@@ -73,7 +73,7 @@ function StoreSetup({ onComplete, onCancel }) {
 
   const next = () => { if (validate()) setStep(s => s + 1); };
   const back = () => setStep(s => s - 1);
-
+///puts data in database
   const handleSubmit = async () => {
     if (!vendorId) return;
 
