@@ -26,7 +26,7 @@ function AccSettings({ onStoreUpdate, uid, onLogout }) {
   const [confirming, setConfirming] = useState(false);
   const [adminApp, setAdminApp]     = useState({ message: '', submitted: false });
 
-  // ── Fetch vendor data + check existing admin application ──────────────────
+  // Fetch vendor data + check existing admin application from database
   useEffect(() => {
     if (!uid) return;
 
@@ -75,7 +75,7 @@ function AccSettings({ onStoreUpdate, uid, onLogout }) {
     fetchVendorData();
   }, [uid]);
 
-  // ── Submit admin application to Firestore ─────────────────────────────────
+  // ── Submit admin application to Firestore 
   const handleAdminApplication = async () => {
     if (!adminApp.message.trim() || !uid) return;
     try {
@@ -92,7 +92,7 @@ function AccSettings({ onStoreUpdate, uid, onLogout }) {
     }
   };
 
-  //  Delete account 
+  //  Delete account remove it everywhere 
   const handleDeleteAccount = async () => {
     if (!uid) return;
     await deleteDoc(doc(db, 'users',   uid));
@@ -109,12 +109,12 @@ function AccSettings({ onStoreUpdate, uid, onLogout }) {
       ...prev,
       hours: { ...prev.hours, [day]: { ...prev.hours[day], [field]: value } },
     }));
-
+//make image a object
   const handleImage = (previewField, file) => {
     if (!file) return;
     setStoreForm(prev => ({ ...prev, [previewField]: URL.createObjectURL(file) }));
   };
-
+//when you save changes on edits
   const handleSave = () => {
     if (onStoreUpdate) onStoreUpdate({ ...storeForm });
     setSaved(true);

@@ -31,10 +31,7 @@ function Orders() {
   const [filter, setFilter] = useState('all');
   const { vendorId } = useAuth();
 
-// CHANGED: switched from getDocs (one-time fetch) to onSnapshot (real-time listener).
-// previously the vendor had to manually refresh the page to see new orders from students.
-// now onSnapshot opens a live connection to Firestore — any time an order is added,
-// updated, or cancelled by a student, this callback fires automatically and updates the UI.
+
 useEffect(() => {
   if (!vendorId) return;
 
@@ -43,9 +40,6 @@ useEffect(() => {
     where("vendorID", "==", vendorId)
   );
 
-  // onSnapshot returns an unsubscribe function — we return it from useEffect so React
-  // cleans up the listener when the Orders component unmounts (e.g. vendor switches tab).
-  // without this cleanup the listener would keep running in the background and waste resources.
   const unsubscribe = onSnapshot(q, (snapshot) => {
     const fetched = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
     setOrders(fetched);
@@ -62,10 +56,6 @@ useEffect(() => {
       ? orders
       : orders.filter(o => o.status === filter);
 
-  // FIX: was only updating local state — Firestore never knew the status changed,
-  // so the customer's Notifications page never received updates and the status
-  // reverted to its old value on page refresh. Now we write to Firestore first,
-  // then mirror the change in local state so the UI stays in sync.
   async function advanceStatus(id) {
     const order = orders.find(o => o.id === id);
     if (!order || !STATUS_FLOW[order.status]) return;

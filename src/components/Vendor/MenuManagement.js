@@ -6,7 +6,7 @@ import { useAuth } from "../../Services/AuthContext";
 
 function MenuManagement() {
   const { vendorId } = useAuth();
-
+//initialze states
   const [items, setItems] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
   const [form, setForm] = useState({
@@ -18,7 +18,7 @@ function MenuManagement() {
   });
 
   const formRef = useRef(null);
-
+// putting variables into a array using set form
   function handleChange(e) {
     const { id, value, files } = e.target;
 
@@ -41,7 +41,7 @@ function MenuManagement() {
       setForm(f => ({ ...f, [key]: value }));
     }
   }
-
+// after you submit each variable
   async function handleSubmit(e) {
     e.preventDefault();
     if (!vendorId) return;
@@ -53,7 +53,7 @@ function MenuManagement() {
         ? items[editingIndex].imageUrl
         : 'https://placehold.co/60x60/f5e6d3/7a4e27?text=Food'
     );
-
+// making all variables te right format /type
     const newItem = {
       name: form.name.trim(),
       price: parseFloat(form.price).toFixed(2),
@@ -65,7 +65,7 @@ function MenuManagement() {
     try {
       if (editingIndex !== null) {
         const itemToEdit = items[editingIndex];
-
+//when editing the item,only if its not null already and update to the table 
         await updateDoc(
           doc(db, "Vendors", vendorId, "menuItems", itemToEdit.id),
           newItem
@@ -95,7 +95,7 @@ function MenuManagement() {
     }
   }
 
-  useEffect(() => {
+  useEffect(() => {//to display the menu to the vendor
     if (!vendorId) return;
 
     const fetchItems = async () => {
@@ -122,7 +122,7 @@ function MenuManagement() {
   function editItem(index) {
     const item = items[index];
     setEditingIndex(index);
-
+//assigning values  after editing
     setForm({
       name: item.name,
       price: item.price,
@@ -136,7 +136,7 @@ function MenuManagement() {
 
   async function deleteItem(index) {
     const item = items[index];
-
+//deleting document
     try {
       await deleteDoc(doc(db, "Vendors", vendorId, "menuItems", item.id));
 
