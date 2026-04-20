@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import '../css/Orders.css';
-import { db } from '../../../Firebase/firebaseConfig';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { useAuth } from '../../../Services/AuthContext';
+import { db } from '../../../Firebase/firebaseConfig';//firebade connection
+import { collection, query, where, onSnapshot } from 'firebase/firestore';//firebase tools to read data
+import { useAuth } from '../../../Services/AuthContext'; // gets currently logged in user
 
-const STATUS_STEPS = {
+const STATUS_STEPS = {//maps order status to step number for the sratus tracker UI
   pending:   1,
   preparing: 2,
   ready:     3,
@@ -19,15 +19,15 @@ const Orders = () => {
   useEffect(() => {
     if (authLoading || !currentUser?.uid) return;
 
-    const q = query(
+    const q = query( //makes sure that each customer only sees their own orders
       collection(db, 'Orders'),
       where('customerId', '==', currentUser.uid)
     );
 
-    const unsubscribe = onSnapshot(q, (snap) => {
+    const unsubscribe = onSnapshot(q, (snap) => {//listen to firestore in realtime , so when the vendor updates the status of the oredr it updates instantly on the customer side without need ing to refresh the page
       const fetched = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       fetched.sort((a, b) => new Date(b.time) - new Date(a.time));
-      setOrders(fetched);
+      setOrders(fetched);//updates the screen with the latest order from firestore
     });
 
     return () => unsubscribe();
