@@ -31,6 +31,26 @@ export const useLogin = (options = {}) => {
 
     const role = userSnap.data().role;
 
+    // Check vendor approval status before allowing login
+    if (role === "vendor") {
+      const vendorRef = doc(db, "vendors", user.uid);
+      const vendorSnap = await getDoc(vendorRef);
+
+      if (vendorSnap.exists()) {
+        const status = vendorSnap.data().status;
+
+        if (status === "pending") {
+          setError("Your vendor account is pending approval. Please wait for an admin to approve your account.");
+          return;
+        }
+
+        if (status === "suspended") {
+          setError("Your vendor account has been suspended. Please contact support.");
+          return;
+        }
+      }
+    }
+
     if (onLoginSuccess) {
       onLoginSuccess(role);
       return;
@@ -39,7 +59,6 @@ export const useLogin = (options = {}) => {
     if (role === "student") {
       navigate("/student/dashboard");
     } else if (role === "vendor") {
-      
       navigate("/vendor/dashboard");
     } else if (role === "admin") {
       navigate("/admin/dashboard");
@@ -116,7 +135,7 @@ export const useLogin = (options = {}) => {
   const handlePasswordReset = async (email) => {
     setError("");
     setInfo("");
-    if (!email){
+    if (!email) {
       setError("Please enter your email address.");
       return;
     }
@@ -133,7 +152,7 @@ export const useLogin = (options = {}) => {
         setError("Failed to send password reset email.");
       }
     }
-  }
+  };
 
   return {
     handleLogin,
@@ -142,6 +161,5 @@ export const useLogin = (options = {}) => {
     error,
     info,
     loading,
-    
   };
 };

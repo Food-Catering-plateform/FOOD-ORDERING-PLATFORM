@@ -47,7 +47,7 @@ const useRegister = (defaultRole) => {
           staffNumber,
           ownerId: user.uid,
           createdAt: new Date(),
-          status: "active",
+          status: "pending", // vendor must be approved by admin before they can login
         });
       }
 
