@@ -1,7 +1,19 @@
 import React from "react";
 import "./styles.css";
+import { auth } from "../../Firebase/firebaseConfig"; 
+import { signOut } from "firebase/auth";
 
 const AdminDashboard = ({ setActivePage }) => {
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      setActivePage("login"); // redirect to login page (adjust if needed)
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
+
   return (
     <section className="dashboard-container">
       <aside>
@@ -14,6 +26,11 @@ const AdminDashboard = ({ setActivePage }) => {
             <li><button onClick={() => {}}>Users</button></li>
             <li><button onClick={() => {}}>Payments</button></li>
             <li><button onClick={() => {}}>Settings</button></li>
+            <li>
+              <button onClick={handleLogout}>
+                Logout
+              </button>
+            </li>
           </ul>
         </nav>
       </aside>

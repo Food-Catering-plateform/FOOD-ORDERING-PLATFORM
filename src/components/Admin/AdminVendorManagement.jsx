@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { fetchAllVendors, approveVendor, suspendVendor } from "../../Services/vendorService";
-import VendorCard from "./VendorCard";
 import "./AdminVendorManagement.css";
 
 const STATUS_FILTERS = ["all", "pending", "approved", "suspended"];
