@@ -1,55 +1,48 @@
 import React, { useEffect, useState } from 'react';
 import './Orders.css';
-
-// replaced getDocs with onSnapshot so the orders list updates in real-time
-// without the vendor needing to refresh the page when a new student order comes in
 import { collection, updateDoc, onSnapshot, doc, query, where } from "firebase/firestore";
 import { db } from "../../Firebase/firebaseConfig";
 import { useAuth } from "../../Services/AuthContext";
-
-
-
+import { sendOrderReadyForPickupEmail } from "../../Services/pickupReadyEmail";
 
 const STATUS_FLOW = {
-  pending: 'preparing',
-  preparing: 'ready',
-  ready: 'completed',
+  pending:    'preparing',
+  preparing:  'ready',
+  ready:      'completed',
 };
 
 const STATUS_LABELS = {
-  pending: 'Pending',
-  preparing: 'Preparing',
-  ready: 'Ready',
-  completed: 'Completed',
-  cancelled: 'Cancelled',
+  pending:    'Pending',
+  preparing:  'Preparing',
+  ready:      'Ready',
+  completed:  'Completed',
+  cancelled:  'Cancelled',
 };
 
 const FILTER_OPTIONS = ['all', 'pending', 'preparing', 'ready', 'completed', 'cancelled'];
 
 function Orders() {
-  const [orders, setOrders] = useState([]);
-  const [filter, setFilter] = useState('all');
-  const { vendorId } = useAuth();
+  const [orders, setOrders]   = useState([]);
+  const [filter, setFilter]   = useState('all');
+  const { vendorId }          = useAuth();
 
+  useEffect(() => {
+    if (!vendorId) return;
 
-useEffect(() => {
-  if (!vendorId) return;
+    const q = query(
+      collection(db, "Orders"),
+      where("vendorID", "==", vendorId)
+    );
 
-  const q = query(
-    collection(db, "Orders"),
-    where("vendorID", "==", vendorId)
-  );
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const fetched = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      setOrders(fetched);
+    }, (error) => {
+      console.error("Unable to listen to orders", error);
+    });
 
-  const unsubscribe = onSnapshot(q, (snapshot) => {
-    const fetched = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-    setOrders(fetched);
-  }, (error) => {
-    console.error("Unable to listen to orders", error);
-  });
-
-  return () => unsubscribe();
-
-}, [vendorId])
+    return () => unsubscribe();
+  }, [vendorId]);
 
   const visibleOrders =
     filter === 'all'
@@ -60,12 +53,49 @@ useEffect(() => {
     const order = orders.find(o => o.id === id);
     if (!order || !STATUS_FLOW[order.status]) return;
 
-    const newStatus = STATUS_FLOW[order.status];
+    const newStatus  = STATUS_FLOW[order.status];
+
     await updateDoc(doc(db, "Orders", id), { status: newStatus });
+
+    const nextOrder = { ...order, id, status: newStatus };
 
     setOrders(prev =>
       prev.map(o => o.id === id ? { ...o, status: newStatus } : o)
     );
+
+    // Send pickup email when status becomes ready
+    if (newStatus === 'ready' && !order.pickupEmailSent) {
+      console.log('[Orders] Attempting to send pickup email for order:', id);
+      try {
+        const result = await sendOrderReadyForPickupEmail(nextOrder);
+
+        if (result.ok) {
+          // FIX - mark email as sent in Firestore so it never sends twice
+          await updateDoc(doc(db, "Orders", id), {
+            pickupEmailSent:   true,
+            pickupEmailSentAt: new Date().toISOString(),
+          });
+
+          setOrders(prev =>
+            prev.map(o =>
+              o.id === id
+                ? { ...o, status: newStatus, pickupEmailSent: true, pickupEmailSentAt: new Date().toISOString() }
+                : o
+            )
+          );
+
+          console.log('[Orders] Pickup email sent successfully for order:', id);
+
+        } else {
+          // FIX - now shows visible warning in console and alert so vendor knows
+          console.warn('[Orders] Pickup email failed:', result.error);
+          alert(`Order marked as ready but pickup email failed: ${result.error}`);
+        }
+      } catch (e) {
+        console.error('[Orders] Pickup email error:', e);
+        alert('Order marked as ready but there was an error sending the pickup email.');
+      }
+    }
   }
 
   async function cancelOrder(id) {
@@ -90,7 +120,6 @@ useEffect(() => {
         <h1>Orders</h1>
       </header>
 
-
       <section className="orders-summary">
         {FILTER_OPTIONS.slice(1).map(s => (
           <article key={s} className={`summary-badge summary-badge--${s}`}>
@@ -99,6 +128,7 @@ useEffect(() => {
           </article>
         ))}
       </section>
+
       <nav className="orders-filters">
         {FILTER_OPTIONS.map(f => (
           <button
@@ -170,15 +200,14 @@ useEffect(() => {
                     </button>
                   )}
 
-                  {order.status !== 'completed' &&
-                    order.status !== 'cancelled' && (
-                      <button
-                        className="btn btn--cancel"
-                        onClick={() => cancelOrder(order.id)}
-                      >
-                        Cancel
-                      </button>
-                    )}
+                  {order.status !== 'completed' && order.status !== 'cancelled' && (
+                    <button
+                      className="btn btn--cancel"
+                      onClick={() => cancelOrder(order.id)}
+                    >
+                      Cancel
+                    </button>
+                  )}
                 </section>
               </footer>
             </article>

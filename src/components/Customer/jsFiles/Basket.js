@@ -4,7 +4,7 @@ import { db } from '../../../Firebase/firebaseConfig';
 import { collection, addDoc } from 'firebase/firestore';
 import { useAuth } from '../../../Services/AuthContext';
 
-const Basket = ({ basket, setBasket }) => {                                                                                                    
+const Basket = ({ basket, setBasket }) => {
   const { currentUser } = useAuth();
 
   const increaseQty = (id) => {
@@ -28,6 +28,16 @@ const Basket = ({ basket, setBasket }) => {
   const placeOrder = async () => {
     if (!currentUser || basket.length === 0) return;
 
+    // FIX - resolve email properly before storing, never store empty string
+    const customerEmail = currentUser.email
+      ? currentUser.email
+      : null;
+
+    if (!customerEmail) {
+      alert('Your account has no email address. Cannot place order.');
+      return;
+    }
+
     const byVendor = basket.reduce((acc, item) => {
       if (!acc[item.vendorId]) acc[item.vendorId] = { vendorName: item.vendorName, items: [] };
       acc[item.vendorId].items.push(item);
@@ -39,16 +49,17 @@ const Basket = ({ basket, setBasket }) => {
         const vendorTotal = items.reduce((sum, i) => sum + parseFloat(i.price) * i.qty, 0);
 
         await addDoc(collection(db, 'Orders'), {
-          vendorID:     vendorId,
-          vendorName:   vendorName,
-          customerId:   currentUser.uid,
-          customerName: currentUser.displayName || currentUser.email,
-          items:        items.map(i => ({ name: i.name, qty: i.qty, price: parseFloat(i.price) })),
-          total:        parseFloat(vendorTotal.toFixed(2)),
-          status:       'pending',
-          time:         new Date().toLocaleString('en-ZA'),
-          createdAt:    new Date().toISOString(),
-          notes:        '',
+          vendorID:      vendorId,
+          vendorName:    vendorName,
+          customerId:    currentUser.uid,
+          customerEmail: customerEmail, // FIX - guaranteed to be a real email or blocked above
+          customerName:  currentUser.displayName || currentUser.email,
+          items:         items.map(i => ({ name: i.name, qty: i.qty, price: parseFloat(i.price) })),
+          total:         parseFloat(vendorTotal.toFixed(2)),
+          status:        'pending',
+          time:          new Date().toLocaleString('en-ZA'),
+          createdAt:     new Date().toISOString(),
+          notes:         '',
         });
       }
 
