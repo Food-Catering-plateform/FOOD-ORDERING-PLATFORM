@@ -23,7 +23,7 @@ function App() {
   const [vendorUid, setVendorUid] = useState(null);
   const [checking, setChecking] = useState(true);
   const [basket, setBasket] = useState([]);
-
+  
   const addToBasket = (item, shop) => {
     setBasket(prev => {
       const existing = prev.find(b => b.id === item.id);
