@@ -16,7 +16,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 
 function App() {
-  const [activePage, setActivePage] = useState('login');
+  const [activePage, setActivePage] = useState('login');//defaul page is login
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [selectedShop, setSelectedShop] = useState(null);
   const [vendorUid, setVendorUid] = useState(null);
@@ -66,19 +66,19 @@ function App() {
       setActivePage('shops');
     }
   }, []);
-
+//when the user is already logged in and refreshes the page, they won't be direceted to the login page 
   useEffect(() => {
-  const unsubscribe = onAuthStateChanged(auth, async (user) => {
-    if (user) {
+  const unsubscribe = onAuthStateChanged(auth, async (user) => {//
+    if (user) {//
       const userSnap = await getDoc(doc(db, 'users', user.uid));
-      if (userSnap.exists()) {
+      if (userSnap.exists()) {// checks if user document exist in firestore
         await handleLoginSuccess(userSnap.data().role);
       }
     }
-    setChecking(false);
+    setChecking(false);//
   });
-  return () => unsubscribe();
-}, [handleLoginSuccess]);
+  return () => unsubscribe();//
+}, [handleLoginSuccess]);//cleanup function to prevent memory leaks
 
   const renderPage = () => {
     if (checking) {
