@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { fetchAllVendors, approveVendor, suspendVendor } from "../../Services/vendorService";
 import VendorCard from "./VendorCard";
-import "./styles.css";
+import "./AdminVendorManagement.css";
 
-const STATUS_FILTERS = ["all", "Awaiting approval", "approved", "suspended"];
+const STATUS_FILTERS = ["all", "pending", "approved", "suspended"];
 
 const statusColors = {
- Awaitingapproval:   { bg: "#FFF8E1", color: "#F59E0B" },
+  pending:   { bg: "#FFF8E1", color: "#F59E0B" },
   approved:  { bg: "#E8F5E9", color: "#22C55E" },
   suspended: { bg: "#FEECEC", color: "#EF4444" },
 };
@@ -121,18 +121,17 @@ export default function AdminVendorManagement({ setActivePage }) {
             </thead>
             <tbody>
               {filtered.map((vendor) => {
-
                 const statusStyle =
-                  statusColors[vendor.status] || statusColors.Awaitingapproval;
+                  statusColors[vendor.status] || statusColors.pending;
                 return (
                   <tr key={vendor.id}>
                     <td>
                       <strong className="avm-vendor-name">
-                        {vendor.name || "—"}
+                        {vendor.businessName || "—"}
                       </strong>
                     </td>
                     <td>{vendor.email || "—"}</td>
-                    <td>{vendor.storeName || "—"}</td>
+                    <td>{vendor.businessName || "—"}</td>
                     <td>
                       <mark
                         className="avm-badge"
@@ -144,7 +143,7 @@ export default function AdminVendorManagement({ setActivePage }) {
                         {vendor.status
                           ? vendor.status.charAt(0).toUpperCase() +
                             vendor.status.slice(1)
-                          : " Awaitingapproval"}
+                          : "Pending"}
                       </mark>
                     </td>
                     <td>
