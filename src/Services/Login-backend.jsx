@@ -27,16 +27,19 @@ export const useLogin = (options = {}) => {
 
     const { role, status } = userSnap.data();
 
-    // Check vendor approval status
+    // Check vendor approval status — route to the right screen via onLoginSuccess
+    // so App.js can show the correct pending/suspended UI rather than a login error.
     if (role === "vendor") {
       const vendorSnap = await getDoc(doc(db, "vendors", user.uid));
       if (vendorSnap.exists()) {
         const vendorStatus = vendorSnap.data().status;
         if (vendorStatus === "suspended") {
+          if (onLoginSuccess) { onLoginSuccess("vendor-suspended"); return; }
           setError("Your vendor account has been suspended. Please contact support.");
           return;
         }
         if (vendorStatus !== "approved") {
+          if (onLoginSuccess) { onLoginSuccess("vendor-pending"); return; }
           setError("Your vendor account is pending approval. Please wait for an admin to approve your account.");
           return;
         }
@@ -49,10 +52,12 @@ export const useLogin = (options = {}) => {
       if (adminSnap.exists()) {
         const adminStatus = adminSnap.data().status;
         if (adminStatus === "suspended") {
+          if (onLoginSuccess) { onLoginSuccess("admin-suspended"); return; }
           setError("Your admin account has been suspended. Please contact support.");
           return;
         }
         if (adminStatus !== "approved") {
+          if (onLoginSuccess) { onLoginSuccess("admin-pending"); return; }
           setError("Your admin account is pending approval. Please wait for an existing admin to approve your account.");
           return;
         }
