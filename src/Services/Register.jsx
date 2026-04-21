@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, signOut } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { auth, db } from "../Firebase/firebaseConfig";
 import { useNavigate } from "react-router-dom";
@@ -29,6 +29,7 @@ const useRegister = (defaultRole) => {
         lastName,
         email,
         role: activateRole,
+        // Students are auto-approved; vendors and admins require manual approval
         status: activateRole === "student" ? "approved" : "pending",
         createdAt: new Date(),
       };
@@ -63,7 +64,17 @@ const useRegister = (defaultRole) => {
         });
       }
 
-      navigate("/", { replace: true });
+      // For vendors and admins: sign out immediately after saving their data so
+      // the auth state listener in App.js does NOT fire and block them with a
+      // "pending" wall before they even see the success screen.
+      // They will log in again once approved.
+      if (activateRole === "vendor" || activateRole === "admin") {
+        await signOut(auth);
+        navigate("/registration-success", { replace: true });
+      } else {
+        // Students are approved instantly — send them to login to sign in normally
+        navigate("/", { replace: true });
+      }
 
     } catch (err) {
       switch (err.code) {
