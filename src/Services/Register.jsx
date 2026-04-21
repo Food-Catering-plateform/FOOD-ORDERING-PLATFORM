@@ -29,6 +29,7 @@ const useRegister = (defaultRole) => {
         lastName,
         email,
         role: activateRole,
+        status: activateRole === "student" ? "approved" : "pending",
         createdAt: new Date(),
       };
 
@@ -47,7 +48,18 @@ const useRegister = (defaultRole) => {
           staffNumber,
           ownerId: user.uid,
           createdAt: new Date(),
-          status: "pending", // vendor must be approved by admin before they can login
+          status: "pending",
+        });
+      }
+
+      if (activateRole === "admin") {
+        await setDoc(doc(db, "admins", user.uid), {
+          name,
+          lastName,
+          email,
+          ownerId: user.uid,
+          createdAt: new Date(),
+          status: "pending",
         });
       }
 

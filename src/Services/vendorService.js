@@ -1,24 +1,32 @@
 import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
 import { db } from "../Firebase/firebaseConfig";
 
-/**
- * Fetch all vendor documents from Firestore
- * @returns {Promise<Array>} Array of vendor objects
- */
+// ─── Vendors ────────────────────────────────────────────────────────────────
+
 export const fetchAllVendors = async () => {
   const snapshot = await getDocs(collection(db, "vendors"));
   return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
 };
 
-/**
- * Update a vendor's status in Firestore
- * @param {string} vendorId
- * @param {string} newStatus - "approved" | "suspended" | "pending"
- */
 export const updateVendorStatus = async (vendorId, newStatus) => {
-  const vendorRef = doc(db, "vendors", vendorId);
-  await updateDoc(vendorRef, { status: newStatus });
+  await updateDoc(doc(db, "vendors", vendorId), { status: newStatus });
 };
 
-export const approveVendor = (vendorId) => updateVendorStatus(vendorId, "approved");
-export const suspendVendor = (vendorId) => updateVendorStatus(vendorId, "suspended");
+export const approveVendor  = (id) => updateVendorStatus(id, "approved");
+export const suspendVendor  = (id) => updateVendorStatus(id, "suspended");
+
+// ─── Admins ──────────────────────────────────────────────────────────────────
+
+export const fetchAllAdmins = async () => {
+  const snapshot = await getDocs(collection(db, "admins"));
+  return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+};
+
+export const updateAdminStatus = async (adminId, newStatus) => {
+  const adminRef = doc(db, "admins", adminId);
+  await updateDoc(adminRef, { status: newStatus });
+  await updateDoc(doc(db, "users", adminId), { status: newStatus });
+};
+
+export const approveAdmin  = (id) => updateAdminStatus(id, "approved");
+export const suspendAdmin  = (id) => updateAdminStatus(id, "suspended");

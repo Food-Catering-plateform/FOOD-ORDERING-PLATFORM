@@ -17,13 +17,13 @@ import { doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 
 function App() {
-  const [activePage, setActivePage] = useState('login');//defaul page is login
+  const [activePage, setActivePage] = useState('login');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [selectedShop, setSelectedShop] = useState(null);
   const [vendorUid, setVendorUid] = useState(null);
   const [checking, setChecking] = useState(true);
   const [basket, setBasket] = useState([]);
-  
+
   const addToBasket = (item, shop) => {
     setBasket(prev => {
       const existing = prev.find(b => b.id === item.id);
@@ -36,7 +36,11 @@ function App() {
 
   const toggleSidebar = () => setSidebarOpen((prev) => !prev);
 
-  const isAuthScreen = activePage === 'login' || activePage === 'logout' || activePage === 'vendor-pending';
+  const isAuthScreen =
+    activePage === 'login' ||
+    activePage === 'logout' ||
+    activePage === 'vendor-pending' ||
+    activePage === 'admin-pending';
 
   const useCustomerChrome =
     !isAuthScreen &&
@@ -47,14 +51,29 @@ function App() {
 
   const handleLoginSuccess = useCallback(async (role) => {
     if (role === 'admin') {
+      const uid = auth.currentUser.uid;
+      const adminSnap = await getDoc(doc(db, 'admins', uid));
+
+      if (adminSnap.exists()) {
+        const status = adminSnap.data().status;
+        if (status === 'suspended') {
+          setActivePage('admin-suspended');
+          return;
+        }
+        if (status !== 'approved') {
+          setActivePage('admin-pending');
+          return;
+        }
+      }
+
       setActivePage('admin-dashboard');
+
     } else if (role === 'vendor') {
       const uid = auth.currentUser.uid;
       setVendorUid(uid);
       setChecking(true);
 
       const vendorSnap = await getDoc(doc(db, 'vendors', uid));
-
       setChecking(false);
 
       if (!vendorSnap.exists()) {
@@ -69,13 +88,11 @@ function App() {
         return;
       }
 
-      // Only explicitly approved vendors can proceed
       if (status !== 'approved') {
         setActivePage('vendor-pending');
         return;
       }
 
-      // Approved — check if store is set up
       const storeSnap = await getDoc(doc(db, 'Vendors', uid));
       setActivePage(storeSnap.exists() ? 'vendor-dashboard' : 'store-setup');
 
@@ -83,8 +100,8 @@ function App() {
       setActivePage('shops');
     }
   }, []);
-//when the user is already logged in and refreshes the page, they won't be direceted to the login page 
- useEffect(() => {
+
+  useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         const userSnap = await getDoc(doc(db, 'users', user.uid));
@@ -96,6 +113,18 @@ function App() {
     });
     return () => unsubscribe();
   }, [handleLoginSuccess]);
+
+  const pendingScreen = (title, message, titleColor = '#111827', borderColor = '#E5E7EB') => (
+    <main style={pendingStyles.page}>
+      <section style={{ ...pendingStyles.card, borderColor }}>
+        <h1 style={{ ...pendingStyles.title, color: titleColor }}>{title}</h1>
+        <p style={pendingStyles.message}>{message}</p>
+        <button style={pendingStyles.btn} onClick={() => setActivePage('login')}>
+          Back to Login
+        </button>
+      </section>
+    </main>
+  );
 
   const renderPage = () => {
     if (checking) {
@@ -147,32 +176,26 @@ function App() {
       case 'admin-vendor-management':
         return <AdminVendorManagement setActivePage={setActivePage} />;
       case 'vendor-pending':
-        return (
-          <main style={pendingStyles.page}>
-            <section style={pendingStyles.card}>
-              <h1 style={pendingStyles.title}>Account Pending Approval</h1>
-              <p style={pendingStyles.message}>
-                Your vendor account is currently under review. An admin will approve your account shortly.
-              </p>
-              <button style={pendingStyles.btn} onClick={() => setActivePage('login')}>
-                Back to Login
-              </button>
-            </section>
-          </main>
+        return pendingScreen(
+          'Account Pending Approval',
+          'Your vendor account is currently under review. An admin will approve your account shortly.'
         );
       case 'vendor-suspended':
-        return (
-          <main style={pendingStyles.page}>
-            <section style={{ ...pendingStyles.card, borderColor: '#FCA5A5' }}>
-              <h1 style={{ ...pendingStyles.title, color: '#DC2626' }}>Account Suspended</h1>
-              <p style={pendingStyles.message}>
-                Your vendor account has been suspended. Please contact support for assistance.
-              </p>
-              <button style={pendingStyles.btn} onClick={() => setActivePage('login')}>
-                Back to Login
-              </button>
-            </section>
-          </main>
+        return pendingScreen(
+          'Account Suspended',
+          'Your vendor account has been suspended. Please contact support for assistance.',
+          '#DC2626', '#FCA5A5'
+        );
+      case 'admin-pending':
+        return pendingScreen(
+          'Admin Request Pending',
+          'Your admin account request is currently under review. An existing admin will approve your request shortly.'
+        );
+      case 'admin-suspended':
+        return pendingScreen(
+          'Admin Account Suspended',
+          'Your admin account has been suspended. Please contact support for assistance.',
+          '#DC2626', '#FCA5A5'
         );
       case 'login':
       case 'logout':
@@ -188,7 +211,9 @@ function App() {
     activePage === 'admin-dashboard' ||
     activePage === 'admin-vendor-management' ||
     activePage === 'vendor-pending' ||
-    activePage === 'vendor-suspended'
+    activePage === 'vendor-suspended' ||
+    activePage === 'admin-pending' ||
+    activePage === 'admin-suspended'
   ) {
     return <>{renderPage()}</>;
   }
@@ -235,7 +260,7 @@ const pendingStyles = {
   },
   card: {
     background: '#fff',
-    border: '1px solid #E5E7EB',
+    border: '1px solid',
     borderRadius: '12px',
     padding: '48px 40px',
     maxWidth: '480px',
@@ -245,7 +270,6 @@ const pendingStyles = {
   title: {
     fontSize: '24px',
     fontWeight: '700',
-    color: '#111827',
     margin: '0 0 16px',
   },
   message: {

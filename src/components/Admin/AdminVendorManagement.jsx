@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { fetchAllVendors, approveVendor, suspendVendor } from "../../Services/vendorService";
+import {
+  fetchAllVendors, approveVendor, suspendVendor,
+  fetchAllAdmins,  approveAdmin,  suspendAdmin,
+} from "../../Services/vendorService";
 import "./AdminVendorManagement.css";
 
 const STATUS_FILTERS = ["all", "pending", "approved", "suspended"];
@@ -11,37 +14,46 @@ const statusColors = {
 };
 
 export default function AdminVendorManagement({ setActivePage }) {
+  const [activeTab, setActiveTab]         = useState("vendors");
   const [vendors, setVendors]             = useState([]);
+  const [admins, setAdmins]               = useState([]);
   const [loading, setLoading]             = useState(true);
   const [actionLoading, setActionLoading] = useState(null);
   const [filter, setFilter]               = useState("all");
   const [error, setError]                 = useState(null);
 
   useEffect(() => {
-    loadVendors();
+    loadData();
   }, []);
 
-  const loadVendors = async () => {
+  const loadData = async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchAllVendors();
-      setVendors(data);
+      const [vendorData, adminData] = await Promise.all([
+        fetchAllVendors(),
+        fetchAllAdmins(),
+      ]);
+      setVendors(vendorData);
+      setAdmins(adminData);
     } catch (err) {
-      setError("Failed to load vendors. Please try again.");
+      setError("Failed to load data. Please try again.");
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleApprove = async (vendorId) => {
-    setActionLoading(vendorId);
+  const handleApprove = async (id) => {
+    setActionLoading(id);
     try {
-      await approveVendor(vendorId);
-      setVendors((prev) =>
-        prev.map((v) => (v.id === vendorId ? { ...v, status: "approved" } : v))
-      );
+      if (activeTab === "vendors") {
+        await approveVendor(id);
+        setVendors((prev) => prev.map((v) => v.id === id ? { ...v, status: "approved" } : v));
+      } else {
+        await approveAdmin(id);
+        setAdmins((prev) => prev.map((a) => a.id === id ? { ...a, status: "approved" } : a));
+      }
     } catch (err) {
       console.error("Approve failed:", err);
     } finally {
@@ -49,13 +61,16 @@ export default function AdminVendorManagement({ setActivePage }) {
     }
   };
 
-  const handleSuspend = async (vendorId) => {
-    setActionLoading(vendorId);
+  const handleSuspend = async (id) => {
+    setActionLoading(id);
     try {
-      await suspendVendor(vendorId);
-      setVendors((prev) =>
-        prev.map((v) => (v.id === vendorId ? { ...v, status: "suspended" } : v))
-      );
+      if (activeTab === "vendors") {
+        await suspendVendor(id);
+        setVendors((prev) => prev.map((v) => v.id === id ? { ...v, status: "suspended" } : v));
+      } else {
+        await suspendAdmin(id);
+        setAdmins((prev) => prev.map((a) => a.id === id ? { ...a, status: "suspended" } : a));
+      }
     } catch (err) {
       console.error("Suspend failed:", err);
     } finally {
@@ -63,24 +78,108 @@ export default function AdminVendorManagement({ setActivePage }) {
     }
   };
 
-  const filtered =
-    filter === "all" ? vendors : vendors.filter((v) => v.status === filter);
+  const currentData = activeTab === "vendors" ? vendors : admins;
+  const filtered = filter === "all" ? currentData : currentData.filter((v) => v.status === filter);
+
+  const renderTable = () => (
+    <table className="avm-table">
+      <thead>
+        <tr>
+          <th scope="col">{activeTab === "vendors" ? "Business Name" : "Name"}</th>
+          <th scope="col">Email</th>
+          <th scope="col">Status</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {filtered.map((item) => {
+          const statusStyle = statusColors[item.status] || statusColors.pending;
+          return (
+            <tr key={item.id}>
+              <td>
+                <strong className="avm-vendor-name">
+                  {activeTab === "vendors"
+                    ? (item.businessName || "—")
+                    : (`${item.name || ""} ${item.lastName || ""}`.trim() || "—")}
+                </strong>
+              </td>
+              <td>{item.email || "—"}</td>
+              <td>
+                <mark
+                  className="avm-badge"
+                  style={{ background: statusStyle.bg, color: statusStyle.color }}
+                >
+                  {item.status
+                    ? item.status.charAt(0).toUpperCase() + item.status.slice(1)
+                    : "Pending"}
+                </mark>
+              </td>
+              <td>
+                <menu className="avm-actions">
+                  {item.status !== "approved" && (
+                    <li>
+                      <button
+                        className="avm-btn avm-btn-approve"
+                        disabled={actionLoading === item.id}
+                        onClick={() => handleApprove(item.id)}
+                        aria-label={`Approve ${item.email}`}
+                      >
+                        {actionLoading === item.id ? "..." : "Approve"}
+                      </button>
+                    </li>
+                  )}
+                  {item.status !== "suspended" && (
+                    <li>
+                      <button
+                        className="avm-btn avm-btn-suspend"
+                        disabled={actionLoading === item.id}
+                        onClick={() => handleSuspend(item.id)}
+                        aria-label={`Suspend ${item.email}`}
+                      >
+                        {actionLoading === item.id ? "..." : "Suspend"}
+                      </button>
+                    </li>
+                  )}
+                </menu>
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
 
   return (
     <main className="avm-page">
 
       <header className="avm-header">
-        <button
-          onClick={() => setActivePage("admin-dashboard")}
-          className="avm-back-btn"
-        >
+        <button onClick={() => setActivePage("admin-dashboard")} className="avm-back-btn">
           ← Back to Dashboard
         </button>
-        <h1 className="avm-title">Vendor Management</h1>
-        <p className="avm-subtitle">Approve or suspend vendors on the platform</p>
+        <h1 className="avm-title">User Management</h1>
+        <p className="avm-subtitle">Approve or suspend vendors and admins on the platform</p>
       </header>
 
-      <nav className="avm-tabs" aria-label="Filter vendors by status">
+      {/* Vendors / Admins tabs */}
+      <nav className="avm-type-tabs" aria-label="Switch between vendors and admins">
+        <button
+          className={`avm-type-tab${activeTab === "vendors" ? " active" : ""}`}
+          onClick={() => { setActiveTab("vendors"); setFilter("all"); }}
+        >
+          Vendors
+          <span className="avm-tab-count">{vendors.length}</span>
+        </button>
+        <button
+          className={`avm-type-tab${activeTab === "admins" ? " active" : ""}`}
+          onClick={() => { setActiveTab("admins"); setFilter("all"); }}
+        >
+          Admin Requests
+          <span className="avm-tab-count">{admins.length}</span>
+        </button>
+      </nav>
+
+      {/* Status filter tabs */}
+      <nav className="avm-tabs" aria-label="Filter by status">
         {STATUS_FILTERS.map((tab) => (
           <button
             key={tab}
@@ -91,93 +190,22 @@ export default function AdminVendorManagement({ setActivePage }) {
             {tab.charAt(0).toUpperCase() + tab.slice(1)}
             <span className="avm-tab-count">
               {tab === "all"
-                ? vendors.length
-                : vendors.filter((v) => v.status === tab).length}
+                ? currentData.length
+                : currentData.filter((v) => v.status === tab).length}
             </span>
           </button>
         ))}
       </nav>
 
-      {error && (
-        <p role="alert" className="avm-error">{error}</p>
-      )}
+      {error && <p role="alert" className="avm-error">{error}</p>}
 
-      <section aria-label="Vendor list">
+      <section aria-label={activeTab === "vendors" ? "Vendor list" : "Admin requests list"}>
         {loading ? (
-          <p className="avm-empty">Loading vendors...</p>
+          <p className="avm-empty">Loading...</p>
         ) : filtered.length === 0 ? (
-          <p className="avm-empty">No vendors found.</p>
+          <p className="avm-empty">No {activeTab === "vendors" ? "vendors" : "admin requests"} found.</p>
         ) : (
-          <table className="avm-table">
-            <thead>
-              <tr>
-                <th scope="col">Vendor Name</th>
-                <th scope="col">Email</th>
-                <th scope="col">Store</th>
-                <th scope="col">Status</th>
-                <th scope="col">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((vendor) => {
-                const statusStyle =
-                  statusColors[vendor.status] || statusColors.pending;
-                return (
-                  <tr key={vendor.id}>
-                    <td>
-                      <strong className="avm-vendor-name">
-                        {vendor.businessName || "—"}
-                      </strong>
-                    </td>
-                    <td>{vendor.email || "—"}</td>
-                    <td>{vendor.businessName || "—"}</td>
-                    <td>
-                      <mark
-                        className="avm-badge"
-                        style={{
-                          background: statusStyle.bg,
-                          color: statusStyle.color,
-                        }}
-                      >
-                        {vendor.status
-                          ? vendor.status.charAt(0).toUpperCase() +
-                            vendor.status.slice(1)
-                          : "Pending"}
-                      </mark>
-                    </td>
-                    <td>
-                      <menu className="avm-actions">
-                        {vendor.status !== "approved" && (
-                          <li>
-                            <button
-                              className="avm-btn avm-btn-approve"
-                              disabled={actionLoading === vendor.id}
-                              onClick={() => handleApprove(vendor.id)}
-                              aria-label={`Approve ${vendor.name}`}
-                            >
-                              {actionLoading === vendor.id ? "..." : "Approve"}
-                            </button>
-                          </li>
-                        )}
-                        {vendor.status !== "suspended" && (
-                          <li>
-                            <button
-                              className="avm-btn avm-btn-suspend"
-                              disabled={actionLoading === vendor.id}
-                              onClick={() => handleSuspend(vendor.id)}
-                              aria-label={`Suspend ${vendor.name}`}
-                            >
-                              {actionLoading === vendor.id ? "..." : "Suspend"}
-                            </button>
-                          </li>
-                        )}
-                      </menu>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          renderTable()
         )}
       </section>
 
