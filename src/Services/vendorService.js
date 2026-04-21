@@ -10,6 +10,8 @@ export const fetchAllVendors = async () => {
 
 export const updateVendorStatus = async (vendorId, newStatus) => {
   await updateDoc(doc(db, "vendors", vendorId), { status: newStatus });
+  // Keep the users doc in sync so session-restore checks in App.js are consistent
+  await updateDoc(doc(db, "users", vendorId), { status: newStatus });
 };
 
 export const approveVendor  = (id) => updateVendorStatus(id, "approved");
