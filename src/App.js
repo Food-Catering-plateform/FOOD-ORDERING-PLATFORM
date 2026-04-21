@@ -106,9 +106,17 @@ function App() {
           if (role === 'vendor') {
             const vendorSnap = await getDoc(doc(db, 'vendors', user.uid));
             if (vendorSnap.exists()) {
-              const vs = vendorSnap.data().status;
-              if (vs === 'suspended') { setActivePage('vendor-suspended'); setChecking(false); return; }
-              if (vs !== 'approved')  { setActivePage('vendor-pending');   setChecking(false); return; }
+              const vd = vendorSnap.data();
+              if (vd.status === 'suspended') { setActivePage('vendor-suspended'); setChecking(false); return; }
+              // Not yet approved AND store not yet initialized → go to store-setup
+              if (vd.status !== 'approved' && vd.storeInitialized === false) {
+                setVendorUid(user.uid);
+                setActivePage('store-setup');
+                setChecking(false);
+                return;
+              }
+              // Store submitted but awaiting admin approval → pending wall
+              if (vd.status !== 'approved') { setActivePage('vendor-pending'); setChecking(false); return; }
             }
           }
 
@@ -207,7 +215,7 @@ function App() {
         return (
           <StoreSetup
             uid={vendorUid}
-            onComplete={() => setActivePage('vendor-dashboard')}
+            onComplete={() => setActivePage('vendor-pending')}
             onCancel={() => setActivePage('login')}
           />
         );
@@ -341,6 +349,5 @@ const pendingStyles = {
 };
 
 export default App;
-
 
 

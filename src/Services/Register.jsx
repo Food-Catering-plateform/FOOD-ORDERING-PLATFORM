@@ -57,6 +57,7 @@ const useRegister = (defaultRole) => {
           ownerId: user.uid,
           createdAt: new Date(),
           status: "pending",
+          storeInitialized: false,
         });
       }
 
@@ -72,11 +73,13 @@ const useRegister = (defaultRole) => {
         });
       }
 
-      // For vendors and admins: sign out immediately after saving their data so
-      // the auth state listener in App.js does NOT fire and block them with a
-      // "pending" wall before they even see the success screen.
-      // They will log in again once approved.
-      if (activateRole === "vendor" || activateRole === "admin") {
+      // Vendors: stay signed in — App.js will detect storeInitialized:false
+      // and send them straight to StoreSetup. Only after they submit the store
+      // will they be signed out and shown the pending screen.
+      if (activateRole === "vendor") {
+        navigate("/", { replace: true });
+      } else if (activateRole === "admin") {
+        // Admins: sign out immediately, nothing more to fill in
         await signOut(auth);
         navigate("/registration-success", { replace: true });
       } else {
