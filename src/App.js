@@ -39,6 +39,7 @@ function App() {
   const isAuthScreen =
     activePage === 'login' ||
     activePage === 'logout' ||
+    activePage === 'registration-success' ||
     activePage === 'vendor-pending' ||
     activePage === 'admin-pending';
 
@@ -49,51 +50,33 @@ function App() {
     activePage !== 'admin-dashboard' &&
     activePage !== 'admin-vendor-management';
 
-  const handleLoginSuccess = useCallback(async (role) => {
-    if (role === 'admin') {
-      const uid = auth.currentUser.uid;
-      const adminSnap = await getDoc(doc(db, 'admins', uid));
+  /**
+   * Called by Login-backend after a successful sign-in.
+   * Login-backend checks Firestore and passes back either a role ('vendor', 'admin',
+   * 'student') for approved users, or a specific status string like 'vendor-pending'
+   * for unapproved ones. We never need to re-query Firestore for approval status here.
+   */
+  const handleLoginSuccess = useCallback(async (roleOrStatus) => {
+    // Status-specific screens passed directly from Login-backend
+    if (
+      roleOrStatus === 'vendor-pending' ||
+      roleOrStatus === 'vendor-suspended' ||
+      roleOrStatus === 'admin-pending' ||
+      roleOrStatus === 'admin-suspended'
+    ) {
+      setActivePage(roleOrStatus);
+      return;
+    }
 
-      if (adminSnap.exists()) {
-        const status = adminSnap.data().status;
-        if (status === 'suspended') {
-          setActivePage('admin-suspended');
-          return;
-        }
-        if (status !== 'approved') {
-          setActivePage('admin-pending');
-          return;
-        }
-      }
-
+    if (roleOrStatus === 'admin') {
       setActivePage('admin-dashboard');
 
-    } else if (role === 'vendor') {
+    } else if (roleOrStatus === 'vendor') {
       const uid = auth.currentUser.uid;
       setVendorUid(uid);
       setChecking(true);
-
-      const vendorSnap = await getDoc(doc(db, 'vendors', uid));
-      setChecking(false);
-
-      if (!vendorSnap.exists()) {
-        setActivePage('vendor-pending');
-        return;
-      }
-
-      const status = vendorSnap.data().status;
-
-      if (status === 'suspended') {
-        setActivePage('vendor-suspended');
-        return;
-      }
-
-      if (status !== 'approved') {
-        setActivePage('vendor-pending');
-        return;
-      }
-
       const storeSnap = await getDoc(doc(db, 'Vendors', uid));
+      setChecking(false);
       setActivePage(storeSnap.exists() ? 'vendor-dashboard' : 'store-setup');
 
     } else {
@@ -101,18 +84,52 @@ function App() {
     }
   }, []);
 
+  /**
+   * onAuthStateChanged fires on app load (session restore) and after login.
+   *
+   * For newly registered vendors/admins: Register.jsx calls signOut() right after
+   * saving their Firestore doc, so by the time this listener fires they are already
+   * signed out — user will be null — and they will never hit the pending wall here.
+   * They land on the /registration-success screen instead.
+   *
+   * For session restores (page refresh): we must re-check Firestore status ourselves
+   * because Login-backend was not involved.
+   */
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         const userSnap = await getDoc(doc(db, 'users', user.uid));
         if (userSnap.exists()) {
-          await handleLoginSuccess(userSnap.data().role);
+          const { role } = userSnap.data();
+
+          // Session-restore status checks
+          if (role === 'vendor') {
+            const vendorSnap = await getDoc(doc(db, 'vendors', user.uid));
+            if (vendorSnap.exists()) {
+              const vs = vendorSnap.data().status;
+              if (vs === 'suspended') { setActivePage('vendor-suspended'); setChecking(false); return; }
+              if (vs !== 'approved')  { setActivePage('vendor-pending');   setChecking(false); return; }
+            }
+          }
+
+          if (role === 'admin') {
+            const adminSnap = await getDoc(doc(db, 'admins', user.uid));
+            if (adminSnap.exists()) {
+              const as = adminSnap.data().status;
+              if (as === 'suspended') { setActivePage('admin-suspended'); setChecking(false); return; }
+              if (as !== 'approved')  { setActivePage('admin-pending');   setChecking(false); return; }
+            }
+          }
+
+          await handleLoginSuccess(role);
         }
       }
       setChecking(false);
     });
     return () => unsubscribe();
   }, [handleLoginSuccess]);
+
+  // ─── Screen builders ─────────────────────────────────────────────────────
 
   const pendingScreen = (title, message, titleColor = '#111827', borderColor = '#E5E7EB') => (
     <main style={pendingStyles.page}>
@@ -125,6 +142,31 @@ function App() {
       </section>
     </main>
   );
+
+  const registrationSuccessScreen = () => (
+    <main style={pendingStyles.page}>
+      <section style={{ ...pendingStyles.card, borderColor: '#86EFAC' }}>
+        <div style={pendingStyles.iconWrap}>
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="12" fill="#22C55E" />
+            <path d="M7 12.5l3.5 3.5 6.5-7" stroke="#fff" strokeWidth="2.2"
+              strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
+        <h1 style={{ ...pendingStyles.title, color: '#15803D' }}>Registration Submitted!</h1>
+        <p style={pendingStyles.message}>
+          Your account has been created and is now <strong>pending review</strong>.
+          An admin will approve your account shortly. You will be able to log in
+          once your account is approved.
+        </p>
+        <button style={pendingStyles.btn} onClick={() => setActivePage('login')}>
+          Go to Login
+        </button>
+      </section>
+    </main>
+  );
+
+  // ─── Page router ─────────────────────────────────────────────────────────
 
   const renderPage = () => {
     if (checking) {
@@ -175,10 +217,14 @@ function App() {
         return <AdminDashboard setActivePage={setActivePage} />;
       case 'admin-vendor-management':
         return <AdminVendorManagement setActivePage={setActivePage} />;
+
+      // ── Status screens ──────────────────────────────────────────────────
+      case 'registration-success':
+        return registrationSuccessScreen();
       case 'vendor-pending':
         return pendingScreen(
           'Account Pending Approval',
-          'Your vendor account is currently under review. An admin will approve your account shortly.'
+          'Your vendor account is currently under review. An admin will approve your account shortly. Please check back later.'
         );
       case 'vendor-suspended':
         return pendingScreen(
@@ -197,24 +243,23 @@ function App() {
           'Your admin account has been suspended. Please contact support for assistance.',
           '#DC2626', '#FCA5A5'
         );
+
       case 'login':
       case 'logout':
-        return <Login onLoginSuccess={handleLoginSuccess} />;
       default:
         return <Login onLoginSuccess={handleLoginSuccess} />;
     }
   };
 
-  if (
-    activePage === 'vendor-dashboard' ||
-    activePage === 'store-setup' ||
-    activePage === 'admin-dashboard' ||
-    activePage === 'admin-vendor-management' ||
-    activePage === 'vendor-pending' ||
-    activePage === 'vendor-suspended' ||
-    activePage === 'admin-pending' ||
-    activePage === 'admin-suspended'
-  ) {
+  const fullPageScreens = [
+    'vendor-dashboard', 'store-setup',
+    'admin-dashboard', 'admin-vendor-management',
+    'vendor-pending', 'vendor-suspended',
+    'admin-pending', 'admin-suspended',
+    'registration-success',
+  ];
+
+  if (fullPageScreens.includes(activePage)) {
     return <>{renderPage()}</>;
   }
 
@@ -267,6 +312,11 @@ const pendingStyles = {
     width: '100%',
     textAlign: 'center',
   },
+  iconWrap: {
+    display: 'flex',
+    justifyContent: 'center',
+    marginBottom: '20px',
+  },
   title: {
     fontSize: '24px',
     fontWeight: '700',
@@ -291,5 +341,6 @@ const pendingStyles = {
 };
 
 export default App;
+
 
 
