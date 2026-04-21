@@ -12,6 +12,7 @@ const useRegister = (defaultRole) => {
   const [staffNumber, setStaffNumber] = useState("");
   const [studentNumber, setStudentNumber] = useState("");
   const [password, setPassword] = useState("");
+  const [adminReason, setAdminReason] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -19,6 +20,12 @@ const useRegister = (defaultRole) => {
     e.preventDefault();
     setError("");
     const activateRole = defaultRole;
+
+    // Validate before creating the Firebase auth account
+    if (activateRole === "admin" && !adminReason.trim()) {
+      setError("Please provide a reason for applying for admin access.");
+      return;
+    }
 
     try {
       const result = await createUserWithEmailAndPassword(auth, email, password);
@@ -58,6 +65,7 @@ const useRegister = (defaultRole) => {
           name,
           lastName,
           email,
+          reason: adminReason,
           ownerId: user.uid,
           createdAt: new Date(),
           status: "pending",
@@ -102,6 +110,7 @@ const useRegister = (defaultRole) => {
     password, setPassword,
     businessName, setBusinessName,
     staffNumber, setStaffNumber,
+    adminReason, setAdminReason,
     error,
   };
 };

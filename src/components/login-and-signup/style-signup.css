@@ -175,3 +175,14 @@
     order: -1;
   }
 }
+/* Admin role button — visually distinct from vendor/customer */
+.signup-flow .role-btn--admin {
+  background: linear-gradient(to right, #1f2937, #374151);
+  margin-top: 1rem;
+  border-top: 2px solid #e5e7eb;
+  padding-top: 1rem;
+}
+
+.signup-flow .role-btn--admin:hover {
+  filter: brightness(1.15);
+}
