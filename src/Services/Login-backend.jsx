@@ -9,10 +9,6 @@ import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../Firebase/firebaseConfig";
 import { useNavigate } from "react-router-dom";
 
-/**
- * @param {{ onLoginSuccess?: (role: string) => void }} options
- * When `onLoginSuccess` is set (e.g. from App), email/Google sign-in updates parent state instead of navigating to routes that are not defined.
- */
 export const useLogin = (options = {}) => {
   const { onLoginSuccess } = options;
   const [error, setError] = useState("");
@@ -29,23 +25,40 @@ export const useLogin = (options = {}) => {
       return;
     }
 
-    const role = userSnap.data().role;
+    const { role, status } = userSnap.data();
 
-    // Check vendor approval status before allowing login
+    // Check vendor approval status — route to the right screen via onLoginSuccess
+    // so App.js can show the correct pending/suspended UI rather than a login error.
     if (role === "vendor") {
-      const vendorRef = doc(db, "vendors", user.uid);
-      const vendorSnap = await getDoc(vendorRef);
-
+      const vendorSnap = await getDoc(doc(db, "vendors", user.uid));
       if (vendorSnap.exists()) {
-        const status = vendorSnap.data().status;
-
-        if (status === "pending") {
+        const vendorStatus = vendorSnap.data().status;
+        if (vendorStatus === "suspended") {
+          if (onLoginSuccess) { onLoginSuccess("vendor-suspended"); return; }
+          setError("Your vendor account has been suspended. Please contact support.");
+          return;
+        }
+        if (vendorStatus !== "approved") {
+          if (onLoginSuccess) { onLoginSuccess("vendor-pending"); return; }
           setError("Your vendor account is pending approval. Please wait for an admin to approve your account.");
           return;
         }
+      }
+    }
 
-        if (status === "suspended") {
-          setError("Your vendor account has been suspended. Please contact support.");
+    // Check admin approval status
+    if (role === "admin") {
+      const adminSnap = await getDoc(doc(db, "admins", user.uid));
+      if (adminSnap.exists()) {
+        const adminStatus = adminSnap.data().status;
+        if (adminStatus === "suspended") {
+          if (onLoginSuccess) { onLoginSuccess("admin-suspended"); return; }
+          setError("Your admin account has been suspended. Please contact support.");
+          return;
+        }
+        if (adminStatus !== "approved") {
+          if (onLoginSuccess) { onLoginSuccess("admin-pending"); return; }
+          setError("Your admin account is pending approval. Please wait for an existing admin to approve your account.");
           return;
         }
       }
@@ -76,7 +89,6 @@ export const useLogin = (options = {}) => {
       await redirectByRole(result.user);
     } catch (err) {
       console.error("Login error:", err);
-
       if (
         err.code === "auth/invalid-credential" ||
         err.code === "auth/wrong-password" ||
@@ -115,13 +127,9 @@ export const useLogin = (options = {}) => {
       if (err.code === "auth/popup-closed-by-user") {
         setError("");
       } else if (err.code === "auth/unauthorized-domain") {
-        setError(
-          "Google sign-in is not authorized for this domain yet. Add your Vercel domain in Firebase Authentication > Settings > Authorized domains."
-        );
+        setError("Google sign-in is not authorized for this domain yet.");
       } else if (err.code === "auth/account-exists-with-different-credential") {
-        setError(
-          "This email already exists with another sign-in method. Log in with email/password, then link Google from account settings."
-        );
+        setError("This email already exists with another sign-in method.");
       } else if (err.code === "auth/popup-blocked") {
         setError("Popup was blocked by your browser. Allow popups and try again.");
       } else {
@@ -143,7 +151,6 @@ export const useLogin = (options = {}) => {
       await sendPasswordResetEmail(auth, email);
       setInfo("Password reset email sent. Please check your inbox.");
     } catch (err) {
-      console.error("Password reset error:", err);
       if (err.code === "auth/user-not-found") {
         setError("No user found with that email.");
       } else if (err.code === "auth/invalid-email") {

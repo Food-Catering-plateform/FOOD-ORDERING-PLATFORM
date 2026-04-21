@@ -1,3 +1,5 @@
+/* AdminVendorManagement.css */
+
 .avm-page {
   min-height: 100vh;
   background: #F9FAFB;
@@ -241,4 +243,38 @@
     display: block;
     overflow-x: auto;
   }
+}
+
+/* Type tabs (Vendors / Admin Requests) */
+.avm-type-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  border-bottom: 2px solid #E5E7EB;
+  padding-bottom: 0;
+}
+
+.avm-type-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #6B7280;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.15s ease;
+}
+
+.avm-type-tab:hover {
+  color: #111827;
+}
+
+.avm-type-tab.active {
+  color: #111827;
+  border-bottom-color: #111827;
 }

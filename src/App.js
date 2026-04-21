@@ -17,13 +17,13 @@ import { doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 
 function App() {
-  const [activePage, setActivePage] = useState('login');//defaul page is login
+  const [activePage, setActivePage] = useState('login');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [selectedShop, setSelectedShop] = useState(null);
   const [vendorUid, setVendorUid] = useState(null);
   const [checking, setChecking] = useState(true);
   const [basket, setBasket] = useState([]);
-  
+
   const addToBasket = (item, shop) => {
     setBasket(prev => {
       const existing = prev.find(b => b.id === item.id);
@@ -36,7 +36,12 @@ function App() {
 
   const toggleSidebar = () => setSidebarOpen((prev) => !prev);
 
-  const isAuthScreen = activePage === 'login' || activePage === 'logout' || activePage === 'vendor-pending';
+  const isAuthScreen =
+    activePage === 'login' ||
+    activePage === 'logout' ||
+    activePage === 'registration-success' ||
+    activePage === 'vendor-pending' ||
+    activePage === 'admin-pending';
 
   const useCustomerChrome =
     !isAuthScreen &&
@@ -45,57 +50,131 @@ function App() {
     activePage !== 'admin-dashboard' &&
     activePage !== 'admin-vendor-management';
 
-  const handleLoginSuccess = useCallback(async (role) => {
-    if (role === 'admin') {
+  /**
+   * Called by Login-backend after a successful sign-in.
+   * Login-backend checks Firestore and passes back either a role ('vendor', 'admin',
+   * 'student') for approved users, or a specific status string like 'vendor-pending'
+   * for unapproved ones. We never need to re-query Firestore for approval status here.
+   */
+  const handleLoginSuccess = useCallback(async (roleOrStatus) => {
+    // Status-specific screens passed directly from Login-backend
+    if (
+      roleOrStatus === 'vendor-pending' ||
+      roleOrStatus === 'vendor-suspended' ||
+      roleOrStatus === 'admin-pending' ||
+      roleOrStatus === 'admin-suspended'
+    ) {
+      setActivePage(roleOrStatus);
+      return;
+    }
+
+    if (roleOrStatus === 'admin') {
       setActivePage('admin-dashboard');
-    } else if (role === 'vendor') {
+
+    } else if (roleOrStatus === 'vendor') {
       const uid = auth.currentUser.uid;
       setVendorUid(uid);
       setChecking(true);
-
-      const vendorSnap = await getDoc(doc(db, 'vendors', uid));
-
-      setChecking(false);
-
-      if (!vendorSnap.exists()) {
-        setActivePage('vendor-pending');
-        return;
-      }
-
-      const status = vendorSnap.data().status;
-
-      if (status === 'suspended') {
-        setActivePage('vendor-suspended');
-        return;
-      }
-
-      // Only explicitly approved vendors can proceed
-      if (status !== 'approved') {
-        setActivePage('vendor-pending');
-        return;
-      }
-
-      // Approved — check if store is set up
       const storeSnap = await getDoc(doc(db, 'Vendors', uid));
+      setChecking(false);
       setActivePage(storeSnap.exists() ? 'vendor-dashboard' : 'store-setup');
 
     } else {
       setActivePage('shops');
     }
   }, []);
-//when the user is already logged in and refreshes the page, they won't be direceted to the login page 
- useEffect(() => {
+
+  /**
+   * onAuthStateChanged fires on app load (session restore) and after login.
+   *
+   * For newly registered vendors/admins: Register.jsx calls signOut() right after
+   * saving their Firestore doc, so by the time this listener fires they are already
+   * signed out — user will be null — and they will never hit the pending wall here.
+   * They land on the /registration-success screen instead.
+   *
+   * For session restores (page refresh): we must re-check Firestore status ourselves
+   * because Login-backend was not involved.
+   */
+  useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         const userSnap = await getDoc(doc(db, 'users', user.uid));
         if (userSnap.exists()) {
-          await handleLoginSuccess(userSnap.data().role);
+          const { role } = userSnap.data();
+
+          // Session-restore status checks
+          if (role === 'vendor') {
+            const vendorSnap = await getDoc(doc(db, 'vendors', user.uid));
+            if (vendorSnap.exists()) {
+              const vd = vendorSnap.data();
+              if (vd.status === 'suspended') { setActivePage('vendor-suspended'); setChecking(false); return; }
+              // Not yet approved AND store not yet initialized → go to store-setup
+              if (vd.status !== 'approved' && vd.storeInitialized === false) {
+                setVendorUid(user.uid);
+                setActivePage('store-setup');
+                setChecking(false);
+                return;
+              }
+              // Store submitted but awaiting admin approval → pending wall
+              if (vd.status !== 'approved') { setActivePage('vendor-pending'); setChecking(false); return; }
+            }
+          }
+
+          if (role === 'admin') {
+            const adminSnap = await getDoc(doc(db, 'admins', user.uid));
+            if (adminSnap.exists()) {
+              const as = adminSnap.data().status;
+              if (as === 'suspended') { setActivePage('admin-suspended'); setChecking(false); return; }
+              if (as !== 'approved')  { setActivePage('admin-pending');   setChecking(false); return; }
+            }
+          }
+
+          await handleLoginSuccess(role);
         }
       }
       setChecking(false);
     });
     return () => unsubscribe();
   }, [handleLoginSuccess]);
+
+  // ─── Screen builders ─────────────────────────────────────────────────────
+
+  const pendingScreen = (title, message, titleColor = '#111827', borderColor = '#E5E7EB') => (
+    <main style={pendingStyles.page}>
+      <section style={{ ...pendingStyles.card, borderColor }}>
+        <h1 style={{ ...pendingStyles.title, color: titleColor }}>{title}</h1>
+        <p style={pendingStyles.message}>{message}</p>
+        <button style={pendingStyles.btn} onClick={() => setActivePage('login')}>
+          Back to Login
+        </button>
+      </section>
+    </main>
+  );
+
+  const registrationSuccessScreen = () => (
+    <main style={pendingStyles.page}>
+      <section style={{ ...pendingStyles.card, borderColor: '#86EFAC' }}>
+        <div style={pendingStyles.iconWrap}>
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="12" fill="#22C55E" />
+            <path d="M7 12.5l3.5 3.5 6.5-7" stroke="#fff" strokeWidth="2.2"
+              strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
+        <h1 style={{ ...pendingStyles.title, color: '#15803D' }}>Registration Submitted!</h1>
+        <p style={pendingStyles.message}>
+          Your account has been created and is now <strong>pending review</strong>.
+          An admin will approve your account shortly. You will be able to log in
+          once your account is approved.
+        </p>
+        <button style={pendingStyles.btn} onClick={() => setActivePage('login')}>
+          Go to Login
+        </button>
+      </section>
+    </main>
+  );
+
+  // ─── Page router ─────────────────────────────────────────────────────────
 
   const renderPage = () => {
     if (checking) {
@@ -136,7 +215,7 @@ function App() {
         return (
           <StoreSetup
             uid={vendorUid}
-            onComplete={() => setActivePage('vendor-dashboard')}
+            onComplete={() => setActivePage('vendor-pending')}
             onCancel={() => setActivePage('login')}
           />
         );
@@ -146,50 +225,49 @@ function App() {
         return <AdminDashboard setActivePage={setActivePage} />;
       case 'admin-vendor-management':
         return <AdminVendorManagement setActivePage={setActivePage} />;
+
+      // ── Status screens ──────────────────────────────────────────────────
+      case 'registration-success':
+        return registrationSuccessScreen();
       case 'vendor-pending':
-        return (
-          <main style={pendingStyles.page}>
-            <section style={pendingStyles.card}>
-              <h1 style={pendingStyles.title}>Account Pending Approval</h1>
-              <p style={pendingStyles.message}>
-                Your vendor account is currently under review. An admin will approve your account shortly.
-              </p>
-              <button style={pendingStyles.btn} onClick={() => setActivePage('login')}>
-                Back to Login
-              </button>
-            </section>
-          </main>
+        return pendingScreen(
+          'Account Pending Approval',
+          'Your vendor account is currently under review. An admin will approve your account shortly. Please check back later.'
         );
       case 'vendor-suspended':
-        return (
-          <main style={pendingStyles.page}>
-            <section style={{ ...pendingStyles.card, borderColor: '#FCA5A5' }}>
-              <h1 style={{ ...pendingStyles.title, color: '#DC2626' }}>Account Suspended</h1>
-              <p style={pendingStyles.message}>
-                Your vendor account has been suspended. Please contact support for assistance.
-              </p>
-              <button style={pendingStyles.btn} onClick={() => setActivePage('login')}>
-                Back to Login
-              </button>
-            </section>
-          </main>
+        return pendingScreen(
+          'Account Suspended',
+          'Your vendor account has been suspended. Please contact support for assistance.',
+          '#DC2626', '#FCA5A5'
         );
+      case 'admin-pending':
+        return pendingScreen(
+          'Admin Request Pending',
+          'Your admin account request is currently under review. An existing admin will approve your request shortly.'
+        );
+      case 'admin-suspended':
+        return pendingScreen(
+          'Admin Account Suspended',
+          'Your admin account has been suspended. Please contact support for assistance.',
+          '#DC2626', '#FCA5A5'
+        );
+
       case 'login':
       case 'logout':
-        return <Login onLoginSuccess={handleLoginSuccess} />;
       default:
         return <Login onLoginSuccess={handleLoginSuccess} />;
     }
   };
 
-  if (
-    activePage === 'vendor-dashboard' ||
-    activePage === 'store-setup' ||
-    activePage === 'admin-dashboard' ||
-    activePage === 'admin-vendor-management' ||
-    activePage === 'vendor-pending' ||
-    activePage === 'vendor-suspended'
-  ) {
+  const fullPageScreens = [
+    'vendor-dashboard', 'store-setup',
+    'admin-dashboard', 'admin-vendor-management',
+    'vendor-pending', 'vendor-suspended',
+    'admin-pending', 'admin-suspended',
+    'registration-success',
+  ];
+
+  if (fullPageScreens.includes(activePage)) {
     return <>{renderPage()}</>;
   }
 
@@ -235,17 +313,21 @@ const pendingStyles = {
   },
   card: {
     background: '#fff',
-    border: '1px solid #E5E7EB',
+    border: '1px solid',
     borderRadius: '12px',
     padding: '48px 40px',
     maxWidth: '480px',
     width: '100%',
     textAlign: 'center',
   },
+  iconWrap: {
+    display: 'flex',
+    justifyContent: 'center',
+    marginBottom: '20px',
+  },
   title: {
     fontSize: '24px',
     fontWeight: '700',
-    color: '#111827',
     margin: '0 0 16px',
   },
   message: {
