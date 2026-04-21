@@ -9,13 +9,12 @@ html, body {
 .login-page {
     display: flex;
     flex-direction: column;
-    /* Component lives inside App's <main>; avoid layout hacks/overflows */
     min-height: 100%;
     width: 100%;
     margin: 0;
-    background: #f3f4f6;
+    background: #F5EFE6;        /* CHANGED - warm beige background */
     font-family: Arial, sans-serif;
-    color: #1f2937;
+    color: #2C1A0E;             /* CHANGED - deep brown text */
 }
 
 /* HEADER */
@@ -26,14 +25,14 @@ html, body {
     padding: 1.5rem 2rem;
     font-weight: bold;
     font-size: 1.4rem;
-    color: #6366f1;
+    color: #7C5C3E;             /* CHANGED - warm brown */
     z-index: 10;
-    border: none;        /* ADD THIS */
-    box-shadow: none;    /* ADD THIS */
-    background: transparent; /* ADD THIS */
+    border: none;
+    box-shadow: none;
+    background: transparent;
 }
 
-/* MAIN CONTAINER - this is now the 2-column grid */
+/* MAIN CONTAINER */
 .login-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -41,10 +40,10 @@ html, body {
     max-width: 1000px;
     width: 100%;
     margin: 2rem auto;
-    background: white;
+    background: #FFFDF9;        /* CHANGED - warm off white */
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    box-shadow: 0 10px 30px rgba(44,26,14,0.15); /* CHANGED - brown shadow */
 }
 
 /* LEFT SIDE */
@@ -61,7 +60,7 @@ html, body {
 
 .auth p {
     margin-bottom: 1.5rem;
-    color: #6b7280;
+    color: #7D6658;             /* CHANGED - warm brown grey */
 }
 
 /* FORM (scoped) */
@@ -88,14 +87,14 @@ html, body {
     width: 100%;
     padding: 0.8rem;
     margin-top: 0.3rem;
-    border: 1px solid #d1d5db;
+    border: 1px solid #D4BFA8;  /* CHANGED - beige border */
     border-radius: 8px;
 }
 
 .login-page input:focus {
     outline: none;
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    border-color: #7C5C3E;      /* CHANGED - brown focus */
+    box-shadow: 0 0 0 3px rgba(124, 92, 62, 0.15); /* CHANGED - brown glow */
 }
 
 /* BUTTONS */
@@ -111,14 +110,14 @@ html, body {
 
 /* Login button */
 .login-page button[type="submit"] {
-    background: linear-gradient(to right, #6366f1, #9333ea);
-    color: white;
+    background: linear-gradient(to right, #7C5C3E, #A0785A); /* CHANGED - brown gradient */
+    color: #FFFDF9;             /* CHANGED - warm white text */
 }
 
-/* Google button - was #googleSignIn but button has no id in JSX */
+/* Google button */
 .login-page button[type="button"] {
-    background: white;
-    border: 1px solid #d1d5db;
+    background: #FFFDF9;        /* CHANGED - warm white */
+    border: 1px solid #D4BFA8;  /* CHANGED - beige border */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -127,7 +126,7 @@ html, body {
 
 /* ERROR */
 .login-error {
-    color: red;
+    color: #9B3A2A;             /* CHANGED - warm dark red */
     margin-top: 0.5rem;
     font-size: 0.9rem;
 }
@@ -139,17 +138,17 @@ html, body {
 }
 
 .login-page a {
-    color: #6366f1;
+    color: #7C5C3E;             /* CHANGED - brown link */
     text-decoration: none;
 }
 
-/* RIGHT SIDE - was .promo in CSS but .sider in JSX */
+/* RIGHT SIDE */
 .sider {
-    background: linear-gradient(135deg, #6366f1 0%, #9333ea 60%, #ec4899 100%);
+    background: linear-gradient(135deg, #7C5C3E 0%, #A0785A 60%, #C9A98A 100%); /* CHANGED - brown to nude gradient */
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    color: white;
+    color: #FFFDF9;             /* CHANGED - warm white text */
     padding: 2rem;
     display: flex;
     flex-direction: column;
@@ -163,19 +162,19 @@ html, body {
 
 /* FOOTER */
 .login-footer {
-    position: static;    /* CHANGED - from fixed to static so it flows naturally */
-    width: 100%;         /* CHANGED - full width not 50% */
+    position: static;
+    width: 100%;
     text-align: center;
     padding: 1rem;
     font-size: 0.85rem;
-    color: #9ca3af;
-    background: white;
-    border-top: 1px solid #e5e7eb;
+    color: #B8A898;             /* CHANGED - light warm grey */
+    background: #FFFDF9;        /* CHANGED - warm white */
+    border-top: 1px solid #E8D9C8; /* CHANGED - light beige border */
 }
 
 /* SUBTITLE */
 .auth-subtitle {
-    color: #6b7280;
+    color: #7D6658;             /* CHANGED - warm brown grey */
     margin-bottom: 1.5rem;
     font-size: 0.95rem;
 }
@@ -192,7 +191,7 @@ html, body {
     padding: 0 !important;
     border: none !important;
     background: transparent !important;
-    color: #6366f1 !important;
+    color: #7C5C3E !important;  /* CHANGED - brown */
     font-size: 0.85rem !important;
     font-weight: 600 !important;
     cursor: pointer;
@@ -203,15 +202,15 @@ html, body {
 }
 
 .login-info {
-    color: #0f766e;
+    color: #5C7A5C;             /* CHANGED - muted earthy green for success */
     margin-top: 0.5rem;
     font-size: 0.9rem;
 }
 
 /* LOGIN BUTTON */
 .login-btn {
-    background: linear-gradient(to right, #6366f1, #9333ea);
-    color: white;
+    background: linear-gradient(to right, #7C5C3E, #A0785A); /* CHANGED - brown gradient */
+    color: #FFFDF9;             /* CHANGED - warm white */
     width: 100%;
     padding: 0.9rem;
     margin-top: 1.2rem;
@@ -228,7 +227,7 @@ html, body {
     align-items: center;
     text-align: center;
     margin: 1.2rem 0;
-    color: #9ca3af;
+    color: #B8A898;             /* CHANGED - light warm tone */
     font-size: 0.85rem;
 }
 
@@ -236,10 +235,10 @@ html, body {
 .divider::after {
     content: '';
     flex: 1;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid #E8D9C8; /* CHANGED - light beige line */
 }
 
-.divider{
+.divider {
     padding: 0 0.75rem;
 }
 
@@ -247,8 +246,8 @@ html, body {
 .google-btn {
     width: 100%;
     padding: 0.9rem;
-    background: white;
-    border: 1px solid #d1d5db;
+    background: #FFFDF9;        /* CHANGED - warm white */
+    border: 1px solid #D4BFA8;  /* CHANGED - beige border */
     border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
@@ -257,11 +256,11 @@ html, body {
     justify-content: center;
     align-items: center;
     gap: 0.75rem;
-    color: #1f2937;
+    color: #2C1A0E;             /* CHANGED - deep brown text */
     transition: 0.2s ease, box-shadow 0.2s ease;
 }
 
 .google-btn:hover {
-    background: #f9fafb;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    background: #F5EFE6;        /* CHANGED - beige hover */
+    box-shadow: 0 2px 8px rgba(44,26,14,0.1); /* CHANGED - brown shadow */
 }

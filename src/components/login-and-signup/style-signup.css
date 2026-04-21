@@ -4,8 +4,8 @@
   display: flex;
   flex-direction: column;
   font-family: Arial, sans-serif;
-  background: #f3f4f6;
-  color: #1f2937;
+  background: #F5EFE6;        /* CHANGED - warm beige background */
+  color: #2C1A0E;             /* CHANGED - deep brown text */
 }
 
 .signup-flow main {
@@ -26,6 +26,7 @@
   text-align: center;
   padding: 1.5rem;
   font-weight: bold;
+  color: #7C5C3E;             /* CHANGED - warm brown */
 }
 
 .signup-flow .signup-layout {
@@ -37,10 +38,10 @@
   margin-bottom: 2rem;
   width: 100%;
   flex: 1;
-  background: white;
+  background: #FFFDF9;        /* CHANGED - warm off white */
   border-radius: 12px;
-  overflow: auto; /* ✅ FIXED */
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  overflow: auto;
+  box-shadow: 0 10px 30px rgba(44, 26, 14, 0.15); /* CHANGED - brown shadow */
 }
 
 .signup-flow .auth-up,
@@ -59,7 +60,7 @@
 .signup-flow .auth-up > p,
 .signup-flow .signup-form-section > p {
   margin-bottom: 1rem;
-  color: #6b7280;
+  color: #7D6658;             /* CHANGED - warm brown grey */
 }
 
 .signup-flow .role-btn {
@@ -70,8 +71,8 @@
   margin: 0.5rem 0;
   font-weight: bold;
   text-decoration: none;
-  background: linear-gradient(to right, #6366f1, #9333ea);
-  color: white;
+  background: linear-gradient(to right, #7C5C3E, #A0785A); /* CHANGED - brown gradient */
+  color: #FFFDF9;             /* CHANGED - warm white */
   border: none;
   transition: filter 0.15s;
 }
@@ -104,14 +105,15 @@
   width: 100%;
   padding: 0.8rem;
   margin-top: 0.3rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid #D4BFA8;  /* CHANGED - beige border */
   border-radius: 8px;
+  background: #FFFDF9;        /* CHANGED - warm white input */
 }
 
 .signup-flow fieldset.signup-fieldset input:focus {
   outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  border-color: #7C5C3E;      /* CHANGED - brown focus */
+  box-shadow: 0 0 0 3px rgba(124, 92, 62, 0.15); /* CHANGED - brown glow */
 }
 
 .signup-flow form > button[type="submit"] {
@@ -122,8 +124,8 @@
   border-radius: 8px;
   cursor: pointer;
   font-weight: bold;
-  background: linear-gradient(to right, #6366f1, #9333ea);
-  color: white;
+  background: linear-gradient(to right, #7C5C3E, #A0785A); /* CHANGED - brown gradient */
+  color: #FFFDF9;             /* CHANGED - warm white */
 }
 
 .signup-flow nav {
@@ -132,7 +134,7 @@
 }
 
 .signup-flow a {
-  color: #6366f1;
+  color: #7C5C3E;             /* CHANGED - brown link */
   text-decoration: none;
 }
 
@@ -141,8 +143,8 @@
 }
 
 .signup-flow .sider {
-  background: linear-gradient(135deg, #6366f1 0%, #9333ea 100%);
-  color: white;
+  background: linear-gradient(135deg, #7C5C3E 0%, #A0785A 60%, #C9A98A 100%); /* CHANGED - brown to nude gradient */
+  color: #FFFDF9;             /* CHANGED - warm white text */
   padding: 2rem;
   display: flex;
   flex-direction: column;
@@ -157,10 +159,11 @@
   text-align: center;
   padding: 1rem;
   font-size: 0.9rem;
+  color: #B8A898;             /* CHANGED - light warm grey */
 }
 
 .signup-error {
-  color: #b91c1c;
+  color: #9B3A2A;             /* CHANGED - warm dark red */
   font-size: 0.9rem;
   margin: 0.75rem 0 0;
 }
