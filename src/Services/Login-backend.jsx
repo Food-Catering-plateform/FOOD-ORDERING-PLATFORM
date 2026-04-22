@@ -25,7 +25,7 @@ export const useLogin = (options = {}) => {
       return;
     }
 
-    const { role, status } = userSnap.data();
+const { role } = userSnap.data();
 
     // Check vendor approval status — route to the right screen via onLoginSuccess
     // so App.js can show the correct pending/suspended UI rather than a login error.
