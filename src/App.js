@@ -15,6 +15,8 @@ import AdminVendorManagement from './components/Admin/AdminVendorManagement';
 import { auth, db } from './Firebase/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
+import Payment from './components/Customer/jsFiles/Payment';
+
 
 function App() {
   const [activePage, setActivePage] = useState('login');
@@ -56,6 +58,7 @@ function App() {
    * 'student') for approved users, or a specific status string like 'vendor-pending'
    * for unapproved ones. We never need to re-query Firestore for approval status here.
    */
+
   const handleLoginSuccess = useCallback(async (roleOrStatus) => {
     // Status-specific screens passed directly from Login-backend
     if (
@@ -193,7 +196,9 @@ function App() {
       case 'orders':
         return <Orders />;
       case 'basket':
-        return <Basket basket={basket} setBasket={setBasket} />;
+        return <Basket basket={basket} setBasket={setBasket} setActivePage={setActivePage} />;
+      case 'payment':
+        return <Payment setActivePage={setActivePage} />;
       case 'shops':
         return (
           <Shops

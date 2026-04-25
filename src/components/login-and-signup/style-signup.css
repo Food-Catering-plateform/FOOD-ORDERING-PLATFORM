@@ -4,8 +4,8 @@
   display: flex;
   flex-direction: column;
   font-family: Arial, sans-serif;
-  background: #F5EFE6;        /* CHANGED - warm beige background */
-  color: #2C1A0E;             /* CHANGED - deep brown text */
+  background: #111827;        /* CHANGED - deep dark navy */
+  color: #FFFFFF;
 }
 
 .signup-flow main {
@@ -26,7 +26,7 @@
   text-align: center;
   padding: 1.5rem;
   font-weight: bold;
-  color: #7C5C3E;             /* CHANGED - warm brown */
+  color: #D90429;             /* CHANGED - vibrant red */
 }
 
 .signup-flow .signup-layout {
@@ -38,10 +38,10 @@
   margin-bottom: 2rem;
   width: 100%;
   flex: 1;
-  background: #FFFDF9;        /* CHANGED - warm off white */
+  background: #FFFFFF;        /* CHANGED - white card */
   border-radius: 12px;
   overflow: auto;
-  box-shadow: 0 10px 30px rgba(44, 26, 14, 0.15); /* CHANGED - brown shadow */
+  box-shadow: 0 10px 30px rgba(217, 4, 41, 0.3); /* CHANGED - red glow */
 }
 
 .signup-flow .auth-up,
@@ -55,12 +55,13 @@
 .signup-flow .auth-up h2,
 .signup-flow .signup-form-section h2 {
   margin-bottom: 0.5rem;
+  color: #D90429;             /* CHANGED - vibrant red heading */
 }
 
 .signup-flow .auth-up > p,
 .signup-flow .signup-form-section > p {
   margin-bottom: 1rem;
-  color: #7D6658;             /* CHANGED - warm brown grey */
+  color: #555555;             /* CHANGED - medium grey subtext */
 }
 
 .signup-flow .role-btn {
@@ -71,8 +72,8 @@
   margin: 0.5rem 0;
   font-weight: bold;
   text-decoration: none;
-  background: linear-gradient(to right, #7C5C3E, #A0785A); /* CHANGED - brown gradient */
-  color: #FFFDF9;             /* CHANGED - warm white */
+  background: linear-gradient(to right, #D90429, #FFB800); /* CHANGED - red to gold */
+  color: #FFFFFF;
   border: none;
   transition: filter 0.15s;
 }
@@ -95,6 +96,7 @@
   display: block;
   margin-top: 1rem;
   font-weight: 600;
+  color: #111827;             /* CHANGED - dark label */
 }
 
 .signup-flow fieldset.signup-fieldset label:first-of-type {
@@ -105,15 +107,16 @@
   width: 100%;
   padding: 0.8rem;
   margin-top: 0.3rem;
-  border: 1px solid #D4BFA8;  /* CHANGED - beige border */
+  border: 1px solid #1C2333;  /* CHANGED - dark border */
   border-radius: 8px;
-  background: #FFFDF9;        /* CHANGED - warm white input */
+  background: #F5F5F5;        /* CHANGED - light input */
+  color: #111827;
 }
 
 .signup-flow fieldset.signup-fieldset input:focus {
   outline: none;
-  border-color: #7C5C3E;      /* CHANGED - brown focus */
-  box-shadow: 0 0 0 3px rgba(124, 92, 62, 0.15); /* CHANGED - brown glow */
+  border-color: #D90429;      /* CHANGED - red focus */
+  box-shadow: 0 0 0 3px rgba(217, 4, 41, 0.15); /* CHANGED - red glow */
 }
 
 .signup-flow form > button[type="submit"] {
@@ -124,8 +127,8 @@
   border-radius: 8px;
   cursor: pointer;
   font-weight: bold;
-  background: linear-gradient(to right, #7C5C3E, #A0785A); /* CHANGED - brown gradient */
-  color: #FFFDF9;             /* CHANGED - warm white */
+  background: linear-gradient(to right, #D90429, #FFB800); /* CHANGED - red to gold */
+  color: #FFFFFF;
 }
 
 .signup-flow nav {
@@ -134,7 +137,7 @@
 }
 
 .signup-flow a {
-  color: #7C5C3E;             /* CHANGED - brown link */
+  color: #D90429;             /* CHANGED - vibrant red link */
   text-decoration: none;
 }
 
@@ -143,8 +146,8 @@
 }
 
 .signup-flow .sider {
-  background: linear-gradient(135deg, #7C5C3E 0%, #A0785A 60%, #C9A98A 100%); /* CHANGED - brown to nude gradient */
-  color: #FFFDF9;             /* CHANGED - warm white text */
+  background: linear-gradient(135deg, #D90429 0%, #111827 60%, #000000 100%); /* CHANGED - red to dark navy to black */
+  color: #FFFFFF;
   padding: 2rem;
   display: flex;
   flex-direction: column;
@@ -159,11 +162,11 @@
   text-align: center;
   padding: 1rem;
   font-size: 0.9rem;
-  color: #B8A898;             /* CHANGED - light warm grey */
+  color: #AAAAAA;             /* CHANGED - muted grey */
 }
 
 .signup-error {
-  color: #9B3A2A;             /* CHANGED - warm dark red */
+  color: #D90429;             /* CHANGED - vibrant red error */
   font-size: 0.9rem;
   margin: 0.75rem 0 0;
 }
@@ -177,4 +180,16 @@
     min-height: 180px;
     order: -1;
   }
+}
+
+/* Admin role button */
+.signup-flow .role-btn--admin {
+  background: linear-gradient(to right, #1C2333, #111827); /* CHANGED - dark navy */
+  margin-top: 1rem;
+  border-top: 2px solid #FFB800; /* CHANGED - gold border */
+  padding-top: 1rem;
+}
+
+.signup-flow .role-btn--admin:hover {
+  filter: brightness(1.15);
 }

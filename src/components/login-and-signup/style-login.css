@@ -12,9 +12,9 @@ html, body {
     min-height: 100%;
     width: 100%;
     margin: 0;
-    background: #F5EFE6;        /* CHANGED - warm beige background */
+    background: #111827;        /* CHANGED - deep dark navy */
     font-family: Arial, sans-serif;
-    color: #2C1A0E;             /* CHANGED - deep brown text */
+    color: #FFFFFF;             /* CHANGED - white text */
 }
 
 /* HEADER */
@@ -25,7 +25,7 @@ html, body {
     padding: 1.5rem 2rem;
     font-weight: bold;
     font-size: 1.4rem;
-    color: #7C5C3E;             /* CHANGED - warm brown */
+    color: #D90429;             /* CHANGED - vibrant red */
     z-index: 10;
     border: none;
     box-shadow: none;
@@ -40,10 +40,10 @@ html, body {
     max-width: 1000px;
     width: 100%;
     margin: 2rem auto;
-    background: #FFFDF9;        /* CHANGED - warm off white */
+    background: #1C2333;        /* CHANGED - dark navy card */
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 10px 30px rgba(44,26,14,0.15); /* CHANGED - brown shadow */
+    box-shadow: 0 10px 30px rgba(217, 4, 41, 0.3); /* CHANGED - red glow shadow */
 }
 
 /* LEFT SIDE */
@@ -52,15 +52,17 @@ html, body {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    background: #FFFFFF;        /* CHANGED - white left panel */
 }
 
 .auth h2 {
     margin-bottom: 0.5rem;
+    color: #D90429;             /* CHANGED - vibrant red heading */
 }
 
 .auth p {
     margin-bottom: 1.5rem;
-    color: #7D6658;             /* CHANGED - warm brown grey */
+    color: #1C2333;             /* CHANGED - dark navy subtext */
 }
 
 /* FORM (scoped) */
@@ -81,20 +83,23 @@ html, body {
     display: block;
     margin-top: 1rem;
     font-weight: 600;
+    color: #111827;             /* CHANGED - dark label */
 }
 
 .login-page input {
     width: 100%;
     padding: 0.8rem;
     margin-top: 0.3rem;
-    border: 1px solid #D4BFA8;  /* CHANGED - beige border */
+    border: 1px solid #1C2333;  /* CHANGED - dark navy border */
     border-radius: 8px;
+    background: #F5F5F5;        /* CHANGED - light input */
+    color: #111827;             /* CHANGED - dark text */
 }
 
 .login-page input:focus {
     outline: none;
-    border-color: #7C5C3E;      /* CHANGED - brown focus */
-    box-shadow: 0 0 0 3px rgba(124, 92, 62, 0.15); /* CHANGED - brown glow */
+    border-color: #D90429;      /* CHANGED - red focus */
+    box-shadow: 0 0 0 3px rgba(217, 4, 41, 0.15); /* CHANGED - red glow */
 }
 
 /* BUTTONS */
@@ -110,23 +115,24 @@ html, body {
 
 /* Login button */
 .login-page button[type="submit"] {
-    background: linear-gradient(to right, #7C5C3E, #A0785A); /* CHANGED - brown gradient */
-    color: #FFFDF9;             /* CHANGED - warm white text */
+    background: linear-gradient(to right, #D90429, #FFB800); /* CHANGED - red to gold */
+    color: #FFFFFF;
 }
 
 /* Google button */
 .login-page button[type="button"] {
-    background: #FFFDF9;        /* CHANGED - warm white */
-    border: 1px solid #D4BFA8;  /* CHANGED - beige border */
+    background: #FFFFFF;
+    border: 1px solid #1C2333;  /* CHANGED - dark border */
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 0.5rem;
+    color: #111827;
 }
 
 /* ERROR */
 .login-error {
-    color: #9B3A2A;             /* CHANGED - warm dark red */
+    color: #D90429;             /* CHANGED - vibrant red error */
     margin-top: 0.5rem;
     font-size: 0.9rem;
 }
@@ -138,17 +144,17 @@ html, body {
 }
 
 .login-page a {
-    color: #7C5C3E;             /* CHANGED - brown link */
+    color: #D90429;             /* CHANGED - vibrant red link */
     text-decoration: none;
 }
 
 /* RIGHT SIDE */
 .sider {
-    background: linear-gradient(135deg, #7C5C3E 0%, #A0785A 60%, #C9A98A 100%); /* CHANGED - brown to nude gradient */
+    background: linear-gradient(135deg, #D90429 0%, #111827 60%, #000000 100%); /* CHANGED - red to dark navy to black */
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    color: #FFFDF9;             /* CHANGED - warm white text */
+    color: #FFFFFF;
     padding: 2rem;
     display: flex;
     flex-direction: column;
@@ -167,14 +173,14 @@ html, body {
     text-align: center;
     padding: 1rem;
     font-size: 0.85rem;
-    color: #B8A898;             /* CHANGED - light warm grey */
-    background: #FFFDF9;        /* CHANGED - warm white */
-    border-top: 1px solid #E8D9C8; /* CHANGED - light beige border */
+    color: #AAAAAA;             /* CHANGED - muted grey */
+    background: #111827;        /* CHANGED - dark navy footer */
+    border-top: 1px solid #D90429; /* CHANGED - red border */
 }
 
 /* SUBTITLE */
 .auth-subtitle {
-    color: #7D6658;             /* CHANGED - warm brown grey */
+    color: #555555;             /* CHANGED - medium grey subtitle */
     margin-bottom: 1.5rem;
     font-size: 0.95rem;
 }
@@ -191,7 +197,7 @@ html, body {
     padding: 0 !important;
     border: none !important;
     background: transparent !important;
-    color: #7C5C3E !important;  /* CHANGED - brown */
+    color: #D90429 !important;  /* CHANGED - vibrant red */
     font-size: 0.85rem !important;
     font-weight: 600 !important;
     cursor: pointer;
@@ -202,15 +208,15 @@ html, body {
 }
 
 .login-info {
-    color: #5C7A5C;             /* CHANGED - muted earthy green for success */
+    color: #FFB800;             /* CHANGED - golden yellow info */
     margin-top: 0.5rem;
     font-size: 0.9rem;
 }
 
 /* LOGIN BUTTON */
 .login-btn {
-    background: linear-gradient(to right, #7C5C3E, #A0785A); /* CHANGED - brown gradient */
-    color: #FFFDF9;             /* CHANGED - warm white */
+    background: linear-gradient(to right, #D90429, #FFB800); /* CHANGED - red to gold */
+    color: #FFFFFF;
     width: 100%;
     padding: 0.9rem;
     margin-top: 1.2rem;
@@ -227,7 +233,7 @@ html, body {
     align-items: center;
     text-align: center;
     margin: 1.2rem 0;
-    color: #B8A898;             /* CHANGED - light warm tone */
+    color: #AAAAAA;             /* CHANGED - muted grey */
     font-size: 0.85rem;
 }
 
@@ -235,7 +241,7 @@ html, body {
 .divider::after {
     content: '';
     flex: 1;
-    border-bottom: 1px solid #E8D9C8; /* CHANGED - light beige line */
+    border-bottom: 1px solid #D90429; /* CHANGED - red line */
 }
 
 .divider {
@@ -246,8 +252,8 @@ html, body {
 .google-btn {
     width: 100%;
     padding: 0.9rem;
-    background: #FFFDF9;        /* CHANGED - warm white */
-    border: 1px solid #D4BFA8;  /* CHANGED - beige border */
+    background: #FFFFFF;
+    border: 1px solid #1C2333;  /* CHANGED - dark border */
     border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
@@ -256,11 +262,11 @@ html, body {
     justify-content: center;
     align-items: center;
     gap: 0.75rem;
-    color: #2C1A0E;             /* CHANGED - deep brown text */
+    color: #111827;
     transition: 0.2s ease, box-shadow 0.2s ease;
 }
 
 .google-btn:hover {
-    background: #F5EFE6;        /* CHANGED - beige hover */
-    box-shadow: 0 2px 8px rgba(44,26,14,0.1); /* CHANGED - brown shadow */
+    background: #F5F5F5;
+    box-shadow: 0 2px 8px rgba(217, 4, 41, 0.2); /* CHANGED - red shadow */
 }

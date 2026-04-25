@@ -1,0 +1,185 @@
+/* Payment page */
+.payment-page {
+  min-height: 100vh;
+  background: #111827;
+  color: #FFFFFF;
+  padding: 2rem;
+  font-family: Arial, sans-serif;
+}
+
+.payment-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.payment-header h1 {
+  font-size: 1.8rem;
+  color: #D90429;
+}
+
+.payment-subtitle {
+  color: #AAAAAA;
+  margin-top: 0.5rem;
+}
+
+/* TWO COLUMN LAYOUT */
+.payment-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* ORDER SUMMARY */
+.order-summary {
+  background: #1C2333;
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid #D90429;
+}
+
+.order-summary h2 {
+  color: #D90429;
+  margin-bottom: 1.5rem;
+  font-size: 1.2rem;
+}
+
+.summary-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #2D3748;
+}
+
+.summary-item__info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.summary-item__info small {
+  color: #AAAAAA;
+  font-size: 0.85rem;
+}
+
+.summary-item__price {
+  color: #FFB800;
+}
+
+.summary-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 2px solid #D90429;
+  font-size: 1.1rem;
+}
+
+.total-amount {
+  color: #FFB800;
+  font-size: 1.3rem;
+}
+
+/* PAYMENT CARD */
+.payment-card {
+  background: #1C2333;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1rem;
+  border: 1px solid #2D3748;
+}
+
+.payment-card h2 {
+  color: #FFFFFF;
+  font-size: 1.2rem;
+}
+
+.payment-info {
+  color: #AAAAAA;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* PAYFAST BADGE */
+.payfast-badge {
+  background: #FFFFFF;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+  margin: 0;
+}
+
+.payfast-logo {
+  height: 40px;
+  object-fit: contain;
+}
+
+/* SECURITY BADGES */
+.security-badges {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.security-badges li {
+  font-size: 0.85rem;
+  color: #AAAAAA;
+  background: #2D3748;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+}
+
+/* PAY BUTTON */
+.pay-btn {
+  width: 100%;
+  padding: 1rem;
+  background: linear-gradient(to right, #D90429, #FFB800);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  margin-top: 0.5rem;
+}
+
+.pay-btn:hover {
+  opacity: 0.9;
+}
+
+.payment-cancel {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #AAAAAA;
+}
+
+.payment-cancel a {
+  color: #D90429;
+  text-decoration: none;
+}
+
+.payment-cancel a:hover {
+  text-decoration: underline;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .payment-container {
+    grid-template-columns: 1fr;
+  }
+}

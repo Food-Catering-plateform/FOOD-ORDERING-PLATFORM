@@ -6,7 +6,7 @@ function SignupRole() {
   return (
     <section className="signup-flow" aria-label="Choose how to register">
       <header>
-        <h1>Eats</h1>
+        <h1>UniEats</h1>
       </header>
 
       <main className="signup-layout">
