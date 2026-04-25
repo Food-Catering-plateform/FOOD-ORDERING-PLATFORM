@@ -24,7 +24,7 @@ function SignupVendor() {
   return (
     <section className="signup-flow" aria-label="Vendor account registration">
       <header>
-        <h1>Eats</h1>
+        <h1>UniEats</h1>
       </header>
 
       <main className="signup-layout">
@@ -130,7 +130,7 @@ function SignupVendor() {
       </main>
 
       <footer>
-        <p>&copy; 2026 Eats</p>
+        <p>&copy; 2026 UniEats</p>
       </footer>
     </section>
   );

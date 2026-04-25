@@ -22,7 +22,7 @@ function SignupCustomer() {
   return (
     <section className="signup-flow" aria-label="Customer account registration">
       <header>
-        <h1>Eats</h1>
+        <h1>UniEats</h1>
       </header>
 
       <main className="signup-layout">
@@ -118,7 +118,7 @@ function SignupCustomer() {
       </main>
 
       <footer>
-        <p>&copy; 2026 Eats</p>
+        <p>&copy; 2026 UniEats</p>
       </footer>
     </section>
   );
