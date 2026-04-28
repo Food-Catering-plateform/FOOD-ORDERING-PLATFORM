@@ -12,18 +12,22 @@ import StoreSetup from './components/Vendor/StoreSetup';
 import MenuView from './components/Customer/jsFiles/MenuView';
 import AdminDashboard from './components/Admin/AdminDashboard';
 import AdminVendorManagement from './components/Admin/AdminVendorManagement';
+import PaymentSuccess from './components/Customer/jsFiles/PaymentSuccess';
+import Payment from './components/Customer/jsFiles/Payment';
 import { auth, db } from './Firebase/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
-import Payment from './components/Customer/jsFiles/Payment';
-
 
 function App() {
-  const [activePage, setActivePage] = useState('login');
+  const [activePage, setActivePage] = useState(
+    window.location.pathname === '/payment-success' ? 'payment-success' : 'login'
+  );
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [selectedShop, setSelectedShop] = useState(null);
   const [vendorUid, setVendorUid] = useState(null);
-  const [checking, setChecking] = useState(true);
+  const [checking, setChecking] = useState(
+    window.location.pathname === '/payment-success' ? false : true
+  );
   const [basket, setBasket] = useState([]);
 
   const addToBasket = (item, shop) => {
@@ -50,17 +54,11 @@ function App() {
     activePage !== 'vendor-dashboard' &&
     activePage !== 'store-setup' &&
     activePage !== 'admin-dashboard' &&
-    activePage !== 'admin-vendor-management';
-
-  /**
-   * Called by Login-backend after a successful sign-in.
-   * Login-backend checks Firestore and passes back either a role ('vendor', 'admin',
-   * 'student') for approved users, or a specific status string like 'vendor-pending'
-   * for unapproved ones. We never need to re-query Firestore for approval status here.
-   */
+    activePage !== 'admin-vendor-management' &&
+    activePage !== 'payment-success' &&
+    activePage !== 'payment';
 
   const handleLoginSuccess = useCallback(async (roleOrStatus) => {
-    // Status-specific screens passed directly from Login-backend
     if (
       roleOrStatus === 'vendor-pending' ||
       roleOrStatus === 'vendor-suspended' ||
@@ -73,7 +71,6 @@ function App() {
 
     if (roleOrStatus === 'admin') {
       setActivePage('admin-dashboard');
-
     } else if (roleOrStatus === 'vendor') {
       const uid = auth.currentUser.uid;
       setVendorUid(uid);
@@ -81,44 +78,31 @@ function App() {
       const storeSnap = await getDoc(doc(db, 'Vendors', uid));
       setChecking(false);
       setActivePage(storeSnap.exists() ? 'vendor-dashboard' : 'store-setup');
-
     } else {
       setActivePage('shops');
     }
   }, []);
 
-  /**
-   * onAuthStateChanged fires on app load (session restore) and after login.
-   *
-   * For newly registered vendors/admins: Register.jsx calls signOut() right after
-   * saving their Firestore doc, so by the time this listener fires they are already
-   * signed out — user will be null — and they will never hit the pending wall here.
-   * They land on the /registration-success screen instead.
-   *
-   * For session restores (page refresh): we must re-check Firestore status ourselves
-   * because Login-backend was not involved.
-   */
   useEffect(() => {
+    if (window.location.pathname === '/payment-success') return;
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         const userSnap = await getDoc(doc(db, 'users', user.uid));
         if (userSnap.exists()) {
           const { role } = userSnap.data();
 
-          // Session-restore status checks
           if (role === 'vendor') {
             const vendorSnap = await getDoc(doc(db, 'vendors', user.uid));
             if (vendorSnap.exists()) {
               const vd = vendorSnap.data();
               if (vd.status === 'suspended') { setActivePage('vendor-suspended'); setChecking(false); return; }
-              // Not yet approved AND store not yet initialized → go to store-setup
               if (vd.status !== 'approved' && vd.storeInitialized === false) {
                 setVendorUid(user.uid);
                 setActivePage('store-setup');
                 setChecking(false);
                 return;
               }
-              // Store submitted but awaiting admin approval → pending wall
               if (vd.status !== 'approved') { setActivePage('vendor-pending'); setChecking(false); return; }
             }
           }
@@ -139,8 +123,6 @@ function App() {
     });
     return () => unsubscribe();
   }, [handleLoginSuccess]);
-
-  // ─── Screen builders ─────────────────────────────────────────────────────
 
   const pendingScreen = (title, message, titleColor = '#111827', borderColor = '#E5E7EB') => (
     <main style={pendingStyles.page}>
@@ -177,8 +159,6 @@ function App() {
     </main>
   );
 
-  // ─── Page router ─────────────────────────────────────────────────────────
-
   const renderPage = () => {
     if (checking) {
       return (
@@ -198,7 +178,9 @@ function App() {
       case 'basket':
         return <Basket basket={basket} setBasket={setBasket} setActivePage={setActivePage} />;
       case 'payment':
-        return <Payment setActivePage={setActivePage} />;
+        return <Payment setActivePage={setActivePage} setBasket={setBasket} />;
+      case 'payment-success':
+        return <PaymentSuccess setActivePage={setActivePage} setBasket={setBasket} />;
       case 'shops':
         return (
           <Shops
@@ -230,8 +212,6 @@ function App() {
         return <AdminDashboard setActivePage={setActivePage} />;
       case 'admin-vendor-management':
         return <AdminVendorManagement setActivePage={setActivePage} />;
-
-      // ── Status screens ──────────────────────────────────────────────────
       case 'registration-success':
         return registrationSuccessScreen();
       case 'vendor-pending':
@@ -256,7 +236,6 @@ function App() {
           'Your admin account has been suspended. Please contact support for assistance.',
           '#DC2626', '#FCA5A5'
         );
-
       case 'login':
       case 'logout':
       default:
@@ -270,6 +249,8 @@ function App() {
     'vendor-pending', 'vendor-suspended',
     'admin-pending', 'admin-suspended',
     'registration-success',
+    'payment-success',
+    'payment',
   ];
 
   if (fullPageScreens.includes(activePage)) {
@@ -309,50 +290,12 @@ function App() {
 }
 
 const pendingStyles = {
-  page: {
-    minHeight: '100vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: '#F9FAFB',
-  },
-  card: {
-    background: '#fff',
-    border: '1px solid',
-    borderRadius: '12px',
-    padding: '48px 40px',
-    maxWidth: '480px',
-    width: '100%',
-    textAlign: 'center',
-  },
-  iconWrap: {
-    display: 'flex',
-    justifyContent: 'center',
-    marginBottom: '20px',
-  },
-  title: {
-    fontSize: '24px',
-    fontWeight: '700',
-    margin: '0 0 16px',
-  },
-  message: {
-    fontSize: '15px',
-    color: '#6B7280',
-    lineHeight: '1.6',
-    margin: '0 0 24px',
-  },
-  btn: {
-    padding: '10px 24px',
-    background: '#111827',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    fontSize: '14px',
-    fontWeight: '600',
-  },
+  page: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F9FAFB' },
+  card: { background: '#fff', border: '1px solid', borderRadius: '12px', padding: '48px 40px', maxWidth: '480px', width: '100%', textAlign: 'center' },
+  iconWrap: { display: 'flex', justifyContent: 'center', marginBottom: '20px' },
+  title: { fontSize: '24px', fontWeight: '700', margin: '0 0 16px' },
+  message: { fontSize: '15px', color: '#6B7280', lineHeight: '1.6', margin: '0 0 24px' },
+  btn: { padding: '10px 24px', background: '#111827', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
 };
 
 export default App;
-
-

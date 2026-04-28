@@ -1,11 +1,8 @@
-import React from 'react';
 import '../css/Basket.css';
 import { useAuth } from '../../../Services/AuthContext';
 
 const Basket = ({ basket, setBasket, setActivePage }) => {
   const { currentUser } = useAuth();
-
-
 
   const increaseQty = (id) => {
     setBasket(prev => prev.map(b => b.id === id ? { ...b, qty: b.qty + 1 } : b));
@@ -25,26 +22,22 @@ const Basket = ({ basket, setBasket, setActivePage }) => {
 
   const total = basket.reduce((sum, b) => sum + parseFloat(b.price) * b.qty, 0);
 
-  const goToPayment = () => {
+  const handleCheckout = () => {
     if (!currentUser || basket.length === 0) return;
 
-    // same email check to block orders with no email
-    const customerEmail = currentUser.email ? currentUser.email : null;
-
+    const customerEmail = currentUser.email;
     if (!customerEmail) {
       alert('Your account has no email address. Cannot place order.');
       return;
     }
 
-
-    sessionStorage.setItem('pendingPayment', JSON.stringify({
+    localStorage.setItem('pendingPayment', JSON.stringify({
       items:         basket,
-      total:         parseFloat(total.toFixed(2)),
+      customerId:    currentUser.uid,
       customerEmail: customerEmail,
       customerName:  currentUser.displayName || currentUser.email,
-      customerId:    currentUser.uid,
+      total:         parseFloat(total.toFixed(2)),
     }));
-
 
     setActivePage('payment');
   };
@@ -66,7 +59,6 @@ const Basket = ({ basket, setBasket, setActivePage }) => {
                     <small>{item.vendorName}</small>
                     <span>R {(parseFloat(item.price) * item.qty).toFixed(2)}</span>
                   </section>
-
                   <section className="basket-item__controls">
                     <button onClick={() => decreaseQty(item.id)}>−</button>
                     <span>{item.qty}</span>
@@ -79,9 +71,7 @@ const Basket = ({ basket, setBasket, setActivePage }) => {
 
             <footer className="basket-footer">
               <strong>Total: R {total.toFixed(2)}</strong>
-              {/* CHANGED - onClick was placeOrder sending order directly to Firestore */}
-              {/* NOW - goToPayment stores data and takes student to Payment page first */}
-              <button className="place-order-btn" onClick={goToPayment}>
+              <button className="place-order-btn" onClick={handleCheckout}>
                 Checkout
               </button>
             </footer>

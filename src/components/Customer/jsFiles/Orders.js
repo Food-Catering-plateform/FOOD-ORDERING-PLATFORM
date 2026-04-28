@@ -6,6 +6,7 @@ import { useAuth } from '../../../Services/AuthContext'; // gets currently logge
 
 const STATUS_STEPS = {//maps order status to step number for the sratus tracker UI
   pending:   1,
+  paid:      1,
   preparing: 2,
   ready:     3,
   completed: 3,
