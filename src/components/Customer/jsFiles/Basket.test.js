@@ -49,7 +49,7 @@ test('UAT-B03 - Basket shows empty message when no items', () => {
 // UAT-B04
 test('UAT-B04 - Place Order button is visible when basket has items', () => {
   render(<Basket basket={mockBasket} setBasket={jest.fn()} />);
-  expect(screen.getByText(/place order/i)).toBeInTheDocument();
+  expect(screen.getByText(/checkout/i)).toBeInTheDocument();
 });
 
 // UAT-B05
