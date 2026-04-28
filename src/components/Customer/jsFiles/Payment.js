@@ -21,8 +21,8 @@ function Payment({ setActivePage, setBasket }) {
   const params = {
     merchant_id:   '10048201',
     merchant_key:  'alyr23z2b1yii',
-    return_url:    'http://localhost:3001/payment-success',
-    cancel_url:    'http://localhost:3001/basket',
+    return_url:    'http://localhost:3001/?page=payment-success',
+    cancel_url:    'http://localhost:3001/?page=basket',
     name_first:    order.customerName || 'Test',
     email_address: 'sbtu01@payfast.co.za',
     m_payment_id:  paymentId,
