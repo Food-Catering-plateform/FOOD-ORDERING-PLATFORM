@@ -19,15 +19,19 @@ import { doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 
 function App() {
-  const [activePage, setActivePage] = useState(
-    window.location.pathname === '/payment-success' ? 'payment-success' : 'login'
-  );
+  const isPaymentSuccess = window.location.search.includes('page=payment-success');
+
+  const [activePage, setActivePage] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    const page = params.get('page');
+    if (page) return page;
+    return 'login';
+  });
+
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [selectedShop, setSelectedShop] = useState(null);
   const [vendorUid, setVendorUid] = useState(null);
-  const [checking, setChecking] = useState(
-    window.location.pathname === '/payment-success' ? false : true
-  );
+  const [checking, setChecking] = useState(!isPaymentSuccess);
   const [basket, setBasket] = useState([]);
 
   const addToBasket = (item, shop) => {
@@ -84,7 +88,8 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (window.location.pathname === '/payment-success') return;
+    // Skip auth check entirely for payment-success redirect
+    if (isPaymentSuccess) return;
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -122,7 +127,7 @@ function App() {
       setChecking(false);
     });
     return () => unsubscribe();
-  }, [handleLoginSuccess]);
+  }, [handleLoginSuccess, isPaymentSuccess]);
 
   const pendingScreen = (title, message, titleColor = '#111827', borderColor = '#E5E7EB') => (
     <main style={pendingStyles.page}>
