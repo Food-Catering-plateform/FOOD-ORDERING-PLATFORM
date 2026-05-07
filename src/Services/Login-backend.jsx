@@ -7,14 +7,12 @@ import {
 } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../Firebase/firebaseConfig";
-import { useNavigate } from "react-router-dom";
 
 export const useLogin = (options = {}) => {
   const { onLoginSuccess } = options;
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
   const redirectByRole = async (user) => {
     const userRef = doc(db, "users", user.uid);
@@ -25,10 +23,8 @@ export const useLogin = (options = {}) => {
       return;
     }
 
-const { role } = userSnap.data();
+    const { role } = userSnap.data();
 
-    // Check vendor approval status — route to the right screen via onLoginSuccess
-    // so App.js can show the correct pending/suspended UI rather than a login error.
     if (role === "vendor") {
       const vendorSnap = await getDoc(doc(db, "vendors", user.uid));
       if (vendorSnap.exists()) {
@@ -46,7 +42,6 @@ const { role } = userSnap.data();
       }
     }
 
-    // Check admin approval status
     if (role === "admin") {
       const adminSnap = await getDoc(doc(db, "admins", user.uid));
       if (adminSnap.exists()) {
@@ -69,15 +64,7 @@ const { role } = userSnap.data();
       return;
     }
 
-    if (role === "student") {
-      navigate("/student/dashboard");
-    } else if (role === "vendor") {
-      navigate("/vendor/dashboard");
-    } else if (role === "admin") {
-      navigate("/admin/dashboard");
-    } else {
-      setError("Invalid user role.");
-    }
+    setError("Login successful but no navigation handler is configured.");
   };
 
   const handleLogin = async (email, password) => {

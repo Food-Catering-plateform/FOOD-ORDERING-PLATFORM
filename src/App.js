@@ -79,7 +79,7 @@ function App() {
       const uid = auth.currentUser.uid;
       setVendorUid(uid);
       setChecking(true);
-      const storeSnap = await getDoc(doc(db, 'Vendors', uid));
+      const storeSnap = await getDoc(doc(db, 'vendors', uid));
       setChecking(false);
       setActivePage(storeSnap.exists() ? 'vendor-dashboard' : 'store-setup');
     } else {
@@ -102,13 +102,24 @@ function App() {
             if (vendorSnap.exists()) {
               const vd = vendorSnap.data();
               if (vd.status === 'suspended') { setActivePage('vendor-suspended'); setChecking(false); return; }
-              if (vd.status !== 'approved' && vd.storeInitialized === false) {
+              if (vd.status !== 'approved' && !vd.storeInitialized) {
                 setVendorUid(user.uid);
                 setActivePage('store-setup');
                 setChecking(false);
                 return;
               }
               if (vd.status !== 'approved') { setActivePage('vendor-pending'); setChecking(false); return; }
+              // Vendor is approved — go straight to their dashboard
+              setVendorUid(user.uid);
+              setActivePage('vendor-dashboard');
+              setChecking(false);
+              return;
+            } else {
+              // No vendor document yet — send to store setup
+              setVendorUid(user.uid);
+              setActivePage('store-setup');
+              setChecking(false);
+              return;
             }
           }
 
