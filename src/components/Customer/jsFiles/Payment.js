@@ -8,6 +8,7 @@ function Payment({ setActivePage, setBasket }) {
 
   const order = JSON.parse(localStorage.getItem('pendingPayment'));
   const [loading] = useState(false);
+  const appOrigin = window.location.origin;
 
   if (!order) {
     setActivePage('basket');
@@ -21,8 +22,8 @@ function Payment({ setActivePage, setBasket }) {
   const params = {
     merchant_id:   '10048201',
     merchant_key:  'alyr23z2b1yii',
-    return_url:    'http://localhost:3001/?page=payment-success',
-    cancel_url:    'http://localhost:3001/?page=basket',
+    return_url:    `${appOrigin}/?page=payment-success`,
+    cancel_url:    `${appOrigin}/?page=basket`,
     name_first:    order.customerName || 'Test',
     email_address: 'sbtu01@payfast.co.za',
     m_payment_id:  paymentId,
