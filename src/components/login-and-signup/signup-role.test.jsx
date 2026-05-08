@@ -4,8 +4,7 @@ import { MemoryRouter } from "react-router-dom";
 import SignupRole from "./signup-role";
 
 describe("SignupRole Component", () => {
-
-  test("renders main heading", () => {
+  test("renders page headings and helper text", () => {
     render(
       <MemoryRouter>
         <SignupRole />
@@ -13,17 +12,20 @@ describe("SignupRole Component", () => {
     );
 
     expect(screen.getByText(/create an account/i)).toBeInTheDocument();
+    expect(screen.getByText(/select your role to continue/i)).toBeInTheDocument();
+    expect(screen.getByText(/join unieats/i)).toBeInTheDocument();
   });
 
-  test("renders role selection buttons", () => {
+  test("renders all role option links", () => {
     render(
       <MemoryRouter>
         <SignupRole />
       </MemoryRouter>
     );
 
-    expect(screen.getByText(/sign up as customer/i)).toBeInTheDocument();
-    expect(screen.getByText(/sign up as vendor/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /sign up as customer/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /sign up as vendor/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /apply for admin access/i })).toBeInTheDocument();
   });
 
   test("links point to correct routes", () => {
@@ -33,11 +35,13 @@ describe("SignupRole Component", () => {
       </MemoryRouter>
     );
 
-    const customerLink = screen.getByText(/sign up as customer/i);
-    const vendorLink = screen.getByText(/sign up as vendor/i);
+    const customerLink = screen.getByRole("link", { name: /sign up as customer/i });
+    const vendorLink = screen.getByRole("link", { name: /sign up as vendor/i });
+    const adminLink = screen.getByRole("link", { name: /apply for admin access/i });
 
     expect(customerLink).toHaveAttribute("href", "/signup-customer");
     expect(vendorLink).toHaveAttribute("href", "/signup-vendor");
+    expect(adminLink).toHaveAttribute("href", "/signup-admin");
   });
 
   test("renders login link", () => {
@@ -47,7 +51,6 @@ describe("SignupRole Component", () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText(/log in/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /log in/i })).toHaveAttribute("href", "/");
   });
-
 });

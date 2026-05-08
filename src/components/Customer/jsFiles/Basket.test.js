@@ -1,71 +1,106 @@
-import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import React from "react";
+import { fireEvent, render, screen } from "@testing-library/react";
+import Basket from "./Basket";
+import { useAuth } from "../../../Services/AuthContext";
 
-// Mock Firebase
-jest.mock('../../../Firebase/firebaseConfig', () => ({
-  db: {},
+jest.mock("../../../Services/AuthContext", () => ({
+  useAuth: jest.fn(),
 }));
-
-jest.mock('firebase/firestore', () => ({
-  collection: jest.fn(),
-  addDoc:     jest.fn().mockResolvedValue({ id: 'order123' }),
-}));
-
-// Mock AuthContext
-jest.mock('../../../Services/AuthContext', () => ({
-  useAuth: () => ({
-    currentUser: {
-      uid:         'user123',
-      email:       'student@gmail.com',
-      displayName: 'Test Student',
-    },
-  }),
-}));
-
-import Basket from './Basket';
 
 const mockBasket = [
-  { id: '1', name: 'Burger', price: '50', qty: 2, vendorId: 'v1', vendorName: 'Burger Shack' },
+  { id: "1", name: "Burger", price: "50", qty: 2, vendorId: "v1", vendorName: "Burger Shack" },
 ];
 
-// UAT-B01
-test('UAT-B01 - Basket renders items correctly', () => {
-  render(<Basket basket={mockBasket} setBasket={jest.fn()} />);
-  expect(screen.getByText('Burger')).toBeInTheDocument();
-});
+describe("Basket", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    localStorage.clear();
+    useAuth.mockReturnValue({
+      currentUser: {
+        uid: "user123",
+        email: "student@gmail.com",
+        displayName: "Test Student",
+      },
+    });
+  });
 
-// UAT-B02
-test('UAT-B02 - Basket shows total price', () => {
-  render(<Basket basket={mockBasket} setBasket={jest.fn()} />);
-  expect(screen.getByText(/total/i)).toBeInTheDocument();
-});
+  test("renders basket item details and total", () => {
+    render(<Basket basket={mockBasket} setBasket={jest.fn()} setActivePage={jest.fn()} />);
 
-// UAT-B03
-test('UAT-B03 - Basket shows empty message when no items', () => {
-  render(<Basket basket={[]} setBasket={jest.fn()} />);
-  expect(screen.getByText(/your basket is empty/i)).toBeInTheDocument();
-});
+    expect(screen.getByText("Burger")).toBeInTheDocument();
+    expect(screen.getByText("Burger Shack")).toBeInTheDocument();
+    expect(screen.getByText(/total: r 100.00/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /checkout/i })).toBeInTheDocument();
+  });
 
-// UAT-B04
-test('UAT-B04 - Place Order button is visible when basket has items', () => {
-  render(<Basket basket={mockBasket} setBasket={jest.fn()} />);
-  expect(screen.getByText(/checkout/i)).toBeInTheDocument();
-});
+  test("shows empty state when basket is empty", () => {
+    render(<Basket basket={[]} setBasket={jest.fn()} setActivePage={jest.fn()} />);
+    expect(screen.getByText(/your basket is empty/i)).toBeInTheDocument();
+  });
 
-// UAT-B05
-test('UAT-B05 - Remove button is present for each item', () => {
-  render(<Basket basket={mockBasket} setBasket={jest.fn()} />);
-  expect(screen.getByText(/remove/i)).toBeInTheDocument();
-});
+  test("increase quantity updates basket state using updater function", () => {
+    const setBasket = jest.fn();
+    render(<Basket basket={mockBasket} setBasket={setBasket} setActivePage={jest.fn()} />);
 
-// UAT-B06
-test('UAT-B06 - Increase quantity button is present', () => {
-  render(<Basket basket={mockBasket} setBasket={jest.fn()} />);
-  expect(screen.getByText('+')).toBeInTheDocument();
-});
+    fireEvent.click(screen.getByText("+"));
 
-// UAT-B07
-test('UAT-B07 - Decrease quantity button is present', () => {
-  render(<Basket basket={mockBasket} setBasket={jest.fn()} />);
-  expect(screen.getByText('−')).toBeInTheDocument();
+    const updater = setBasket.mock.calls[0][0];
+    const updated = updater(mockBasket);
+    expect(updated[0].qty).toBe(3);
+  });
+
+  test("decrease quantity removes item when qty reaches zero", () => {
+    const setBasket = jest.fn();
+    const singleQtyBasket = [{ ...mockBasket[0], qty: 1 }];
+    render(<Basket basket={singleQtyBasket} setBasket={setBasket} setActivePage={jest.fn()} />);
+
+    fireEvent.click(screen.getByText("−"));
+
+    const updater = setBasket.mock.calls[0][0];
+    const updated = updater(singleQtyBasket);
+    expect(updated).toEqual([]);
+  });
+
+  test("remove button filters selected item out", () => {
+    const setBasket = jest.fn();
+    render(<Basket basket={mockBasket} setBasket={setBasket} setActivePage={jest.fn()} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /remove/i }));
+
+    const updater = setBasket.mock.calls[0][0];
+    const updated = updater([...mockBasket, { ...mockBasket[0], id: "2" }]);
+    expect(updated).toEqual([{ ...mockBasket[0], id: "2" }]);
+  });
+
+  test("checkout stores pending payment and navigates to payment", () => {
+    const setActivePage = jest.fn();
+    render(<Basket basket={mockBasket} setBasket={jest.fn()} setActivePage={setActivePage} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /checkout/i }));
+
+    const pendingPayment = JSON.parse(localStorage.getItem("pendingPayment"));
+    expect(pendingPayment).toMatchObject({
+      customerId: "user123",
+      customerEmail: "student@gmail.com",
+      customerName: "Test Student",
+      total: 100,
+    });
+    expect(setActivePage).toHaveBeenCalledWith("payment");
+  });
+
+  test("checkout exits early when user has no email", () => {
+    const alertSpy = jest.spyOn(window, "alert").mockImplementation(() => {});
+    const setActivePage = jest.fn();
+    useAuth.mockReturnValue({
+      currentUser: { uid: "user123", email: "", displayName: "Test Student" },
+    });
+
+    render(<Basket basket={mockBasket} setBasket={jest.fn()} setActivePage={setActivePage} />);
+    fireEvent.click(screen.getByRole("button", { name: /checkout/i }));
+
+    expect(alertSpy).toHaveBeenCalled();
+    expect(localStorage.getItem("pendingPayment")).toBeNull();
+    expect(setActivePage).not.toHaveBeenCalled();
+    alertSpy.mockRestore();
+  });
 });
