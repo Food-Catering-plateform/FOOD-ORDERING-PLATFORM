@@ -126,6 +126,12 @@ function SignupVendor() {
         <aside className="sider" aria-label="Why join Eats">
           <h2>Join Eats</h2>
           <p>One step away from skipping the queue.</p>
+          <section className="food-visual" aria-hidden="true">
+            <span className="food-bubble">🥪</span>
+            <span className="food-bubble">🍱</span>
+            <span className="food-bubble">🍹</span>
+            <span className="food-bubble">🧃</span>
+          </section>
         </aside>
       </main>
 

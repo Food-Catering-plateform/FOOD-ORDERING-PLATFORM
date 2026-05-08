@@ -108,7 +108,16 @@ function Login({ onLoginSuccess }) {
         </section>
 
         {/* RIGHT SIDE PANEL */}
-        <aside className="sider" aria-hidden="true"></aside>
+        <aside className="sider login-sider" aria-label="Food highlights">
+          <h2>Fresh, Fast, Campus-Friendly</h2>
+          <p>Grab your favorite meal and a chilled juice in minutes.</p>
+          <section className="food-visual" aria-hidden="true">
+            <span className="food-bubble">🍔</span>
+            <span className="food-bubble">🍕</span>
+            <span className="food-bubble">🥗</span>
+            <span className="food-bubble">🧃</span>
+          </section>
+        </aside>
 
       </section>
 

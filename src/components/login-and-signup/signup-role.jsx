@@ -34,6 +34,12 @@ function SignupRole() {
         <aside className="sider" aria-label="About UniEats">
           <h2>Join UniEats</h2>
           <p>Order food or manage your store on campus.</p>
+          <section className="food-visual" aria-hidden="true">
+            <span className="food-bubble">🍟</span>
+            <span className="food-bubble">🍜</span>
+            <span className="food-bubble">🍓</span>
+            <span className="food-bubble">🧃</span>
+          </section>
         </aside>
       </main>
 
