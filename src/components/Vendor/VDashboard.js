@@ -11,17 +11,17 @@ import Analytics from './Analytics';
 import AccSettings from './AccSettings';
 
 const navItems = [
-  { key: 'home',      label: 'Dashboard'        },
-  { key: 'menu',      label: 'Menu Management'  },
-  { key: 'orders',    label: 'Orders'            },
-  { key: 'analytics', label: 'Analytics'         },
-  { key: 'settings',  label: 'Account Settings'  },
+  { key: 'home',      label: 'Dashboard',        icon: 'ti-home'  },
+  { key: 'menu',      label: 'Menu Management',  icon: 'ti-tools-kitchen-2', section: null      },
+  { key: 'orders',    label: 'Orders',            icon: 'ti-shopping-bag',    section: null      },
+  { key: 'analytics', label: 'Analytics',         icon: 'ti-chart-bar' },
+  { key: 'settings',  label: 'Account Settings',  icon: 'ti-settings' },
 ];
 
 function VDashboard({ uid, onLogout }) {
   const [activeSection, setActiveSection] = useState('home');
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [storeData, setStoreData] = useState(null);
+  const [sidebarOpen, setSidebarOpen]     = useState(true);
+  const [storeData, setStoreData]         = useState(null);
 
   useEffect(() => {
     if (!uid) return;
@@ -41,56 +41,54 @@ function VDashboard({ uid, onLogout }) {
       case 'menu':      return <MenuManagement />;
       case 'orders':    return <Orders />;
       case 'analytics': return <Analytics />;
-      // uid and onLogout passed so AccSettings can delete the account and redirect to login
       case 'settings':  return <AccSettings storeData={storeData} onStoreUpdate={handleStoreUpdate} uid={uid} onLogout={onLogout} />;
       default:          return <VenHome />;
     }
   };
 
-
   return (
-    <section className="vendor-dashboard" style={{ position: 'fixed', inset: 0, display: 'flex', zIndex: 200 }}>
+    <section className="vendor-dashboard">
 
-      <aside
-        className={`vendor-sidebar ${sidebarOpen ? 'open' : 'closed'}`}
-        style={{
-          backgroundColor: '#1a1a1a',
-          width: sidebarOpen ? '210px' : '54px',
-          height: '100%',
-          flexShrink: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          transition: 'width 0.3s ease',
-        }}
-      >
+      <aside className={`vendor-sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
 
         <header className="vendor-sidebar__header">
-          {sidebarOpen && <h2 className="vendor-sidebar__title">Vendor Panel</h2>}
+          <div className="vendor-sidebar__logo">
+            <div className="vendor-sidebar__logo-mark">
+              <i className="ti ti-building-store" aria-hidden="true" />
+            </div>
+          </div>
           <button
             className="vendor-sidebar__toggle"
             onClick={() => setSidebarOpen(prev => !prev)}
             aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
           >
-            <span className="toggle-line" />
-            <span className="toggle-line" />
-            <span className="toggle-line" />
+            <i
+              className={`ti ${sidebarOpen ? 'ti-layout-sidebar-left-collapse' : 'ti-layout-sidebar-right-collapse'}`}
+              aria-hidden="true"
+            />
           </button>
         </header>
 
-        {/* handleLogout: signs out of Firebase then calls onLogout from App.js to go back to login */}
         <nav className="vendor-sidebar__nav" aria-label="Vendor navigation">
           <ul>
             {navItems.map(item => (
-              <li key={item.key}>
-                <button
-                  className={`vendor-sidebar__item ${activeSection === item.key ? 'active' : ''}`}
-                  onClick={() => setActiveSection(item.key)}
-                  aria-current={activeSection === item.key ? 'page' : undefined}
-                >
-                  {sidebarOpen ? item.label : item.label.charAt(0)}
-                </button>
-              </li>
+              <React.Fragment key={item.key}>
+                {item.section && (
+                  <li aria-hidden="true">
+                    <p className="vendor-sidebar__section">{item.section}</p>
+                  </li>
+                )}
+                <li>
+                  <button
+                    className={`vendor-sidebar__item ${activeSection === item.key ? 'active' : ''}`}
+                    onClick={() => setActiveSection(item.key)}
+                    aria-current={activeSection === item.key ? 'page' : undefined}
+                  >
+                    <i className={`ti ${item.icon}`} aria-hidden="true" />
+                    <span>{item.label}</span>
+                  </button>
+                </li>
+              </React.Fragment>
             ))}
           </ul>
         </nav>
@@ -99,12 +97,13 @@ function VDashboard({ uid, onLogout }) {
           className="vendor-sidebar__logout"
           onClick={() => signOut(auth).then(onLogout)}
         >
-          {sidebarOpen ? 'Logout' : 'L'}
+          <i className="ti ti-logout" aria-hidden="true" />
+          <span>Logout</span>
         </button>
 
       </aside>
 
-      <main className={`vendor-main ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
+      <main className="vendor-main">
         {renderSection()}
       </main>
 

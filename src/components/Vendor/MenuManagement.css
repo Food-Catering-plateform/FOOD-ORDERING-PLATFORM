@@ -1,117 +1,284 @@
-.page h1 {
-  color: #3e2723;
+/* ── Page ───────────────────────────────────────────── */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  color:#000000
 }
 
+.page h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #000000;
+  margin: 0;
+}
+
+/* ── Form card ──────────────────────────────────────── */
 .card {
-  background: #fff9f0;
-  padding: 20px;
-  margin-bottom: 20px;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 14px;
+  border: 1px solid #000000;
 }
 
 .card h2 {
-  margin-bottom: 15px;
-  color: #3e2723;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 20 20px;
 }
 
+/* ── Form inputs ────────────────────────────────────── */
 form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 input,
 textarea {
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid #1a1919;
+  background: #ffffff;
+  color: #000000;
+  font-size: 0.92rem;
+  outline: none;
+  transition: border-color 0.2s;
 }
 
-#submitBtn {
-  padding: 6px 10px;
-  border: none;
-  background: #7a4e27;
-  color: white;
-  border-radius: 5px;
+input::placeholder,
+textarea::placeholder {
+  color: #555;
+}
+
+input:focus,
+textarea:focus {
+  border-color: #8b1a1a;
+}
+
+input[type="file"] {
+  color: #aaa;
   cursor: pointer;
+  padding: 10px 14px;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.5;
+}
+
+/* ── Submit button ──────────────────────────────────── */
+#submitBtn {
+  padding: 12px 20px;
+  border: none;
+  background: #8b1a1a;
+  color: #ffffff;
+  font-size: 0.92rem;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-top: 4px;
 }
 
 #submitBtn:hover {
-  background: #5c371b;
+  background: #6b1a1a;
 }
 
-#productList {
+/* ── Allergen dropdown ──────────────────────────────── */
+.allergen-dropdown {
+  position: relative;
+}
+
+.allergen-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: #4b4a4a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  color: #aaa;
+  font-size: 0.92rem;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s;
+}
+
+.allergen-toggle:hover {
+  border-color: #555;
+  color: #fff;
+}
+
+.allergen-arrow {
+  font-size: 0.7rem;
+  color: #555;
+}
+
+.allergen-list {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 8px;
+  margin: 0;
+  list-style: none;
+  z-index: 50;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+
+.allergen-list li label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 0.88rem;
+  color: #000000;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.allergen-list li label:hover {
+  background: #2a2a2a;
+  color: #fff;
+}
+
+.allergen-list li input[type="checkbox"] {
+  accent-color: #8b1a1a;
+  width: 15px;
+  height: 15px;
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+
+ul {
   list-style: none;
   padding: 0;
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
-#productList li {
+ul li {
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: #fff9f0;
-  padding: 10px;
-  border-radius: 8px;
+  gap: 14px;
+  background: #1e1e1e;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid #2a2a2a;
+  transition: border-color 0.2s;
 }
 
-#productList li.editing {
-  border: 2px solid #7a4e27;
-  background: #fdf0e0;
+ul li:hover {
+  border-color: #3a3a3a;
 }
 
-#productList li img {
+ul li.editing {
+  border-color: #8b1a1a;
+  background: #1e1010;
+}
+
+ul li img {
   width: 60px;
   height: 60px;
-  border-radius: 6px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid #2a2a2a;
 }
 
-#productList li .info {
+/* ── Item info ──────────────────────────────────────── */
+ul li .info {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
+  min-width: 0;
 }
 
-#productList li .info h3 {
+ul li .info h3 {
   margin: 0;
-  color: #3e2723;
-  font-size: 1rem;
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-#productList li .info p,
-#productList li .info em {
+ul li .info p,
+ul li .info em {
   margin: 0;
   font-size: 0.85rem;
-  color: #666;
+  color: #000000;
 }
 
-#productList li button {
-  padding: 6px 10px;
+/* ── Allergen tags ──────────────────────────────────── */
+.allergen-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 2px;
+}
+
+.allergen-tag {
+  display: inline-block;
+  background: #3a1010;
+  color: #e08080;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+}
+
+/* ── Item action buttons ────────────────────────────── */
+ul li button {
+  padding: 8px 14px;
   border: none;
-  background: #7a4e27;
-  color: white;
-  border-radius: 5px;
+  background: #2a2a2a;
+  color: #c0b8b8;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: 7px;
   cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
 }
 
-#productList li button:hover {
-  background: #5c371b;
+ul li button:hover {
+  background: #8b1a1a;
+  color: #ffffff;
 }
 
-#productList li .delete-btn {
-  background: #c0392b;
+ul li .delete-btn {
+  background: #2a1515;
+  color: #e08080;
 }
 
-#productList li .delete-btn:hover {
-  background: #96281b;
+ul li .delete-btn:hover {
+  background: #7a1010;
+  color: #ffffff;
 }
 
+/* ── Empty state ────────────────────────────────────── */
 #emptyMsg {
-  color: #aaa;
+  color: #555;
   font-style: italic;
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 32px 0;
 }

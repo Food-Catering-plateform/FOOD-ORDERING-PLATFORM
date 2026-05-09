@@ -12,31 +12,49 @@ function VenHome({ storeName }) {
     <section className="ven-home">
 
       <header className="ven-home__header">
+        <span className="ven-home__accent" />
         <h1 className="ven-home__greeting">{greeting}, {storeName || 'Chef'} 👋</h1>
         <p className="ven-home__sub">Here is a quick look at how your store is doing today.</p>
       </header>
 
       <section className="ven-home__stats" aria-label="Quick stats">
         <article className="stat-card">
+          <i className="stat-card__icon ti ti-shopping-bag" aria-hidden="true" />
           <h2>0</h2>
           <p>New Orders</p>
         </article>
         <article className="stat-card">
+          <i className="stat-card__icon ti ti-tools-kitchen-2" aria-hidden="true" />
           <h2>0</h2>
           <p>Menu Items</p>
         </article>
         <article className="stat-card">
+          <i className="stat-card__icon ti ti-currency-dollar" aria-hidden="true" />
           <h2>R 0.00</h2>
           <p>Today's Revenue</p>
         </article>
         <article className="stat-card">
+          <i className="stat-card__icon ti ti-users" aria-hidden="true" />
           <h2>0</h2>
           <p>Customers Served</p>
         </article>
       </section>
 
-      <section className="ven-home__tip" aria-label="Tip">
-        <p>Use the sidebar to manage your menu, track orders, and view analytics.</p>
+      <section className="ven-home__bottom">
+
+        <div className="ven-home__tip" aria-label="Tip">
+          <div className="ven-home__tip-icon">
+            <i className="ti ti-bulb" aria-hidden="true" />
+          </div>
+          <div>
+            <p className="ven-home__tip-title">Getting started</p>
+            <p className="ven-home__tip-text">
+              Use the sidebar to manage your menu, track orders, and view analytics.
+            </p>
+          </div>
+        </div>
+
+
       </section>
 
     </section>

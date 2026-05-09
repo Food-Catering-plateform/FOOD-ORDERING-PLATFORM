@@ -2,66 +2,224 @@
 .ven-home {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 28px;
 }
 
 /* ── Header ─────────────────────────────────────────── */
 .ven-home__header {
-  border-bottom: 1px solid #e2e5ea;
-  padding-bottom: 20px;
+  background: #1a1a1a;
+  border-radius: 16px;
+  padding: 28px 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+.ven-home__header::before {
+  content: '';
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: #6b1a1a;
+  opacity: 0.18;
+  pointer-events: none;
+}
+
+.ven-home__header::after {
+  content: '';
+  position: absolute;
+  bottom: -60px;
+  right: 60px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: #8b0000;
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+.ven-home__accent {
+  display: block;
+  width: 32px;
+  height: 3px;
+  background: #8b1a1a;
+  border-radius: 2px;
+  margin-bottom: 12px;
+  position: relative;
 }
 
 .ven-home__greeting {
-  font-size: 1.8rem;
+  font-size: 1.75rem;
   font-weight: 700;
-  color: #1a1a1a;
-  margin: 0 0 6px;
+  color: #ffffff;
+  margin: 0 0 8px;
+  position: relative;
 }
 
 .ven-home__sub {
-  color: #666;
+  color: #c8c0c0;
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 1rem;
+  position: relative;
 }
 
 /* ── Stat cards ─────────────────────────────────────── */
 .ven-home__stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px;
 }
 
 .stat-card {
-  background: #fff;
+  background: #1e1e1e;
   border-radius: 12px;
-  padding: 24px 20px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-  text-align: center;
+  padding: 20px 18px;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  background: #8b1a1a;
+  border-radius: 3px 0 0 3px;
+}
+
+.stat-card__icon {
+  font-size: 20px;
+  color: #c04040;
+  display: block;
+  margin-bottom: 10px;
 }
 
 .stat-card h2 {
   font-size: 2rem;
   font-weight: 700;
-  color: #f97316;
-  margin: 0 0 6px;
+  color: #ffffff;
+  margin: 0 0 4px;
+  line-height: 1;
 }
 
 .stat-card p {
-  font-size: 0.85rem;
-  color: #888;
+  font-size: 0.9rem;
+  color: #b0a8a8;
   margin: 0;
+}
+
+/* ── Bottom row ─────────────────────────────────────── */
+.ven-home__bottom {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 560px) {
+  .ven-home__bottom {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ── Tip banner ─────────────────────────────────────── */
 .ven-home__tip {
-  background: #fff7ed;
-  border-left: 4px solid #f97316;
-  border-radius: 8px;
-  padding: 14px 18px;
-  color: #92400e;
-  font-size: 0.9rem;
+  background: #1a1a1a;
+  border-radius: 12px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
 }
 
-.ven-home__tip p {
+.ven-home__tip-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #6b1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 18px;
+  color: #f0c0c0;
+}
+
+.ven-home__tip-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 5px;
+}
+
+.ven-home__tip-text {
+  font-size: 0.88rem;
+  color: #ffffff;
   margin: 0;
+  line-height: 1.6;
+}
+
+/* ── Quick actions ──────────────────────────────────── */
+.ven-home__quick {
+  background: #1e1e1e;
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+
+.ven-home__quick-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ven-home__quick-title i {
+  font-size: 17px;
+  color: #c04040;
+}
+
+.ven-home__quick-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ven-home__quick-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #ffffff;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.ven-home__quick-item:hover {
+  color: #ffffff;
+}
+
+.ven-home__quick-item i {
+  font-size: 17px;
+  color: #c04040;
+}
+
+.ven-home__badge {
+  display: inline-block;
+  background: #3a1010;
+  color: #e08080;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-left: auto;
+  letter-spacing: 0.02em;
 }
