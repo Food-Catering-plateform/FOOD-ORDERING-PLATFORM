@@ -53,9 +53,7 @@ function VDashboard({ uid, onLogout }) {
 
         <header className="vendor-sidebar__header">
           <div className="vendor-sidebar__logo">
-            <div className="vendor-sidebar__logo-mark">
-              <i className="ti ti-building-store" aria-hidden="true" />
-            </div>
+            
           </div>
           <button
             className="vendor-sidebar__toggle"
