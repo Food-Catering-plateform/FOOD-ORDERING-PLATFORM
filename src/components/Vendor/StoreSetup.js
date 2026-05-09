@@ -88,7 +88,7 @@ function StoreSetup({ onComplete, onCancel }) {
       storeInitialized: true,
     };
 
-    await setDoc(doc(db, 'vendors', vendorId), storeData, { merge: true });
+    await setDoc(doc(db, 'Vendors', vendorId), storeData, { merge: true });
     // Sign out then show the pending wall — admin must approve before dashboard access
     await signOut(auth);
     if (onComplete) onComplete();

@@ -79,7 +79,7 @@ function App() {
       const uid = auth.currentUser.uid;
       setVendorUid(uid);
       setChecking(true);
-      const storeSnap = await getDoc(doc(db, 'vendors', uid));
+      const storeSnap = await getDoc(doc(db, 'Vendors', uid));
       setChecking(false);
       setActivePage(storeSnap.exists() ? 'vendor-dashboard' : 'store-setup');
     } else {
@@ -98,7 +98,7 @@ function App() {
           const { role } = userSnap.data();
 
           if (role === 'vendor') {
-            const vendorSnap = await getDoc(doc(db, 'vendors', user.uid));
+            const vendorSnap = await getDoc(doc(db, 'Vendors', user.uid));
             if (vendorSnap.exists()) {
               const vd = vendorSnap.data();
               if (vd.status === 'suspended') { setActivePage('vendor-suspended'); setChecking(false); return; }
