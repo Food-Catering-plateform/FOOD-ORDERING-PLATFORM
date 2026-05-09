@@ -1,20 +1,91 @@
-main {
-  margin-left: 187px;
-  padding: 30px;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fb, #eef2f7);
-  font-family: 'Segoe UI', sans-serif;
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap');
+
+:root {
+  --clr-brand:        #FF6B2B;
+  --clr-brand-dark:   #D94F15;
+  --clr-brand-light:  #FF8F5E;
+  --clr-brand-glow:   rgba(255,107,43,.18);
+
+  --clr-accent:       #00C896;
+  --clr-accent-dark:  #009E76;
+  --clr-accent-light: rgba(0,200,150,.12);
+
+  --clr-surface:      #FFFFFF;
+  --clr-bg:           #F5F4F2;
+  --clr-sidebar:      #1A1C23;
+  --clr-sidebar-hover:#252830;
+  --clr-sidebar-active:#2E3039;
+  --clr-border:       #E8E6E1;
+  --clr-border-strong:#C9C5BC;
+
+  --clr-text:         #1A1C23;
+  --clr-text-muted:   #6B6B7B;
+  --clr-text-light:   #9A9AAB;
+  --clr-text-inv:     #FFFFFF;
+
+  --clr-success:      #00C896;
+  --clr-warning:      #F59E0B;
+  --clr-danger:       #EF4444;
+  --clr-info:         #3B82F6;
+
+  --shadow-sm:  0 1px 3px rgba(26,28,35,.08);
+  --shadow-md:  0 4px 16px rgba(26,28,35,.10);
+  --shadow-lg:  0 8px 32px rgba(26,28,35,.12);
+  --shadow-brand: 0 4px 20px rgba(255,107,43,.25);
+
+  --radius-sm:  6px;
+  --radius-md:  10px;
+  --radius-lg:  16px;
+  --radius-xl:  24px;
+
+  --font-display: 'Syne', sans-serif;
+  --font-body:    'Plus Jakarta Sans', sans-serif;
+
+  --ease: cubic-bezier(.4,0,.2,1);
+  --dur:  0.2s;
 }
 
-.page {
-  background: white;
-  border-radius: 16px;
-  padding: 25px;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.05);
-  transition: 0.3s;
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  background: var(--clr-bg);
+  color: var(--clr-text);
+  -webkit-font-smoothing: antialiased;
 }
 
-.page:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 99px;
+  letter-spacing: .03em;
+  text-transform: uppercase;
 }
+.badge--green   { background: var(--clr-accent-light); color: var(--clr-accent-dark); }
+.badge--orange  { background: rgba(255,107,43,.12);     color: var(--clr-brand-dark); }
+.badge--yellow  { background: rgba(245,158,11,.12);     color: #B45309; }
+.badge--red     { background: rgba(239,68,68,.12);      color: #B91C1C; }
+.badge--blue    { background: rgba(59,130,246,.12);     color: #1D4ED8; }
+
+.diet-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 99px;
+  border: 1.5px solid transparent;
+  white-space: nowrap;
+}
+.diet-pill--halal    { background:#FFF3E0; color:#E65100; border-color:#FFCC80; }
+.diet-pill--vegan    { background:#E8F5E9; color:#2E7D32; border-color:#A5D6A7; }
+.diet-pill--veggie   { background:#F1F8E9; color:#558B2F; border-color:#C5E1A5; }
+.diet-pill--nut-free { background:#FFF8E1; color:#F57F17; border-color:#FFE082; }
+.diet-pill--gluten   { background:#FCE4EC; color:#880E4F; border-color:#F48FB1; }
+.diet-pill--allergen { background:#FEECEC; color:#B91C1C; border-color:#FECACA; }

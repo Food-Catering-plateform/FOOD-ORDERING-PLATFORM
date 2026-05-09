@@ -1,88 +1,228 @@
 .menu-container {
   padding: 2rem;
-  max-width: 700px;
+  max-width: 900px;
   margin: auto;
-  background: transparent;
-  border: none;
-  box-shadow: none;
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
+.menu-container > header {
+  margin-bottom: 1.8rem;
+  text-align: left;
+  border: none;
+  background: none;
+  padding: 0;
+  box-shadow: none;
+  position: static;
+}
+
+.menu-container > header h2 {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.9rem;
+  font-weight: 800;
+  color: #1A1C23;
+  margin: 0 0 4px;
+}
+
+.menu-container > header p { color: #6B6B7B; margin: 0; font-size: 0.92rem; }
+
+/* ── Grid ── */
 .menu-list {
   display: grid;
-  gap: 1.5rem;
-  grid-template-columns: repeat(3, 1fr);
+  gap: 1.4rem;
+  grid-template-columns: repeat(3,1fr);
 }
 
+@media (max-width: 900px) { .menu-list { grid-template-columns: repeat(2,1fr); } }
+@media (max-width: 580px) { .menu-list { grid-template-columns: 1fr; } }
+
+/* ── Card ── */
 .menu-item {
-  border-bottom: 1px solid #eee;
-  border-radius: 8px;
-  padding: 1rem;
+  background: #FFFFFF;
+  border: 1px solid #E8E6E1;
+  border-radius: 14px;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 10px rgba(26,28,35,.06);
+  overflow: hidden;
+  transition: box-shadow .2s, transform .2s;
 }
-.menu-footer{
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 10px;
+
+.menu-item:hover {
+  box-shadow: 0 6px 22px rgba(26,28,35,.11);
+  transform: translateY(-2px);
 }
-.price {
-  font-weight: bold;
-  color: #27ae60;
+
+.menu-item img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
 }
-.add-btn {
-  background-color : #007bff;
-  color: white;
-  border: none;
-  width: 35px;
-  height: 35px;
-  border-radius: 50%;
-  font-size: 1.2rem;
-  cursor: pointer;
-}
+
+.menu-item-body { padding: 14px 14px 0; flex: 1; }
 
 .menu-item header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
+  align-items: flex-start;
+  margin-bottom: 6px;
+  border: none; background: none; padding: 0;
+  box-shadow: none; position: static;
 }
 
 .menu-item h3 {
   margin: 0;
-  color: #333;
+  font-family: 'Syne', sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #1A1C23;
+  flex: 1;
+  padding-right: 8px;
 }
 
 .menu-item data {
-  font-weight: bold;
-  color: #27ae60;
+  font-weight: 800;
+  font-size: 1rem;
+  color: #FF6B2B;
+  white-space: nowrap;
 }
 
-nav{
+.menu-item > .menu-item-body > p {
+  font-size: 0.83rem;
+  color: #6B6B7B;
+  line-height: 1.55;
+  margin: 0 0 10px;
+}
+
+/* ── Dietary info section ── */
+.menu-item__dietary {
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  background: #F8F7F5;
+  border-radius: 8px;
+  border: 1px solid #F0EEE9;
+}
+
+.menu-item__dietary-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: #9A9AAB;
+  margin: 0 0 7px;
+}
+
+.menu-item__dietary-pills {
   display: flex;
-  justify-content: flex-start;
-  margin-top: 20px;
+  flex-wrap: wrap;
+  gap: 5px;
 }
 
+/* Pill styles (using global classes from App.css) */
+.diet-pill { /* inherited from App.css */ }
+
+/* ── Allergen warning ── */
+.menu-item__allergens {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  background: #FEECEC;
+  border-radius: 8px;
+  border: 1px solid rgba(239,68,68,.18);
+}
+
+.menu-item__allergen-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: #B91C1C;
+  margin: 0 0 6px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.menu-item__allergen-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+/* ── Info toggle button ── */
+.menu-item__info-toggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #FF6B2B;
+  cursor: pointer;
+  padding: 4px 0;
+  margin-top: 6px;
+  transition: color .15s;
+}
+.menu-item__info-toggle:hover { color: #D94F15; text-decoration: underline; }
+
+/* ── Card footer ── */
 .menu-item footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 1rem;
+  padding: 12px 14px;
+  border-top: 1px solid #F0EEE9;
+  margin-top: 10px;
+  background: none;
+  border: none;
 }
 
+.menu-item footer small {
+  font-size: 0.78rem;
+  color: #9A9AAB;
+  font-weight: 500;
+}
+
+.menu-item footer button {
+  padding: 9px 18px;
+  background: linear-gradient(135deg, #FF6B2B, #D94F15);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: transform .15s, box-shadow .15s;
+  box-shadow: 0 3px 10px rgba(255,107,43,.22);
+}
+
+.menu-item footer button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 16px rgba(255,107,43,.32);
+}
+
+.menu-item footer button.added {
+  background: linear-gradient(135deg, #00C896, #009E76);
+  box-shadow: 0 3px 10px rgba(0,200,150,.22);
+}
+
+/* ── Back button ── */
+nav { display: flex; justify-content: flex-start; margin-top: 24px; }
+
 .back-btn {
-  background: #6c757d;
+  display: flex; align-items: center; gap: 7px;
+  padding: 10px 20px;
+  background: #F5F4F2;
+  border: 1.5px solid #E8E6E1;
+  border-radius: 9px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #1A1C23;
+  cursor: pointer;
   margin-top: 1rem;
+  transition: background .15s, border-color .15s;
 }
-@media (max-width: 900px){
-  .menu-list {
-    grid-template-columns: repeat (2,1fr);
-  }
-}
-@media (max-width: 600px){
-  .menu-list {
-    grid-template-columns: 1fr;
-  }
-}
+.back-btn:hover { background: #ECEAE6; border-color: #C9C5BC; }

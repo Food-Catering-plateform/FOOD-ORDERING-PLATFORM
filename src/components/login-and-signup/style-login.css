@@ -1,341 +1,261 @@
-/* Login styles must be scoped to avoid fighting app-wide CSS */
 
-html, body {
-    width: 100%;
-    height: 100%;
-}
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap');
 
-/* PAGE WRAPPER */
+html, body { width: 100%; height: 100%; }
+
 .login-page {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    width: 100%;
-    margin: 0;
-    background:
-      linear-gradient(rgba(17, 24, 39, 0.86), rgba(17, 24, 39, 0.9)),
-      url('../../Assets/background-login-food.png') center/cover no-repeat fixed;
-    font-family: Arial, sans-serif;
-    color: #FFFFFF;             /* CHANGED - white text */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+  margin: 0;
+  background:
+    linear-gradient(135deg, rgba(26,28,35,.93) 0%, rgba(26,28,35,.96) 100%),
+    url('../../Assets/background-login-food.png') center/cover no-repeat fixed;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #FFFFFF;
 }
 
-/* HEADER */
+/* ── Header ── */
 .login-header {
-    position: absolute;
-    top: 0;
-    left: 0;
-    padding: 1.5rem 2rem;
-    font-weight: bold;
-    font-size: 1.4rem;
-    color: #D90429;             /* CHANGED - vibrant red */
-    z-index: 10;
-    border: none;
-    box-shadow: none;
-    background: transparent;
+  position: absolute;
+  top: 0; left: 0;
+  padding: 1.5rem 2rem;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.4rem;
+  color: #FF6B2B;
+  z-index: 10;
+  background: transparent;
 }
 
-/* MAIN CONTAINER */
+/* ── Split container ── */
 .login-container {
-    display: flex;
-    flex: 1;
-    width: min(1200px, 96vw);
-    margin: 2rem auto;
-    min-height: clamp(560px, 78vh, 860px);
-    background: #1C2333;        /* CHANGED - dark navy card */
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(217, 4, 41, 0.3); /* CHANGED - red glow shadow */
+  display: flex;
+  flex: 1;
+  width: min(1160px, 96vw);
+  margin: 2rem auto;
+  min-height: clamp(560px, 78vh, 860px);
+  background: #FFFFFF;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0,0,0,.35);
 }
 
 .login-container > .auth,
 .login-container > .sider {
-    flex: 0 0 50%;
-    width: 50%;
-    min-width: 0;
-    min-height: 100%;
+  flex: 0 0 50%;
+  width: 50%;
+  min-width: 0;
+  min-height: 100%;
 }
 
-/* LEFT SIDE */
+/* ── Left panel ── */
 .auth {
-    padding: 2.5rem 2rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    background: #FFFFFF;        /* CHANGED - white left panel */
-    width: 100%;
-    height: 100%;
+  padding: 3rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #FFFFFF;
 }
 
 .auth h2 {
-    margin-bottom: 0.5rem;
-    color: #D90429;             /* CHANGED - vibrant red heading */
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 2rem;
+  margin-bottom: 0.25rem;
+  color: #1A1C23;
 }
 
-.auth p {
-    margin-bottom: 1.5rem;
-    color: #1C2333;             /* CHANGED - dark navy subtext */
+.auth-subtitle {
+  color: #6B6B7B;
+  margin-bottom: 2rem;
+  font-size: 0.95rem;
 }
 
-/* FORM (scoped) */
-.login-page form {
-    margin-bottom: 1rem;
-}
-
-.login-page fieldset {
-    border: none;
-}
-
-.login-page legend {
-    font-weight: bold;
-    margin-bottom: 1rem;
-}
+/* ── Form ── */
+.login-page form { margin-bottom: 1rem; }
+.login-page fieldset { border: none; padding: 0; }
+.login-page legend { font-weight: 700; margin-bottom: 1rem; color: #1A1C23; }
 
 .login-page label {
-    display: block;
-    margin-top: 1rem;
-    font-weight: 600;
-    color: #111827;             /* CHANGED - dark label */
+  display: block;
+  margin-top: 1.1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1A1C23;
+  letter-spacing: .01em;
 }
 
 .login-page input {
-    width: 100%;
-    padding: 0.8rem;
-    margin-top: 0.3rem;
-    border: 1px solid #1C2333;  /* CHANGED - dark navy border */
-    border-radius: 8px;
-    background: #F5F5F5;        /* CHANGED - light input */
-    color: #111827;             /* CHANGED - dark text */
+  width: 100%;
+  padding: 0.85rem 1rem;
+  margin-top: 0.35rem;
+  border: 1.5px solid #E8E6E1;
+  border-radius: 10px;
+  background: #F8F7F5;
+  color: #1A1C23;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.95rem;
+  transition: border-color .2s, box-shadow .2s;
 }
 
 .login-page input:focus {
-    outline: none;
-    border-color: #D90429;      /* CHANGED - red focus */
-    box-shadow: 0 0 0 3px rgba(217, 4, 41, 0.15); /* CHANGED - red glow */
+  outline: none;
+  border-color: #FF6B2B;
+  background: #FFFFFF;
+  box-shadow: 0 0 0 4px rgba(255,107,43,.12);
 }
 
-/* BUTTONS */
-.login-page button {
-    width: 100%;
-    padding: 0.9rem;
-    margin-top: 1.2rem;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
+/* ── Buttons ── */
+.login-btn, .login-page button[type="submit"] {
+  width: 100%;
+  padding: 0.95rem;
+  margin-top: 1.4rem;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  background: linear-gradient(135deg, #FF6B2B 0%, #D94F15 100%);
+  color: #FFFFFF;
+  letter-spacing: .02em;
+  transition: transform .15s, box-shadow .2s;
+  box-shadow: 0 4px 16px rgba(255,107,43,.30);
 }
 
-/* Login button */
-.login-page button[type="submit"] {
-    background: linear-gradient(to right, #D90429, #FFB800); /* CHANGED - red to gold */
-    color: #FFFFFF;
+.login-btn:hover, .login-page button[type="submit"]:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(255,107,43,.40);
 }
 
-/* Google button */
-.login-page button[type="button"] {
-    background: #FFFFFF;
-    border: 1px solid #1C2333;  /* CHANGED - dark border */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0.5rem;
-    color: #111827;
+.login-btn:active { transform: translateY(0); }
+
+/* ── Google button ── */
+.google-btn, .login-page button[type="button"] {
+  width: 100%;
+  padding: 0.9rem;
+  background: #FFFFFF;
+  border: 1.5px solid #E8E6E1;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+  color: #1A1C23;
+  transition: border-color .2s, box-shadow .2s;
 }
 
-/* ERROR */
-.login-error {
-    color: #D90429;             /* CHANGED - vibrant red error */
-    margin-top: 0.5rem;
-    font-size: 0.9rem;
-}
+.google-btn:hover { border-color: #FF6B2B; box-shadow: 0 2px 10px rgba(255,107,43,.15); }
 
-/* LINKS */
-.login-page nav {
-    margin-top: 1rem;
-    text-align: center;
+/* ── Divider ── */
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 1.2rem 0;
+  color: #9A9AAB;
+  font-size: 0.82rem;
 }
+.divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #E8E6E1; }
+.divider { padding: 0 0.75rem; }
 
-.login-page a {
-    color: #D90429;             /* CHANGED - vibrant red link */
-    text-decoration: none;
+/* ── Error / info ── */
+.login-error { color: #EF4444; margin-top: 0.5rem; font-size: 0.88rem; font-weight: 600; }
+.login-info  { color: #F59E0B; margin-top: 0.5rem; font-size: 0.88rem; font-weight: 600; }
+
+/* ── Nav / links ── */
+.login-page nav { margin-top: 1rem; text-align: center; font-size: 0.9rem; color: #6B6B7B; }
+.login-page a { color: #FF6B2B; text-decoration: none; font-weight: 600; }
+.login-page a:hover { text-decoration: underline; }
+
+/* ── Forgot password ── */
+.forgot-password { text-align: right; margin-top: 0.4rem; }
+.forgot-password-btn {
+  width: auto !important; margin-top: 0 !important; padding: 0 !important;
+  border: none !important; background: transparent !important;
+  color: #FF6B2B !important; font-size: 0.83rem !important;
+  font-weight: 600 !important; cursor: pointer;
 }
+.forgot-password-btn:hover { text-decoration: underline; }
 
-/* RIGHT SIDE */
+/* ── Right panel ── */
 .sider {
-    background:
-      linear-gradient(rgba(17, 24, 39, 0.52), rgba(17, 24, 39, 0.68)),
-      url('../../Assets/auth-food-half.jpg') center/cover no-repeat;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    color: #FFFFFF;
-    padding: 2rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    min-height: unset;
-    position: relative;
-    overflow: hidden;
-    width: 100%;
-    height: 100%;
+  background:
+    linear-gradient(160deg, rgba(26,28,35,.60) 0%, rgba(26,28,35,.75) 100%),
+    url('../../Assets/auth-food-half.jpg') center/cover no-repeat;
+  color: #FFFFFF;
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.sider::before {
+  content: '';
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 260px; height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,107,43,.25) 0%, transparent 70%);
+  pointer-events: none;
 }
 
 .sider h2 {
-    margin-bottom: 1rem;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 2.2rem;
+  margin: 0 0 1rem;
+  line-height: 1.15;
 }
 
-.login-sider::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(circle at 20% 30%, rgba(255, 184, 0, 0.16), transparent 36%),
-      radial-gradient(circle at 80% 75%, rgba(255, 255, 255, 0.08), transparent 35%);
-    pointer-events: none;
-}
+.sider p { color: rgba(255,255,255,.82); font-size: 1rem; line-height: 1.65; }
 
-.food-visual {
-    margin-top: 1.25rem;
-    display: flex;
-    gap: 0.65rem;
-    flex-wrap: wrap;
-}
+/* ── Food emoji bubbles ── */
+.food-visual { margin-top: 2rem; display: flex; gap: 0.75rem; flex-wrap: wrap; }
 
 .food-bubble {
-    width: 48px;
-    height: 48px;
-    border-radius: 999px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255, 255, 255, 0.16);
-    border: 1px solid rgba(255, 255, 255, 0.26);
-    backdrop-filter: blur(2px);
-    font-size: 1.35rem;
-    animation: floatUpDown 4s ease-in-out infinite;
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,.15);
+  border: 1.5px solid rgba(255,255,255,.28);
+  backdrop-filter: blur(6px);
+  font-size: 1.4rem;
+  animation: float 4s ease-in-out infinite;
+}
+.food-bubble:nth-child(2) { animation-delay: .5s; }
+.food-bubble:nth-child(3) { animation-delay: 1s; }
+.food-bubble:nth-child(4) { animation-delay: 1.5s; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
 }
 
-.food-bubble:nth-child(2) { animation-delay: 0.45s; }
-.food-bubble:nth-child(3) { animation-delay: 0.9s; }
-.food-bubble:nth-child(4) { animation-delay: 1.35s; }
-
-@keyframes floatUpDown {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-7px); }
-}
-
-@media (max-width: 900px) {
-    .login-container {
-        display: block;
-    }
-
-    .login-container > .auth,
-    .login-container > .sider {
-        width: 100%;
-        flex-basis: auto;
-    }
-}
-
-/* FOOTER */
+/* ── Footer ── */
 .login-footer {
-    position: static;
-    width: 100%;
-    text-align: center;
-    padding: 1rem;
-    font-size: 0.85rem;
-    color: #AAAAAA;             /* CHANGED - muted grey */
-    background: #111827;        /* CHANGED - dark navy footer */
-    border-top: 1px solid #D90429; /* CHANGED - red border */
+  width: 100%;
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.82rem;
+  color: #888;
+  background: #111318;
+  border-top: 1px solid rgba(255,107,43,.30);
 }
 
-/* SUBTITLE */
-.auth-subtitle {
-    color: #555555;             /* CHANGED - medium grey subtitle */
-    margin-bottom: 1.5rem;
-    font-size: 0.95rem;
-}
-
-/* FORGOT PASSWORD */
-.forgot-password {
-    text-align: right;
-    margin-top: 0.5rem;
-}
-
-.forgot-password-btn {
-    width: auto !important;
-    margin-top: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-    background: transparent !important;
-    color: #D90429 !important;  /* CHANGED - vibrant red */
-    font-size: 0.85rem !important;
-    font-weight: 600 !important;
-    cursor: pointer;
-}
-
-.forgot-password-btn:hover {
-    text-decoration: underline;
-}
-
-.login-info {
-    color: #FFB800;             /* CHANGED - golden yellow info */
-    margin-top: 0.5rem;
-    font-size: 0.9rem;
-}
-
-/* LOGIN BUTTON */
-.login-btn {
-    background: linear-gradient(to right, #D90429, #FFB800); /* CHANGED - red to gold */
-    color: #FFFFFF;
-    width: 100%;
-    padding: 0.9rem;
-    margin-top: 1.2rem;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 1rem;
-}
-
-/* DIVIDER */
-.divider {
-    display: flex;
-    align-items: center;
-    text-align: center;
-    margin: 1.2rem 0;
-    color: #AAAAAA;             /* CHANGED - muted grey */
-    font-size: 0.85rem;
-}
-
-.divider::before,
-.divider::after {
-    content: '';
-    flex: 1;
-    border-bottom: 1px solid #D90429; /* CHANGED - red line */
-}
-
-.divider {
-    padding: 0 0.75rem;
-}
-
-/* GOOGLE BUTTON */
-.google-btn {
-    width: 100%;
-    padding: 0.9rem;
-    background: #FFFFFF;
-    border: 1px solid #1C2333;  /* CHANGED - dark border */
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.95rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0.75rem;
-    color: #111827;
-    transition: 0.2s ease, box-shadow 0.2s ease;
-}
-
-.google-btn:hover {
-    background: #F5F5F5;
-    box-shadow: 0 2px 8px rgba(217, 4, 41, 0.2); /* CHANGED - red shadow */
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .login-container { display: block; }
+  .login-container > .auth,
+  .login-container > .sider { width: 100%; flex-basis: auto; }
 }
