@@ -298,7 +298,6 @@ async function downloadReport(period, d) {
       ]),
       [28, contentW * 0.32, 36, 100, barTrackW]
     );
-    // overlay inline bars on the Volume column
     const barColX = margin + 28 + contentW * 0.32 + 36 + 100;
     const rowStart = y - (d.topItems.length * 20) - 6;
     d.topItems.forEach((item, i) => {
@@ -441,7 +440,7 @@ function ExportButton({ period, data }) {
   );
 }
 
-//   Analytics Section          
+//    Analytics Section          
 
 function AnalyticsSection() {
   const [period, setPeriod]   = useState('Today');
@@ -540,15 +539,20 @@ function AnalyticsSection() {
       <section className="cards">
         <article style={{ flex: 2, minWidth: '280px' }}>
           <h3>Orders Overview (Peak Hours)</h3>
-          <ul style={{ display: 'flex', alignItems: 'flex-end', gap: '6px', height: '140px', marginBottom: '8px', listStyle: 'none', padding: 0, margin: 0 }}>
+          <ul style={{ display: 'flex', alignItems: 'flex-end', gap: '6px', height: '140px', listStyle: 'none', padding: 0, margin: 0 }}>
             {d.hourly.map((h, i) => (
               <li key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end' }}>
                 <b style={{ fontSize: '0.65rem', marginBottom: '2px', fontWeight: 'normal' }}>{h.value || ''}</b>
-                <meter
-                  value={h.value}
-                  max={maxBar}
+                <div
                   title={`${h.value} orders`}
-                  style={{ width: '100%', height: `${(h.value / maxBar) * 100}%`, appearance: 'none', background: '#1e1e2f', borderRadius: '4px 4px 0 0', minHeight: h.value ? '4px' : '0', display: 'block' }}
+                  style={{
+                    width: '100%',
+                    height: `${(h.value / maxBar) * 100}%`,
+                    background: '#1e1e2f',
+                    borderRadius: '4px 4px 0 0',
+                    minHeight: h.value ? '4px' : '0',
+                    display: 'block',
+                  }}
                 />
                 <small style={{ fontSize: '0.6rem', marginTop: '4px', color: '#666' }}>{h.label}</small>
               </li>
