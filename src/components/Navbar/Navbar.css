@@ -17,23 +17,6 @@
   height: 70px;
 }
 
-/* Search */
-.search-bar {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-}
-
-.search-bar input {
-  width: 350px;
-  padding: 8px 15px; /* smaller */
-  border-radius: 20px;
-  border: 1px solid #aaa;
-  font-size: 14px;
-  background: #f9f9f9;
-}
-
-/* Cart */
 .nav-actions button {
   background: none;
   border: none;

@@ -17,6 +17,7 @@ import Payment from './components/Customer/jsFiles/Payment';
 import { auth, db } from './Firebase/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
+import Dashboard from './components/Customer/jsFiles/Dashboard'
 
 function App() {
   const isPaymentSuccess = window.location.search.includes('page=payment-success');
@@ -199,13 +200,11 @@ function App() {
         return <PaymentSuccess setActivePage={setActivePage} setBasket={setBasket} />;
       case 'shops':
         return (
-          <Shops
-            onSelectShop={(shop) => {
-              setSelectedShop(shop);
-              setActivePage('menu-view');
-            }}
-          />
-        );
+          <Dashboard
+           setActivePage={setActivePage}
+           setSelectedShop={setSelectedShop}
+        />
+     );
       case 'menu-view':
         return (
           <MenuView
@@ -289,12 +288,12 @@ function App() {
           style={{
             marginLeft: useCustomerChrome ? (sidebarOpen ? '187px' : '60px') : '0',
             transition: '0.3s ease',
-            paddingTop: useCustomerChrome ? '80px' : '0',
-            padding: isAuthScreen ? '0' : '20px',
+            paddingTop: useCustomerChrome ? '60px' : '0',
+            padding: isAuthScreen ? '0' : '60px',
             flex: 1,
             display: 'flex',
             justifyContent: 'center',
-            background: isAuthScreen ? '#f3f4f6' : '#e6f2ff',
+            background: isAuthScreen ? '#f3f4f6' :'#FFF7ED',
             minHeight: '100vh',
           }}
         >
