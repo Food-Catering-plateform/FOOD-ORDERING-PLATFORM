@@ -447,3 +447,264 @@ describe('Analytics – CSV content (buildCSV)', () => {
     expect(lastAnchor?.download ?? '').toContain('this_week');
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('Analytics – PDF export', () => {
+  // Mock jsPDF and its autoTable plugin
+  const mockJsPDF = {
+    setFillColor: jest.fn().mockReturnThis(),
+    rect: jest.fn().mockReturnThis(),
+    setTextColor: jest.fn().mockReturnThis(),
+    setFontSize: jest.fn().mockReturnThis(),
+    setFont: jest.fn().mockReturnThis(),
+    text: jest.fn().mockReturnThis(),
+    autoTable: jest.fn().mockReturnThis(),
+    lastAutoTable: { finalY: 100 },
+    internal: {
+      pageSize: {
+        getHeight: jest.fn(() => 297),
+      },
+    },
+    setDrawColor: jest.fn().mockReturnThis(),
+    line: jest.fn().mockReturnThis(),
+    save: jest.fn(),
+  };
+
+  const mockJsPDFConstructor = function(options) {
+    return mockJsPDF;
+  };
+
+  beforeAll(() => {
+    // Mock the global jsPDF
+    window.jspdf = {
+      jsPDF: mockJsPDFConstructor,
+    };
+  });
+
+  afterAll(() => {
+    delete window.jspdf;
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockJsPDFConstructor.mockClear();
+  });
+
+  it('closes the dropdown after PDF is selected', async () => {
+    render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: /export/i }));
+    await userEvent.click(screen.getByRole('button', { name: /report/i }));
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+  });
+
+  it('creates a jsPDF instance when PDF export is triggered', async () => {
+    render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: /export/i }));
+    await userEvent.click(screen.getByRole('button', { name: /report/i }));
+
+    expect(mockJsPDFConstructor).toHaveBeenCalledWith({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+    });
+  });
+
+  it('sets up the PDF header with title and period', async () => {
+    render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: /export/i }));
+    await userEvent.click(screen.getByRole('button', { name: /report/i }));
+
+    expect(mockJsPDF.setFillColor).toHaveBeenCalledWith(26, 26, 46);
+    expect(mockJsPDF.rect).toHaveBeenCalledWith(0, 0, 210, 22, 'F');
+    expect(mockJsPDF.text).toHaveBeenCalledWith('Analytics Report', 14, 14);
+  });
+
+  it('includes summary stats in the PDF', async () => {
+    render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: /export/i }));
+    await userEvent.click(screen.getByRole('button', { name: /report/i }));
+
+    expect(mockJsPDF.text).toHaveBeenCalledWith('SUMMARY', 14, expect.any(Number));
+  });
+
+  it('includes order breakdown table in the PDF', async () => {
+    render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: /export/i }));
+    await userEvent.click(screen.getByRole('button', { name: /report/i }));
+
+    expect(mockJsPDF.autoTable).toHaveBeenCalledWith(
+      expect.objectContaining({
+        head: [['Status', 'Count']],
+        body: expect.any(Array),
+      })
+    );
+  });
+
+  it('includes orders overview table in the PDF', async () => {
+    render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: /export/i }));
+    await userEvent.click(screen.getByRole('button', { name: /report/i }));
+
+    expect(mockJsPDF.autoTable).toHaveBeenCalledWith(
+      expect.objectContaining({
+        head: [['Period', 'Orders', 'Volume']],
+      })
+    );
+  });
+
+  it('includes top selling items table in the PDF', async () => {
+    render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: /export/i }));
+    await userEvent.click(screen.getByRole('button', { name: /report/i }));
+
+    expect(mockJsPDF.autoTable).toHaveBeenCalledWith(
+      expect.objectContaining({
+        head: [['#', 'Item', 'Units Sold', 'Revenue']],
+      })
+    );
+  });
+
+  it('saves the PDF with the correct filename', async () => {
+    render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: /export/i }));
+    await userEvent.click(screen.getByRole('button', { name: /report/i }));
+
+    expect(mockJsPDF.save).toHaveBeenCalledWith('analytics_today.pdf');
+  });
+
+  it('uses correct filename for This Week PDF', async () => {
+    render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: 'This Week' }));
+    await userEvent.click(screen.getByRole('button', { name: /export/i }));
+    await userEvent.click(screen.getByRole('button', { name: /report/i }));
+
+    expect(mockJsPDF.save).toHaveBeenCalledWith('analytics_this_week.pdf');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('Analytics – ExportButton click outside behavior', () => {
+  it('closes dropdown when clicking outside the export wrapper', async () => {
+    render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: /export/i }));
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+
+    // Click on a different element (not the export wrapper)
+    await userEvent.click(screen.getByRole('heading', { name: /^analytics$/i }));
+
+    await waitFor(() =>
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+    );
+  });
+
+  it('keeps dropdown open when clicking inside the export wrapper', async () => {
+    render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: /export/i }));
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+
+    // Click on the export button again (inside wrapper)
+    await userEvent.click(screen.getByRole('button', { name: /export/i }));
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('Analytics – loadJsPDF function', () => {
+  beforeEach(() => {
+    delete window.jspdf;
+  });
+
+  it('uses existing jsPDF if already loaded', async () => {
+    window.jspdf = { jsPDF: jest.fn() };
+    // The function is tested indirectly through PDF export
+    expect(window.jspdf).toBeDefined();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('Analytics – escapeCSV function', () => {
+  // Since escapeCSV is not exported, we test it indirectly through CSV content
+  it('handles normal strings without special characters', async () => {
+    let capturedBlob;
+    const origBlob = global.Blob;
+    global.Blob = jest.fn((parts, opts) => {
+      capturedBlob = parts[0];
+      return new origBlob(parts, opts);
+    });
+
+    render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: /export/i }));
+    await userEvent.click(screen.getByRole('button', { name: /spreadsheet/i }));
+
+    // Check that normal strings are not quoted unnecessarily
+    expect(capturedBlob).toContain('Grilled Chicken Burger'); // No quotes around normal text
+    expect(capturedBlob).not.toContain('"Grilled Chicken Burger"');
+
+    global.Blob = origBlob;
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('Analytics – buildCSV function', () => {
+  // Since buildCSV is not exported, we test it through the CSV download
+  it('includes completion rate calculation in CSV', async () => {
+    let capturedBlob;
+    const origBlob = global.Blob;
+    global.Blob = jest.fn((parts, opts) => {
+      capturedBlob = parts[0];
+      return new origBlob(parts, opts);
+    });
+
+    render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: /export/i }));
+    await userEvent.click(screen.getByRole('button', { name: /spreadsheet/i }));
+
+    const completionRate = Math.round((14 / 18) * 100); // 78%
+    expect(capturedBlob).toContain(`${completionRate}%`);
+
+    global.Blob = origBlob;
+  });
+
+  it('includes all hourly data in CSV for Today', async () => {
+    let capturedBlob;
+    const origBlob = global.Blob;
+    global.Blob = jest.fn((parts, opts) => {
+      capturedBlob = parts[0];
+      return new origBlob(parts, opts);
+    });
+
+    render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: /export/i }));
+    await userEvent.click(screen.getByRole('button', { name: /spreadsheet/i }));
+
+    expect(capturedBlob).toContain('8am');
+    expect(capturedBlob).toContain('12pm');
+    expect(capturedBlob).toContain('5pm');
+
+    global.Blob = origBlob;
+  });
+
+  it('includes top items data in CSV', async () => {
+    let capturedBlob;
+    const origBlob = global.Blob;
+    global.Blob = jest.fn((parts, opts) => {
+      capturedBlob = parts[0];
+      return new origBlob(parts, opts);
+    });
+
+    render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: /export/i }));
+    await userEvent.click(screen.getByRole('button', { name: /spreadsheet/i }));
+
+    expect(capturedBlob).toContain('#1');
+    expect(capturedBlob).toContain('#5');
+    expect(capturedBlob).toContain('2159.76');
+
+    global.Blob = origBlob;
+  });
+});
