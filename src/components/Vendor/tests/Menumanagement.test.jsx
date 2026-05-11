@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import MenuManagement from '../MenuManagement';
 
-// ─── Mocks ────────────────────────────────────────────────────────────────────
+// --- Mocks ---
 
 jest.mock('../../../Services/AuthContext', () => ({ useAuth: jest.fn() }));
 jest.mock('../../../Firebase/firebaseConfig', () => ({ db: {} }));
@@ -20,13 +20,13 @@ jest.mock('../MenuManagement.css', () => ({}));
 import { useAuth } from '../../../Services/AuthContext';
 import { collection, addDoc, updateDoc, getDocs, doc, deleteDoc } from 'firebase/firestore';
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// --- Helpers ---
 
 const VENDOR_ID = 'vendor-123';
 
 const MOCK_ITEMS = [
-  { id: 'item-1', name: 'Burger', price: '50.00', qty: '10', description: 'Juicy beef burger', imageUrl: 'https://example.com/burger.jpg' },
-  { id: 'item-2', name: 'Fries',  price: '20.00', qty: '20', description: 'Crispy fries',       imageUrl: 'https://example.com/fries.jpg'  },
+  { id: 'item-1', name: 'Burger', price: '50.00', qty: '10', description: 'Juicy beef burger', imageUrl: 'https://example.com/burger.jpg', allergens: [], dietary: [] },
+  { id: 'item-2', name: 'Fries',  price: '20.00', qty: '20', description: 'Crispy fries',       imageUrl: 'https://example.com/fries.jpg',  allergens: [], dietary: [] },
 ];
 
 function makeDocs(items) {
@@ -52,9 +52,9 @@ beforeEach(() => {
   deleteDoc.mockResolvedValue();
 });
 
-// ─── Tests ────────────────────────────────────────────────────────────────────
+// --- Tests ---
 
-describe('MenuManagement – rendering', () => {
+describe('MenuManagement - rendering', () => {
   it('shows a loading message when vendorId is absent', () => {
     useAuth.mockReturnValue({ vendorId: null });
     render(<MenuManagement />);
@@ -92,19 +92,71 @@ describe('MenuManagement – rendering', () => {
     expect(screen.getAllByRole('button', { name: /edit/i   })).toHaveLength(2);
     expect(screen.getAllByRole('button', { name: /delete/i })).toHaveLength(2);
   });
+
+  it('shows empty state message when no items exist', async () => {
+    getDocs.mockResolvedValueOnce(makeDocs([]));
+    render(<MenuManagement />);
+    await waitFor(() =>
+      expect(screen.getByText(/no menu items yet/i)).toBeInTheDocument()
+    );
+  });
+
+  it('renders item description when present', async () => {
+    render(<MenuManagement />);
+    await screen.findByText('Burger');
+    expect(screen.getByText('Juicy beef burger')).toBeInTheDocument();
+  });
+
+  it('does not render description paragraph when description is empty', async () => {
+    getDocs.mockResolvedValueOnce(makeDocs([
+      { id: 'item-1', name: 'Burger', price: '50.00', qty: '10', description: '', imageUrl: 'https://example.com/burger.jpg', allergens: [], dietary: [] },
+    ]));
+    render(<MenuManagement />);
+    await screen.findByText('Burger');
+    expect(screen.queryByText('Juicy beef burger')).not.toBeInTheDocument();
+  });
+
+  it('renders dietary tags when item has dietary info', async () => {
+    getDocs.mockResolvedValueOnce(makeDocs([
+      { id: 'item-1', name: 'Salad', price: '30.00', qty: '5', description: '', imageUrl: '', allergens: [], dietary: ['vegan', 'halal'] },
+    ]));
+    render(<MenuManagement />);
+    await screen.findByText('Salad');
+    expect(screen.getByText(/vegan/i)).toBeInTheDocument();
+    expect(screen.getByText(/halal/i)).toBeInTheDocument();
+  });
+
+  it('renders allergen tags when item has allergens', async () => {
+    getDocs.mockResolvedValueOnce(makeDocs([
+      { id: 'item-1', name: 'Pasta', price: '60.00', qty: '5', description: '', imageUrl: '', allergens: ['Gluten', 'Dairy'], dietary: [] },
+    ]));
+    render(<MenuManagement />);
+    await screen.findByText('Pasta');
+    expect(screen.getByText(/gluten/i)).toBeInTheDocument();
+    expect(screen.getByText(/dairy/i)).toBeInTheDocument();
+  });
+
+  it('applies editing class to the item currently being edited', async () => {
+    render(<MenuManagement />);
+    await screen.findByText('Burger');
+    await userEvent.click(screen.getAllByRole('button', { name: /edit/i })[0]);
+    const listItems = document.querySelectorAll('li');
+    expect(listItems[0]).toHaveClass('editing');
+    expect(listItems[1]).not.toHaveClass('editing');
+  });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 
-describe('MenuManagement – adding an item', () => {
+describe('MenuManagement - adding an item', () => {
   it('calls addDoc with correct data and updates the list', async () => {
     render(<MenuManagement />);
     await screen.findByText('Burger');
 
-    await userEvent.type(screen.getByPlaceholderText('Food Name'),   'Pizza');
-    await userEvent.type(screen.getByPlaceholderText('Price'),       '80');
-    await userEvent.type(screen.getByPlaceholderText('Quantity'),    '5');
-    await userEvent.type(screen.getByPlaceholderText('Description'), 'Cheesy pizza');
+    await userEvent.type(screen.getByPlaceholderText('Food name'),          'Pizza');
+    await userEvent.type(screen.getByPlaceholderText('Price (R)'),          '80');
+    await userEvent.type(screen.getByPlaceholderText('Quantity available'), '5');
+    await userEvent.type(screen.getByPlaceholderText('Description'),        'Cheesy pizza');
 
     await userEvent.click(screen.getByRole('button', { name: /add product/i }));
 
@@ -120,32 +172,81 @@ describe('MenuManagement – adding an item', () => {
     render(<MenuManagement />);
     await screen.findByText('Burger');
 
-    await userEvent.type(screen.getByPlaceholderText('Food Name'), 'Pizza');
+    await userEvent.type(screen.getByPlaceholderText('Food name'), 'Pizza');
     await userEvent.click(screen.getByRole('button', { name: /add product/i }));
 
     await waitFor(() => expect(addDoc).toHaveBeenCalled());
-    expect(screen.getByPlaceholderText('Food Name')).toHaveValue('');
+    expect(screen.getByPlaceholderText('Food name')).toHaveValue('');
   });
 
   it('uses a placeholder image when no file is selected', async () => {
     render(<MenuManagement />);
     await screen.findByText('Burger');
 
-    await userEvent.type(screen.getByPlaceholderText('Food Name'), 'Wrap');
-    await userEvent.type(screen.getByPlaceholderText('Price'),     '35');
+    await userEvent.type(screen.getByPlaceholderText('Food name'), 'Wrap');
+    await userEvent.type(screen.getByPlaceholderText('Price (R)'), '35');
     await userEvent.click(screen.getByRole('button', { name: /add product/i }));
 
     await waitFor(() => expect(addDoc).toHaveBeenCalled());
     expect(addDoc).toHaveBeenCalledWith(
       'menu-collection-ref',
-      expect.objectContaining({ imageUrl: 'https://placehold.co/60x60/f5e6d3/7a4e27?text=Food' })
+      expect.objectContaining({ imageUrl: 'https://placehold.co/300x160/F5F4F2/FF6B2B?text=Food' })
     );
+  });
+
+  it('includes selected allergens in addDoc call', async () => {
+    render(<MenuManagement />);
+    await screen.findByText('Burger');
+
+    await userEvent.click(screen.getByRole('button', { name: /select allergens/i }));
+    await userEvent.click(screen.getByLabelText(/gluten/i));
+
+    await userEvent.type(screen.getByPlaceholderText('Food name'), 'Bread');
+    await userEvent.click(screen.getByRole('button', { name: /add product/i }));
+
+    await waitFor(() => expect(addDoc).toHaveBeenCalled());
+    expect(addDoc).toHaveBeenCalledWith(
+      'menu-collection-ref',
+      expect.objectContaining({ allergens: ['Gluten'] })
+    );
+  });
+
+  it('includes selected dietary info in addDoc call', async () => {
+    render(<MenuManagement />);
+    await screen.findByText('Burger');
+
+    await userEvent.click(screen.getByRole('button', { name: /select dietary/i }));
+    await userEvent.click(screen.getByLabelText(/vegan/i));
+
+    await userEvent.type(screen.getByPlaceholderText('Food name'), 'Salad');
+    await userEvent.click(screen.getByRole('button', { name: /add product/i }));
+
+    await waitFor(() => expect(addDoc).toHaveBeenCalled());
+    expect(addDoc).toHaveBeenCalledWith(
+      'menu-collection-ref',
+      expect.objectContaining({ dietary: ['vegan'] })
+    );
+  });
+
+  it('clears allergens after a successful add', async () => {
+    render(<MenuManagement />);
+    await screen.findByText('Burger');
+
+    await userEvent.click(screen.getByRole('button', { name: /select allergens/i }));
+    await userEvent.click(screen.getByLabelText(/dairy/i));
+    await userEvent.type(screen.getByPlaceholderText('Food name'), 'Cheese');
+    await userEvent.click(screen.getByRole('button', { name: /add product/i }));
+
+    await waitFor(() => expect(addDoc).toHaveBeenCalled());
+
+    await userEvent.click(screen.getByRole('button', { name: /select allergens/i }));
+    expect(screen.getByLabelText(/dairy/i)).not.toBeChecked();
   });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 
-describe('MenuManagement – editing an item', () => {
+describe('MenuManagement - editing an item', () => {
   it('switches the form heading to "Edit Food Item" when Edit is clicked', async () => {
     render(<MenuManagement />);
     await screen.findByText('Burger');
@@ -159,9 +260,9 @@ describe('MenuManagement – editing an item', () => {
     await screen.findByText('Burger');
 
     await userEvent.click(screen.getAllByRole('button', { name: /edit/i })[0]);
-    expect(screen.getByPlaceholderText('Food Name')).toHaveValue('Burger');
-    expect(screen.getByPlaceholderText('Price')).toHaveValue('50.00');
-    expect(screen.getByPlaceholderText('Quantity')).toHaveValue('10');
+    expect(screen.getByPlaceholderText('Food name')).toHaveValue('Burger');
+    expect(screen.getByPlaceholderText('Price (R)')).toHaveValue('50.00');
+    expect(screen.getByPlaceholderText('Quantity available')).toHaveValue('10');
   });
 
   it('calls updateDoc (not addDoc) when saving edits', async () => {
@@ -169,7 +270,7 @@ describe('MenuManagement – editing an item', () => {
     await screen.findByText('Burger');
 
     await userEvent.click(screen.getAllByRole('button', { name: /edit/i })[0]);
-    const nameInput = screen.getByPlaceholderText('Food Name');
+    const nameInput = screen.getByPlaceholderText('Food name');
     await userEvent.clear(nameInput);
     await userEvent.type(nameInput, 'Big Burger');
 
@@ -185,7 +286,7 @@ describe('MenuManagement – editing an item', () => {
     await screen.findByText('Burger');
 
     await userEvent.click(screen.getAllByRole('button', { name: /edit/i })[0]);
-    const nameInput = screen.getByPlaceholderText('Food Name');
+    const nameInput = screen.getByPlaceholderText('Food name');
     await userEvent.clear(nameInput);
     await userEvent.type(nameInput, 'Big Burger');
 
@@ -220,11 +321,148 @@ describe('MenuManagement – editing an item', () => {
       expect.objectContaining({ imageUrl: MOCK_ITEMS[0].imageUrl })
     );
   });
+
+  it('uses the new image when a file is uploaded during edit', async () => {
+    render(<MenuManagement />);
+    await screen.findByText('Burger');
+
+    await userEvent.click(screen.getAllByRole('button', { name: /edit/i })[0]);
+
+    const fakeDataUrl = 'data:image/png;base64,newimage==';
+    const mockReader = {
+      onload: null,
+      readAsDataURL: jest.fn(function () {
+        this.result = fakeDataUrl;
+        this.onload();
+      }),
+    };
+    jest.spyOn(global, 'FileReader').mockImplementation(() => mockReader);
+
+    const fileInput = document.querySelector('input[type="file"]');
+    await userEvent.upload(fileInput, new File(['img'], 'new.png', { type: 'image/png' }));
+    await userEvent.click(screen.getByRole('button', { name: /save changes/i }));
+
+    await waitFor(() => expect(updateDoc).toHaveBeenCalled());
+    expect(updateDoc).toHaveBeenCalledWith(
+      'doc-ref',
+      expect.objectContaining({ imageUrl: fakeDataUrl })
+    );
+  });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 
-describe('MenuManagement – deleting an item', () => {
+describe('MenuManagement - allergen dropdown', () => {
+  it('opens the allergen dropdown when its button is clicked', async () => {
+    render(<MenuManagement />);
+    await screen.findByText('Burger');
+
+    await userEvent.click(screen.getByRole('button', { name: /select allergens/i }));
+    expect(screen.getByLabelText(/gluten/i)).toBeInTheDocument();
+  });
+
+  it('closes the allergen dropdown when its button is clicked again', async () => {
+    render(<MenuManagement />);
+    await screen.findByText('Burger');
+
+    const btn = screen.getByRole('button', { name: /select allergens/i });
+    await userEvent.click(btn);
+    await userEvent.click(btn);
+    expect(screen.queryByLabelText(/gluten/i)).not.toBeInTheDocument();
+  });
+
+  it('checks and unchecks an allergen', async () => {
+    render(<MenuManagement />);
+    await screen.findByText('Burger');
+
+    await userEvent.click(screen.getByRole('button', { name: /select allergens/i }));
+    const checkbox = screen.getByLabelText(/gluten/i);
+    await userEvent.click(checkbox);
+    expect(checkbox).toBeChecked();
+    await userEvent.click(checkbox);
+    expect(checkbox).not.toBeChecked();
+  });
+
+  it('updates the allergen button label when allergens are selected', async () => {
+    render(<MenuManagement />);
+    await screen.findByText('Burger');
+
+    await userEvent.click(screen.getByRole('button', { name: /select allergens/i }));
+    await userEvent.click(screen.getByLabelText(/gluten/i));
+
+    expect(screen.getByRole('button', { name: /contains/i })).toBeInTheDocument();
+  });
+
+  it('closes the allergen dropdown when clicking outside', async () => {
+    render(<MenuManagement />);
+    await screen.findByText('Burger');
+
+    await userEvent.click(screen.getByRole('button', { name: /select allergens/i }));
+    expect(screen.getByLabelText(/gluten/i)).toBeInTheDocument();
+
+    await userEvent.click(document.body);
+    expect(screen.queryByLabelText(/gluten/i)).not.toBeInTheDocument();
+  });
+});
+
+// -----------------------------------------------------------------------------
+
+describe('MenuManagement - dietary dropdown', () => {
+  it('opens the dietary dropdown when its button is clicked', async () => {
+    render(<MenuManagement />);
+    await screen.findByText('Burger');
+
+    await userEvent.click(screen.getByRole('button', { name: /select dietary/i }));
+    expect(screen.getByLabelText(/vegan/i)).toBeInTheDocument();
+  });
+
+  it('closes the dietary dropdown when its button is clicked again', async () => {
+    render(<MenuManagement />);
+    await screen.findByText('Burger');
+
+    const btn = screen.getByRole('button', { name: /select dietary/i });
+    await userEvent.click(btn);
+    await userEvent.click(btn);
+    expect(screen.queryByLabelText(/vegan/i)).not.toBeInTheDocument();
+  });
+
+  it('checks and unchecks a dietary option', async () => {
+    render(<MenuManagement />);
+    await screen.findByText('Burger');
+
+    await userEvent.click(screen.getByRole('button', { name: /select dietary/i }));
+    const checkbox = screen.getByLabelText(/vegan/i);
+    await userEvent.click(checkbox);
+    expect(checkbox).toBeChecked();
+    await userEvent.click(checkbox);
+    expect(checkbox).not.toBeChecked();
+  });
+
+  it('updates the dietary button label when a dietary option is selected', async () => {
+    render(<MenuManagement />);
+    await screen.findByText('Burger');
+
+    await userEvent.click(screen.getByRole('button', { name: /select dietary/i }));
+    await userEvent.click(screen.getByLabelText(/vegan/i));
+
+    expect(screen.getByRole('button', { name: /vegan/i })).toBeInTheDocument();
+  });
+
+  it('closes the dietary dropdown when clicking outside', async () => {
+    render(<MenuManagement />);
+    await screen.findByText('Burger');
+
+    await userEvent.click(screen.getByRole('button', { name: /select dietary/i }));
+    expect(screen.getByLabelText(/vegan/i)).toBeInTheDocument();
+
+    await userEvent.click(document.body);
+    expect(screen.queryByLabelText(/vegan/i)).not.toBeInTheDocument();
+  });
+});
+
+// -----------------------------------------------------------------------------
+
+describe('MenuManagement - deleting an item', () => {
   it('calls deleteDoc with the correct document reference', async () => {
     render(<MenuManagement />);
     await screen.findByText('Burger');
@@ -250,23 +488,36 @@ describe('MenuManagement – deleting an item', () => {
     await screen.findByText('Burger');
 
     await userEvent.click(screen.getAllByRole('button', { name: /edit/i })[0]);
-    expect(screen.getByPlaceholderText('Food Name')).toHaveValue('Burger');
+    expect(screen.getByPlaceholderText('Food name')).toHaveValue('Burger');
 
     await userEvent.click(screen.getAllByRole('button', { name: /delete/i })[0]);
 
-    await waitFor(() => expect(screen.getByPlaceholderText('Food Name')).toHaveValue(''));
+    await waitFor(() => expect(screen.getByPlaceholderText('Food name')).toHaveValue(''));
     expect(screen.getByRole('heading', { name: /add food item/i })).toBeInTheDocument();
+  });
+
+  it('does not reset the form when a different item is deleted', async () => {
+    render(<MenuManagement />);
+    await screen.findByText('Burger');
+
+    await userEvent.click(screen.getAllByRole('button', { name: /edit/i })[0]);
+    expect(screen.getByPlaceholderText('Food name')).toHaveValue('Burger');
+
+    await userEvent.click(screen.getAllByRole('button', { name: /delete/i })[1]);
+
+    await waitFor(() => expect(screen.queryByText('Fries')).not.toBeInTheDocument());
+    expect(screen.getByPlaceholderText('Food name')).toHaveValue('Burger');
   });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 
-describe('MenuManagement – image upload', () => {
+describe('MenuManagement - image upload', () => {
   it('reads and stores a base64 data URL from a selected file', async () => {
     render(<MenuManagement />);
     await screen.findByText('Burger');
 
-    const fakeFile = new File(['(binary)'], 'photo.png', { type: 'image/png' });
+    const fakeFile    = new File(['(binary)'], 'photo.png', { type: 'image/png' });
     const fakeDataUrl = 'data:image/png;base64,ZmFrZQ==';
 
     const mockReader = {
@@ -278,10 +529,10 @@ describe('MenuManagement – image upload', () => {
     };
     jest.spyOn(global, 'FileReader').mockImplementation(() => mockReader);
 
-    const fileInput = screen.queryByLabelText(/image/i) ?? document.querySelector('input[type="file"]');
+    const fileInput = document.querySelector('input[type="file"]');
     await userEvent.upload(fileInput, fakeFile);
 
-    await userEvent.type(screen.getByPlaceholderText('Food Name'), 'Photo Dish');
+    await userEvent.type(screen.getByPlaceholderText('Food name'), 'Photo Dish');
     await userEvent.click(screen.getByRole('button', { name: /add product/i }));
 
     await waitFor(() => expect(addDoc).toHaveBeenCalled());
@@ -292,9 +543,9 @@ describe('MenuManagement – image upload', () => {
   });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 
-describe('MenuManagement – error handling', () => {
+describe('MenuManagement - error handling', () => {
   it('logs an error and does not crash when addDoc fails', async () => {
     addDoc.mockRejectedValueOnce(new Error('Firestore write error'));
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -302,7 +553,7 @@ describe('MenuManagement – error handling', () => {
     render(<MenuManagement />);
     await screen.findByText('Burger');
 
-    await userEvent.type(screen.getByPlaceholderText('Food Name'), 'Salad');
+    await userEvent.type(screen.getByPlaceholderText('Food name'), 'Salad');
     await userEvent.click(screen.getByRole('button', { name: /add product/i }));
 
     await waitFor(() =>
@@ -337,11 +588,24 @@ describe('MenuManagement – error handling', () => {
     );
     consoleSpy.mockRestore();
   });
+
+  it('does not remove item from list when deleteDoc fails', async () => {
+    deleteDoc.mockRejectedValueOnce(new Error('Firestore delete error'));
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    render(<MenuManagement />);
+    await screen.findByText('Burger');
+
+    await userEvent.click(screen.getAllByRole('button', { name: /delete/i })[0]);
+
+    await waitFor(() => expect(deleteDoc).toHaveBeenCalled());
+    expect(screen.getByText('Burger')).toBeInTheDocument();
+  });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 
-describe('MenuManagement – Firestore integration details', () => {
+describe('MenuManagement - Firestore integration details', () => {
   it('does not call getDocs when vendorId is null', () => {
     useAuth.mockReturnValue({ vendorId: null });
     render(<MenuManagement />);
@@ -358,8 +622,8 @@ describe('MenuManagement – Firestore integration details', () => {
     render(<MenuManagement />);
     await screen.findByText('Burger');
 
-    await userEvent.type(screen.getByPlaceholderText('Food Name'), 'Tea');
-    await userEvent.type(screen.getByPlaceholderText('Price'),     '5');
+    await userEvent.type(screen.getByPlaceholderText('Food name'), 'Tea');
+    await userEvent.type(screen.getByPlaceholderText('Price (R)'), '5');
     await userEvent.click(screen.getByRole('button', { name: /add product/i }));
 
     await waitFor(() => expect(addDoc).toHaveBeenCalled());
@@ -373,7 +637,7 @@ describe('MenuManagement – Firestore integration details', () => {
     render(<MenuManagement />);
     await screen.findByText('Burger');
 
-    await userEvent.type(screen.getByPlaceholderText('Food Name'),   '  Wrap  ');
+    await userEvent.type(screen.getByPlaceholderText('Food name'),   '  Wrap  ');
     await userEvent.type(screen.getByPlaceholderText('Description'), '  Tasty  ');
     await userEvent.click(screen.getByRole('button', { name: /add product/i }));
 
@@ -382,5 +646,11 @@ describe('MenuManagement – Firestore integration details', () => {
       'menu-collection-ref',
       expect.objectContaining({ name: 'Wrap', description: 'Tasty' })
     );
+  });
+
+  it('does not call addDoc when vendorId is absent on submit', async () => {
+    useAuth.mockReturnValue({ vendorId: null });
+    render(<MenuManagement />);
+    expect(addDoc).not.toHaveBeenCalled();
   });
 });
