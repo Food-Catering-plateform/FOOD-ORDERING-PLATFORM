@@ -48,11 +48,13 @@ beforeEach(() => {
 describe('VDashboard – rendering', () => {
   it('renders the vendor dashboard section', async () => {
     render(<VDashboard uid={UID} />);
-    expect(document.querySelector('.vendor-dashboard')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByTestId('venhome')).toBeInTheDocument());
+    expect(screen.getByText("Vendor Panel")).toBeInTheDocument();
   });
 
   it('renders the sidebar with open class by default', async () => {
     render(<VDashboard uid={UID} />);
+    await waitFor(() => expect(screen.getByTestId('venhome')).toBeInTheDocument());
     const sidebar = document.querySelector('.vendor-sidebar');
     expect(sidebar).toBeInTheDocument();
     expect(sidebar).toHaveClass('open');
@@ -60,11 +62,13 @@ describe('VDashboard – rendering', () => {
 
   it('renders the main content area', async () => {
     render(<VDashboard uid={UID} />);
+    await waitFor(() => expect(screen.getByTestId('venhome')).toBeInTheDocument());
     expect(document.querySelector('.vendor-main')).toBeInTheDocument();
   });
 
   it('renders all nav items in the sidebar', async () => {
     render(<VDashboard uid={UID} />);
+    await waitFor(() => expect(screen.getByTestId('venhome')).toBeInTheDocument());
     ['Dashboard', 'Menu Management', 'Orders', 'Analytics', 'Account Settings'].forEach(label => {
       expect(screen.getByRole('button', { name: label })).toBeInTheDocument();
     });
@@ -72,11 +76,13 @@ describe('VDashboard – rendering', () => {
 
   it('renders navigation with proper aria-label', async () => {
     render(<VDashboard uid={UID} />);
+    await waitFor(() => expect(screen.getByTestId('venhome')).toBeInTheDocument());
     expect(screen.getByRole('navigation', { name: /vendor navigation/i })).toBeInTheDocument();
   });
 
   it('renders logout button', async () => {
     render(<VDashboard uid={UID} />);
+    await waitFor(() => expect(screen.getByTestId('venhome')).toBeInTheDocument());
     expect(screen.getByRole('button', { name: /logout/i })).toBeInTheDocument();
   });
 
@@ -127,30 +133,35 @@ describe('VDashboard – rendering', () => {
 describe('VDashboard – navigation', () => {
   it('renders MenuManagement when Menu Management nav item is clicked', async () => {
     render(<VDashboard uid={UID} />);
+    await waitFor(() => expect(screen.getByTestId('venhome')).toBeInTheDocument());
     await userEvent.click(screen.getByRole('button', { name: 'Menu Management' }));
     expect(screen.getByTestId('menu-management')).toBeInTheDocument();
   });
 
   it('renders Orders when Orders nav item is clicked', async () => {
     render(<VDashboard uid={UID} />);
+    await waitFor(() => expect(screen.getByTestId('venhome')).toBeInTheDocument());
     await userEvent.click(screen.getByRole('button', { name: 'Orders' }));
     expect(screen.getByTestId('orders')).toBeInTheDocument();
   });
 
   it('renders Analytics when Analytics nav item is clicked', async () => {
     render(<VDashboard uid={UID} />);
+    await waitFor(() => expect(screen.getByTestId('venhome')).toBeInTheDocument());
     await userEvent.click(screen.getByRole('button', { name: 'Analytics' }));
     expect(screen.getByTestId('analytics')).toBeInTheDocument();
   });
 
   it('renders AccSettings when Account Settings nav item is clicked', async () => {
     render(<VDashboard uid={UID} />);
+    await waitFor(() => expect(screen.getByTestId('venhome')).toBeInTheDocument());
     await userEvent.click(screen.getByRole('button', { name: 'Account Settings' }));
     expect(screen.getByTestId('acc-settings')).toBeInTheDocument();
   });
 
   it('updates aria-current when a different nav item is selected', async () => {
     render(<VDashboard uid={UID} />);
+    await waitFor(() => expect(screen.getByTestId('venhome')).toBeInTheDocument());
     await userEvent.click(screen.getByRole('button', { name: 'Orders' }));
     expect(screen.getByRole('button', { name: 'Orders' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('button', { name: 'Dashboard' })).not.toHaveAttribute('aria-current');
@@ -158,6 +169,7 @@ describe('VDashboard – navigation', () => {
 
   it('removes aria-current from previously active item', async () => {
     render(<VDashboard uid={UID} />);
+    await waitFor(() => expect(screen.getByTestId('venhome')).toBeInTheDocument());
     const dashboardBtn = screen.getByRole('button', { name: 'Dashboard' });
     expect(dashboardBtn).toHaveAttribute('aria-current', 'page');
 
@@ -169,6 +181,7 @@ describe('VDashboard – navigation', () => {
     // This would require mocking the activeSection state, but since it's internal state,
     // we'll test that the default case works by ensuring VenHome renders initially
     render(<VDashboard uid={UID} />);
+    await waitFor(() => expect(screen.getByTestId('venhome')).toBeInTheDocument());
     expect(screen.getByTestId('venhome')).toBeInTheDocument();
   });
 });
@@ -176,19 +189,22 @@ describe('VDashboard – navigation', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('VDashboard – sidebar toggle', () => {
-  it('renders the toggle button', () => {
+  it('renders the toggle button', async () => {
     render(<VDashboard uid={UID} />);
+    await waitFor(() => expect(screen.getByTestId('venhome')).toBeInTheDocument());
     expect(screen.getByRole('button', { name: /collapse sidebar/i })).toBeInTheDocument();
   });
 
-  it('shows collapse icon when sidebar is open', () => {
+  it('shows collapse icon when sidebar is open', async () => {
     render(<VDashboard uid={UID} />);
+    await waitFor(() => expect(screen.getByTestId('venhome')).toBeInTheDocument());
     const toggleBtn = screen.getByRole('button', { name: /collapse sidebar/i });
     expect(toggleBtn.querySelector('.ti-layout-sidebar-left-collapse')).toBeInTheDocument();
   });
 
   it('collapses the sidebar when toggle is clicked', async () => {
     render(<VDashboard uid={UID} />);
+    await waitFor(() => expect(screen.getByTestId('venhome')).toBeInTheDocument());
     await userEvent.click(screen.getByRole('button', { name: /collapse sidebar/i }));
     const sidebar = document.querySelector('.vendor-sidebar');
     expect(sidebar).toHaveClass('closed');
@@ -197,12 +213,14 @@ describe('VDashboard – sidebar toggle', () => {
 
   it('changes toggle aria-label to "Expand sidebar" when collapsed', async () => {
     render(<VDashboard uid={UID} />);
+    await waitFor(() => expect(screen.getByTestId('venhome')).toBeInTheDocument());
     await userEvent.click(screen.getByRole('button', { name: /collapse sidebar/i }));
     expect(screen.getByRole('button', { name: /expand sidebar/i })).toBeInTheDocument();
   });
 
   it('shows expand icon when sidebar is collapsed', async () => {
     render(<VDashboard uid={UID} />);
+    await waitFor(() => expect(screen.getByTestId('venhome')).toBeInTheDocument());
     await userEvent.click(screen.getByRole('button', { name: /collapse sidebar/i }));
     const toggleBtn = screen.getByRole('button', { name: /expand sidebar/i });
     expect(toggleBtn.querySelector('.ti-layout-sidebar-right-collapse')).toBeInTheDocument();
@@ -210,6 +228,7 @@ describe('VDashboard – sidebar toggle', () => {
 
   it('re-expands the sidebar on a second toggle click', async () => {
     render(<VDashboard uid={UID} />);
+    await waitFor(() => expect(screen.getByTestId('venhome')).toBeInTheDocument());
     await userEvent.click(screen.getByRole('button', { name: /collapse sidebar/i }));
     await userEvent.click(screen.getByRole('button', { name: /expand sidebar/i }));
     const sidebar = document.querySelector('.vendor-sidebar');
@@ -219,6 +238,7 @@ describe('VDashboard – sidebar toggle', () => {
 
   it('sidebar remains functional when collapsed', async () => {
     render(<VDashboard uid={UID} />);
+    await waitFor(() => expect(screen.getByTestId('venhome')).toBeInTheDocument());
     await userEvent.click(screen.getByRole('button', { name: /collapse sidebar/i }));
 
     // Navigation should still work even when sidebar is collapsed
@@ -232,6 +252,7 @@ describe('VDashboard – sidebar toggle', () => {
 describe('VDashboard – store update', () => {
   it('calls setDoc when onStoreUpdate is triggered from AccSettings', async () => {
     render(<VDashboard uid={UID} />);
+    await waitFor(() => expect(screen.getByTestId('venhome')).toBeInTheDocument());
     await userEvent.click(screen.getByRole('button', { name: 'Account Settings' }));
     await userEvent.click(screen.getByRole('button', { name: 'Save' }));
 
@@ -241,6 +262,7 @@ describe('VDashboard – store update', () => {
 
   it('updates local storeData state after onStoreUpdate', async () => {
     render(<VDashboard uid={UID} />);
+    await waitFor(() => expect(screen.getByTestId('venhome')).toBeInTheDocument());
     await userEvent.click(screen.getByRole('button', { name: 'Account Settings' }));
     await userEvent.click(screen.getByRole('button', { name: 'Save' }));
 
@@ -251,6 +273,7 @@ describe('VDashboard – store update', () => {
 
   it('passes storeData to AccSettings component', async () => {
     render(<VDashboard uid={UID} />);
+    await waitFor(() => expect(screen.getByTestId('venhome')).toBeInTheDocument());
     await userEvent.click(screen.getByRole('button', { name: 'Account Settings' }));
 
     // The AccSettings mock receives storeData as a prop
@@ -262,8 +285,9 @@ describe('VDashboard – store update', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('VDashboard – logout functionality', () => {
-  it('renders logout button with icon and text', () => {
+  it('renders logout button with icon and text', async () => {
     render(<VDashboard uid={UID} />);
+    await waitFor(() => expect(screen.getByTestId('venhome')).toBeInTheDocument());
     const logoutBtn = screen.getByRole('button', { name: /logout/i });
     expect(logoutBtn).toBeInTheDocument();
     expect(logoutBtn.querySelector('.ti-logout')).toBeInTheDocument();
@@ -273,6 +297,7 @@ describe('VDashboard – logout functionality', () => {
   it('calls signOut when logout button is clicked', async () => {
     const mockOnLogout = jest.fn();
     render(<VDashboard uid={UID} onLogout={mockOnLogout} />);
+    await waitFor(() => expect(screen.getByTestId('venhome')).toBeInTheDocument());
 
     await userEvent.click(screen.getByRole('button', { name: /logout/i }));
 
@@ -283,6 +308,7 @@ describe('VDashboard – logout functionality', () => {
   it('calls onLogout callback after successful signOut', async () => {
     const mockOnLogout = jest.fn();
     render(<VDashboard uid={UID} onLogout={mockOnLogout} />);
+    await waitFor(() => expect(screen.getByTestId('venhome')).toBeInTheDocument());
 
     await userEvent.click(screen.getByRole('button', { name: /logout/i }));
 
@@ -295,6 +321,7 @@ describe('VDashboard – logout functionality', () => {
 
     const mockOnLogout = jest.fn();
     render(<VDashboard uid={UID} onLogout={mockOnLogout} />);
+    await waitFor(() => expect(screen.getByTestId('venhome')).toBeInTheDocument());
 
     await userEvent.click(screen.getByRole('button', { name: /logout/i }));
 
@@ -309,16 +336,18 @@ describe('VDashboard – logout functionality', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('VDashboard – navigation items structure', () => {
-  it('renders correct number of navigation items', () => {
+  it('renders correct number of navigation items', async () => {
     render(<VDashboard uid={UID} />);
+    await waitFor(() => expect(screen.getByTestId('venhome')).toBeInTheDocument());
     const navButtons = screen.getAllByRole('button').filter(btn =>
       ['Dashboard', 'Menu Management', 'Orders', 'Analytics', 'Account Settings'].includes(btn.textContent)
     );
     expect(navButtons).toHaveLength(5);
   });
 
-  it('renders navigation items with correct icons', () => {
+  it('renders navigation items with correct icons', async () => {
     render(<VDashboard uid={UID} />);
+    await waitFor(() => expect(screen.getByTestId('venhome')).toBeInTheDocument());
     const dashboardBtn = screen.getByRole('button', { name: 'Dashboard' });
     expect(dashboardBtn.querySelector('.ti-home')).toBeInTheDocument();
 
@@ -335,14 +364,16 @@ describe('VDashboard – navigation items structure', () => {
     expect(settingsBtn.querySelector('.ti-settings')).toBeInTheDocument();
   });
 
-  it('applies active class to current section button', () => {
+  it('applies active class to current section button', async () => {
     render(<VDashboard uid={UID} />);
+    await waitFor(() => expect(screen.getByTestId('venhome')).toBeInTheDocument());
     const dashboardBtn = screen.getByRole('button', { name: 'Dashboard' });
     expect(dashboardBtn).toHaveClass('active');
   });
 
-  it('does not apply active class to inactive section buttons', () => {
+  it('does not apply active class to inactive section buttons', async () => {
     render(<VDashboard uid={UID} />);
+    await waitFor(() => expect(screen.getByTestId('venhome')).toBeInTheDocument());
     const ordersBtn = screen.getByRole('button', { name: 'Orders' });
     expect(ordersBtn).not.toHaveClass('active');
   });
