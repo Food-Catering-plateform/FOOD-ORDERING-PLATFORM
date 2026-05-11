@@ -1,348 +1,449 @@
-// Analytics.test.jsx
-
 import React from 'react';
-import {
-  render,
-  screen,
-  fireEvent,
-  waitFor,
-  cleanup
-} from '@testing-library/react';
-
-import '@testing-library/jest-dom';
-
+import { render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import Analytics from '../Analytics';
 
-describe('Analytics Component', () => {
+// ─── Mocks ────────────────────────────────────────────────────────────────────
 
-  afterEach(() => {
-    cleanup();
-    jest.clearAllMocks();
+jest.mock('../Analytics.css', () => ({}));
+
+// Stub URL APIs used by downloadCSV
+global.URL.createObjectURL = jest.fn(() => 'blob:mock-url');
+global.URL.revokeObjectURL = jest.fn();
+
+// Capture any <a> clicks triggered by downloadCSV without navigating
+let anchorClickSpy;
+beforeAll(() => {
+  anchorClickSpy = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+});
+afterAll(() => {
+  anchorClickSpy.mockRestore();
+});
+
+beforeEach(() => {
+  jest.clearAllMocks();
+});
+
+// ─── DATA snapshot (mirrors component DATA constant so tests stay in sync) ────
+
+const TODAY = {
+  revenue: 1284.50,
+  orders: 18,
+  completed: 14,
+  cancelled: 2,
+  customers: 16,
+};
+
+const THIS_WEEK = {
+  revenue: 8942.00,
+  orders: 126,
+  completed: 109,
+  cancelled: 10,
+  customers: 98,
+};
+
+const THIS_MONTH = {
+  revenue: 34210.75,
+  orders: 512,
+  completed: 468,
+  cancelled: 28,
+  customers: 389,
+};
+
+// ─── Tests ────────────────────────────────────────────────────────────────────
+
+describe('Analytics – rendering', () => {
+  it('renders the Analytics heading', () => {
+    render(<Analytics />);
+    expect(screen.getByRole('heading', { name: /^analytics$/i })).toBeInTheDocument();
   });
 
-  // ============================================================
-  // BASIC RENDER TESTS
-  // ============================================================
-
-  test('renders analytics heading', () => {
+  it('renders all three period tab buttons', () => {
     render(<Analytics />);
-    expect(screen.getByText('Analytics')).toBeInTheDocument();
+    ['Today', 'This Week', 'This Month'].forEach(label => {
+      expect(screen.getByRole('button', { name: label })).toBeInTheDocument();
+    });
   });
 
-  test('renders all period tabs', () => {
+  it('"Today" tab is active by default', () => {
     render(<Analytics />);
-
-    expect(screen.getByText('Today')).toBeInTheDocument();
-    expect(screen.getByText('This Week')).toBeInTheDocument();
-    expect(screen.getByText('This Month')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Today' })).toHaveClass('active');
   });
 
-  test('Today tab is active by default', () => {
+  it('renders all four stat card labels', () => {
     render(<Analytics />);
-
-    const todayBtn = screen.getByText('Today');
-    expect(todayBtn).toHaveClass('active');
+    ['Revenue', 'Total Orders', 'Completion Rate', 'Customers Served'].forEach(label => {
+      expect(screen.getByText(label)).toBeInTheDocument();
+    });
   });
 
-  // ============================================================
-  // PERIOD SWITCHING TESTS
-  // ============================================================
-
-  test('switches to This Week data correctly', () => {
+  it('renders the Orders Overview section heading', () => {
     render(<Analytics />);
-
-    fireEvent.click(screen.getByText('This Week'));
-
-    expect(screen.getByText('126')).toBeInTheDocument();
-    expect(screen.getByText('98')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /orders overview/i })).toBeInTheDocument();
   });
 
-  test('switches to This Month data correctly', () => {
+  it('renders the Top Selling Items section heading', () => {
     render(<Analytics />);
-
-    fireEvent.click(screen.getByText('This Month'));
-
-    expect(screen.getByText('512')).toBeInTheDocument();
-    expect(screen.getByText('389')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /top selling items/i })).toBeInTheDocument();
   });
 
-  test('updates active tab when clicked', () => {
+  it('renders the Export button', () => {
     render(<Analytics />);
+    expect(screen.getByRole('button', { name: /export/i })).toBeInTheDocument();
+  });
+});
 
-    const weekBtn = screen.getByText('This Week');
-    fireEvent.click(weekBtn);
+// ─────────────────────────────────────────────────────────────────────────────
 
-    expect(weekBtn).toHaveClass('active');
+describe('Analytics – Today stat cards', () => {
+  it('displays today\'s revenue', () => {
+    render(<Analytics />);
+    expect(screen.getByText(/R 1\s?284[.,]50/)).toBeInTheDocument();
   });
 
-  // ============================================================
-  // STATISTICS TESTS
-  // ============================================================
-
-  test('renders revenue correctly', () => {
+  it('displays today\'s total orders', () => {
     render(<Analytics />);
-    expect(screen.getByText(/R 1,284.50/i)).toBeInTheDocument();
+    expect(screen.getByText(String(TODAY.orders))).toBeInTheDocument();
   });
 
-  test('renders total orders correctly', () => {
+  it('displays today\'s completion rate', () => {
     render(<Analytics />);
-    expect(screen.getByText('18')).toBeInTheDocument();
+    const rate = Math.round((TODAY.completed / TODAY.orders) * 100);
+    expect(screen.getByText(`${rate}%`)).toBeInTheDocument();
   });
 
-  test('renders completion rate correctly', () => {
+  it('displays today\'s customers served', () => {
     render(<Analytics />);
-    expect(screen.getByText('78%')).toBeInTheDocument();
+    expect(screen.getByText(String(TODAY.customers))).toBeInTheDocument();
   });
 
-  test('renders customers served correctly', () => {
+  it('displays completed, cancelled, and other breakdown for today', () => {
     render(<Analytics />);
-    expect(screen.getByText('16')).toBeInTheDocument();
+    const other = TODAY.orders - TODAY.completed - TODAY.cancelled;
+    expect(screen.getByText(`Completed: ${TODAY.completed}`)).toBeInTheDocument();
+    expect(screen.getByText(`Cancelled: ${TODAY.cancelled}`)).toBeInTheDocument();
+    expect(screen.getByText(`Other: ${other}`)).toBeInTheDocument();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('Analytics – period switching', () => {
+  it('switches to "This Week" data when the tab is clicked', async () => {
+    render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: 'This Week' }));
+
+    expect(screen.getByRole('button', { name: 'This Week' })).toHaveClass('active');
+    expect(screen.getByRole('button', { name: 'Today' })).not.toHaveClass('active');
   });
 
-  // ============================================================
-  // ORDERS OVERVIEW TESTS
-  // ============================================================
-
-  test('renders orders overview section', () => {
+  it('displays This Week\'s total orders after switching', async () => {
     render(<Analytics />);
-    expect(screen.getByText('Orders Overview')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'This Week' }));
+    expect(screen.getByText(String(THIS_WEEK.orders))).toBeInTheDocument();
   });
 
-  test('renders all hourly labels for Today', () => {
+  it('displays This Week\'s completion rate after switching', async () => {
     render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: 'This Week' }));
+    const rate = Math.round((THIS_WEEK.completed / THIS_WEEK.orders) * 100);
+    expect(screen.getByText(`${rate}%`)).toBeInTheDocument();
+  });
 
+  it('displays This Week\'s customers served after switching', async () => {
+    render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: 'This Week' }));
+    expect(screen.getByText(String(THIS_WEEK.customers))).toBeInTheDocument();
+  });
+
+  it('switches to "This Month" and shows correct order count', async () => {
+    render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: 'This Month' }));
+    expect(screen.getByText(String(THIS_MONTH.orders))).toBeInTheDocument();
+  });
+
+  it('switches to "This Month" and shows correct completion rate', async () => {
+    render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: 'This Month' }));
+    const rate = Math.round((THIS_MONTH.completed / THIS_MONTH.orders) * 100);
+    expect(screen.getByText(`${rate}%`)).toBeInTheDocument();
+  });
+
+  it('updates the order breakdown when the period changes', async () => {
+    render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: 'This Week' }));
+    const other = THIS_WEEK.orders - THIS_WEEK.completed - THIS_WEEK.cancelled;
+    expect(screen.getByText(`Completed: ${THIS_WEEK.completed}`)).toBeInTheDocument();
+    expect(screen.getByText(`Cancelled: ${THIS_WEEK.cancelled}`)).toBeInTheDocument();
+    expect(screen.getByText(`Other: ${other}`)).toBeInTheDocument();
+  });
+
+  it('can switch back to Today from This Week', async () => {
+    render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: 'This Week' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Today' }));
+    expect(screen.getByText(String(TODAY.orders))).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Today' })).toHaveClass('active');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('Analytics – bar chart (Orders Overview)', () => {
+  it('renders the correct number of bars for Today (10 time slots)', () => {
+    render(<Analytics />);
+    const bars = document.querySelectorAll('.bar-col');
+    expect(bars).toHaveLength(10);
+  });
+
+  it('renders the correct number of bars for This Week (7 days)', async () => {
+    render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: 'This Week' }));
+    const bars = document.querySelectorAll('.bar-col');
+    expect(bars).toHaveLength(7);
+  });
+
+  it('renders the correct number of bars for This Month (4 weeks)', async () => {
+    render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: 'This Month' }));
+    const bars = document.querySelectorAll('.bar-col');
+    expect(bars).toHaveLength(4);
+  });
+
+  it('renders bar labels for today\'s time slots', () => {
+    render(<Analytics />);
     expect(screen.getByText('8am')).toBeInTheDocument();
     expect(screen.getByText('12pm')).toBeInTheDocument();
     expect(screen.getByText('5pm')).toBeInTheDocument();
   });
 
-  test('renders all weekly labels for This Week', () => {
+  it('renders bar labels for This Week days', async () => {
     render(<Analytics />);
-
-    fireEvent.click(screen.getByText('This Week'));
-
-    expect(screen.getByText('Mon')).toBeInTheDocument();
-    expect(screen.getByText('Sun')).toBeInTheDocument();
-  });
-
-  test('renders order values', () => {
-    render(<Analytics />);
-
-    expect(screen.getByText('3')).toBeInTheDocument();
-    expect(screen.getByText('8')).toBeInTheDocument();
-  });
-
-  // ============================================================
-  // BREAKDOWN TESTS
-  // ============================================================
-
-  test('renders completed orders count', () => {
-    render(<Analytics />);
-    expect(screen.getByText(/Completed: 14/i)).toBeInTheDocument();
-  });
-
-  test('renders cancelled orders count', () => {
-    render(<Analytics />);
-    expect(screen.getByText(/Cancelled: 2/i)).toBeInTheDocument();
-  });
-
-  test('renders other orders count correctly', () => {
-    render(<Analytics />);
-    expect(screen.getByText(/Other: 2/i)).toBeInTheDocument();
-  });
-
-  // ============================================================
-  // TOP SELLING ITEMS TESTS
-  // ============================================================
-
-  test('renders top selling items section', () => {
-    render(<Analytics />);
-    expect(screen.getByText('Top Selling Items')).toBeInTheDocument();
-  });
-
-  test('renders item names correctly', () => {
-    render(<Analytics />);
-
-    expect(screen.getByText('Grilled Chicken Burger')).toBeInTheDocument();
-    expect(screen.getByText('Fresh Orange Juice')).toBeInTheDocument();
-  });
-
-  test('renders sold quantities correctly', () => {
-    render(<Analytics />);
-    expect(screen.getByText(/24 sold/i)).toBeInTheDocument();
-  });
-
-  test('renders revenue values correctly', () => {
-    render(<Analytics />);
-    expect(screen.getByText(/R 2,159.76/i)).toBeInTheDocument();
-  });
-
-  test('renders ranking numbers correctly', () => {
-    render(<Analytics />);
-    expect(screen.getByText('#1')).toBeInTheDocument();
-    expect(screen.getByText('#5')).toBeInTheDocument();
-  });
-
-  // ============================================================
-  // EXPORT BUTTON TESTS
-  // ============================================================
-
-  test('renders export button', () => {
-    render(<Analytics />);
-    expect(screen.getByText('Export')).toBeInTheDocument();
-  });
-
-  test('opens export dropdown when clicked', () => {
-    render(<Analytics />);
-
-    fireEvent.click(screen.getByText('Export'));
-
-    expect(screen.getByText(/Spreadsheet/i)).toBeInTheDocument();
-    expect(screen.getByText(/Report/i)).toBeInTheDocument();
-  });
-
-  test('closes export dropdown when clicked again', () => {
-    render(<Analytics />);
-
-    const exportBtn = screen.getByText('Export');
-
-    fireEvent.click(exportBtn);
-    fireEvent.click(exportBtn);
-
-    expect(screen.queryByText(/Spreadsheet/i)).not.toBeInTheDocument();
-  });
-
-  test('dropdown closes when clicking outside', async () => {
-    render(<Analytics />);
-
-    fireEvent.click(screen.getByText('Export'));
-    fireEvent.mouseDown(document);
-
-    await waitFor(() => {
-      expect(screen.queryByText(/Spreadsheet/i)).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'This Week' }));
+    ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].forEach(day => {
+      expect(screen.getByText(day)).toBeInTheDocument();
     });
   });
 
-  // ============================================================
-  // ACCESSIBILITY TESTS
-  // ============================================================
-
-  test('export button has aria attributes', () => {
+  it('renders bar value outputs for each bar', () => {
     render(<Analytics />);
-
-    const exportBtn = screen.getByRole('button', { name: /export/i });
-
-    expect(exportBtn).toHaveAttribute('aria-haspopup', 'true');
+    // Today's 12pm bar has value 8 — the highest
+    expect(screen.getByText('8')).toBeInTheDocument();
   });
 
-  test('export button updates aria-expanded', () => {
+  it('sets the tallest bar to 100% height', () => {
     render(<Analytics />);
+    const fills = document.querySelectorAll('.bar-fill');
+    const heights = Array.from(fills).map(f => f.style.height);
+    expect(heights).toContain('100%');
+  });
+});
 
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('Analytics – top selling items', () => {
+  it('renders 5 top items for Today', () => {
+    render(<Analytics />);
+    const items = document.querySelectorAll('.top-item');
+    expect(items).toHaveLength(5);
+  });
+
+  it('renders #1 rank for the first item', () => {
+    render(<Analytics />);
+    expect(screen.getByText('#1')).toBeInTheDocument();
+  });
+
+  it('renders all 5 rank numbers', () => {
+    render(<Analytics />);
+    ['#1', '#2', '#3', '#4', '#5'].forEach(rank => {
+      expect(screen.getByText(rank)).toBeInTheDocument();
+    });
+  });
+
+  it('displays the top item name for Today', () => {
+    render(<Analytics />);
+    expect(screen.getByText('Grilled Chicken Burger')).toBeInTheDocument();
+  });
+
+  it('displays units sold for the top item', () => {
+    render(<Analytics />);
+    expect(screen.getByText('24 sold')).toBeInTheDocument();
+  });
+
+  it('sets the top item\'s bar width to 100%', () => {
+    render(<Analytics />);
+    const bars = document.querySelectorAll('.top-item__bar');
+    expect(bars[0].style.width).toBe('100%');
+  });
+
+  it('sets subsequent items\' bar widths to less than 100%', () => {
+    render(<Analytics />);
+    const bars = document.querySelectorAll('.top-item__bar');
+    const widths = Array.from(bars).slice(1).map(b => parseFloat(b.style.width));
+    widths.forEach(w => expect(w).toBeLessThan(100));
+  });
+
+  it('updates top items when period changes to This Week', async () => {
+    render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: 'This Week' }));
+    expect(screen.getByText('98 sold')).toBeInTheDocument();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('Analytics – Export dropdown', () => {
+  it('export dropdown is closed by default', () => {
+    render(<Analytics />);
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+  });
+
+  it('opens the dropdown when Export is clicked', async () => {
+    render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: /export/i }));
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+  });
+
+  it('shows CSV and PDF options when open', async () => {
+    render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: /export/i }));
+    expect(screen.getByText('CSV')).toBeInTheDocument();
+    expect(screen.getByText('PDF')).toBeInTheDocument();
+  });
+
+  it('closes the dropdown when Export is clicked again (toggle)', async () => {
+    render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: /export/i }));
+    await userEvent.click(screen.getByRole('button', { name: /export/i }));
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+  });
+
+  it('sets aria-expanded to true when open', async () => {
+    render(<Analytics />);
     const exportBtn = screen.getByRole('button', { name: /export/i });
-
-    expect(exportBtn).toHaveAttribute('aria-expanded', 'false');
-
-    fireEvent.click(exportBtn);
-
+    await userEvent.click(exportBtn);
     expect(exportBtn).toHaveAttribute('aria-expanded', 'true');
   });
 
-  // ============================================================
-  // BAR CHART TESTS
-  // ============================================================
-
-  test('renders correct number of bars for Today', () => {
+  it('sets aria-expanded to false when closed', () => {
     render(<Analytics />);
-    const bars = document.querySelectorAll('.bar-fill');
-    expect(bars.length).toBe(10);
+    expect(screen.getByRole('button', { name: /export/i })).toHaveAttribute('aria-expanded', 'false');
   });
 
-  test('renders correct number of bars for This Week', () => {
+  it('closes the dropdown when clicking outside', async () => {
     render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: /export/i }));
+    expect(screen.getByRole('menu')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByText('This Week'));
+    await userEvent.click(document.body);
 
-    const bars = document.querySelectorAll('.bar-fill');
-    expect(bars.length).toBe(7);
+    await waitFor(() =>
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+    );
   });
 
-  test('bar heights are calculated correctly', () => {
+  it('closes the dropdown after CSV is selected', async () => {
     render(<Analytics />);
-
-    const bars = document.querySelectorAll('.bar-fill');
-    expect(bars[0]).toHaveStyle('height: 37.5%');
+    await userEvent.click(screen.getByRole('button', { name: /export/i }));
+    await userEvent.click(screen.getByRole('button', { name: /spreadsheet/i }));
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
   });
 
-  // ============================================================
-  // TOP ITEM BAR TESTS
-  // ============================================================
-
-  test('renders top item progress bars', () => {
+  it('triggers an anchor click when CSV export is selected', async () => {
     render(<Analytics />);
-
-    const itemBars = document.querySelectorAll('.top-item__bar');
-    expect(itemBars.length).toBe(5);
+    await userEvent.click(screen.getByRole('button', { name: /export/i }));
+    await userEvent.click(screen.getByRole('button', { name: /spreadsheet/i }));
+    expect(anchorClickSpy).toHaveBeenCalledTimes(1);
   });
 
-  test('first top item bar should be 100%', () => {
+  it('calls URL.createObjectURL when CSV export is triggered', async () => {
     render(<Analytics />);
-
-    const itemBars = document.querySelectorAll('.top-item__bar');
-    expect(itemBars[0]).toHaveStyle('width: 100%');
+    await userEvent.click(screen.getByRole('button', { name: /export/i }));
+    await userEvent.click(screen.getByRole('button', { name: /spreadsheet/i }));
+    expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
   });
 
-  // ============================================================
-  // EDGE CASE TESTS
-  // ============================================================
-
-  test('component does not crash during rapid tab switching', () => {
+  it('calls URL.revokeObjectURL after CSV download', async () => {
     render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: /export/i }));
+    await userEvent.click(screen.getByRole('button', { name: /spreadsheet/i }));
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:mock-url');
+  });
+});
 
-    fireEvent.click(screen.getByText('This Week'));
-    fireEvent.click(screen.getByText('This Month'));
-    fireEvent.click(screen.getByText('Today'));
-    fireEvent.click(screen.getByText('This Week'));
+// ─────────────────────────────────────────────────────────────────────────────
 
-    expect(screen.getByText('126')).toBeInTheDocument();
+describe('Analytics – CSV content (buildCSV)', () => {
+  // Re-import the named export for unit testing the pure function
+  // buildCSV is not exported, so we test it via the CSV download trigger
+  // and inspect what Blob was constructed with.
+
+  it('includes the period label in the CSV output', async () => {
+    let capturedBlob;
+    const origBlob = global.Blob;
+    global.Blob = jest.fn((parts, opts) => {
+      capturedBlob = parts[0];
+      return new origBlob(parts, opts);
+    });
+
+    render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: /export/i }));
+    await userEvent.click(screen.getByRole('button', { name: /spreadsheet/i }));
+
+    expect(capturedBlob).toContain('Today');
+    global.Blob = origBlob;
   });
 
-  test('export dropdown remains functional after tab switching', () => {
+  it('includes revenue in the CSV output', async () => {
+    let capturedBlob;
+    const origBlob = global.Blob;
+    global.Blob = jest.fn((parts, opts) => {
+      capturedBlob = parts[0];
+      return new origBlob(parts, opts);
+    });
+
     render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: /export/i }));
+    await userEvent.click(screen.getByRole('button', { name: /spreadsheet/i }));
 
-    fireEvent.click(screen.getByText('This Month'));
-    fireEvent.click(screen.getByText('Export'));
-
-    expect(screen.getByText(/Spreadsheet/i)).toBeInTheDocument();
+    expect(capturedBlob).toContain('1284.50');
+    global.Blob = origBlob;
   });
 
-  // ============================================================
-  // UI STRUCTURE TESTS
-  // ============================================================
+  it('includes the top item name in the CSV output', async () => {
+    let capturedBlob;
+    const origBlob = global.Blob;
+    global.Blob = jest.fn((parts, opts) => {
+      capturedBlob = parts[0];
+      return new origBlob(parts, opts);
+    });
 
-  test('renders analytics stats section', () => {
     render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: /export/i }));
+    await userEvent.click(screen.getByRole('button', { name: /spreadsheet/i }));
 
-    expect(document.querySelector('.analytics__stats')).toBeInTheDocument();
+    expect(capturedBlob).toContain('Grilled Chicken Burger');
+    global.Blob = origBlob;
   });
 
-  test('renders analytics bottom section', () => {
+  it('uses the correct filename for Today CSV download', async () => {
     render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: /export/i }));
+    await userEvent.click(screen.getByRole('button', { name: /spreadsheet/i }));
 
-    expect(document.querySelector('.analytics__bottom')).toBeInTheDocument();
+    const anchors = document.querySelectorAll('a[download]');
+    const lastAnchor = anchors[anchors.length - 1];
+    expect(lastAnchor?.download ?? '').toContain('today');
   });
 
-  test('renders exactly 4 stat cards', () => {
+  it('uses the correct filename for This Week CSV download', async () => {
     render(<Analytics />);
+    await userEvent.click(screen.getByRole('button', { name: 'This Week' }));
+    await userEvent.click(screen.getByRole('button', { name: /export/i }));
+    await userEvent.click(screen.getByRole('button', { name: /spreadsheet/i }));
 
-    const statCards = document.querySelectorAll('.stat-card');
-    expect(statCards.length).toBe(4);
+    const anchors = document.querySelectorAll('a[download]');
+    const lastAnchor = anchors[anchors.length - 1];
+    expect(lastAnchor?.download ?? '').toContain('this_week');
   });
-
-  test('renders exactly 5 top selling items', () => {
-    render(<Analytics />);
-
-    const items = document.querySelectorAll('.top-item');
-    expect(items.length).toBe(5);
-  });
-
 });

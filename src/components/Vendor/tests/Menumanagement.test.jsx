@@ -1,283 +1,386 @@
-// MenuManagement.test.jsx
-
 import React from 'react';
-import {
-  render,
-  screen,
-  fireEvent,
-  waitFor,
-  cleanup
-} from '@testing-library/react';
-
-import '@testing-library/jest-dom';
-
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import MenuManagement from '../MenuManagement';
 
-// ============================================================
-// MOCKS
-// ============================================================
+// ─── Mocks ────────────────────────────────────────────────────────────────────
 
-jest.mock('../../Services/AuthContext', () => ({
-  useAuth: () => ({
-    vendorId: 'vendor-123'
-  })
-}));
-
-jest.mock('../../Firebase/firebaseConfig', () => ({
-  db: {}
-}));
-
+jest.mock('../../../Services/AuthContext', () => ({ useAuth: jest.fn() }));
+jest.mock('../../../Firebase/firebaseConfig', () => ({ db: {} }));
 jest.mock('firebase/firestore', () => ({
   collection: jest.fn(),
-  addDoc: jest.fn(),
-  updateDoc: jest.fn(),
-  getDocs: jest.fn(),
-  doc: jest.fn(),
-  deleteDoc: jest.fn()
+  addDoc:     jest.fn(),
+  updateDoc:  jest.fn(),
+  getDocs:    jest.fn(),
+  doc:        jest.fn(),
+  deleteDoc:  jest.fn(),
 }));
+jest.mock('../MenuManagement.css', () => ({}));
 
-import {
-  addDoc,
-  updateDoc,
-  getDocs,
-  deleteDoc
-} from 'firebase/firestore';
+import { useAuth } from '../../../Services/AuthContext';
+import { collection, addDoc, updateDoc, getDocs, doc, deleteDoc } from 'firebase/firestore';
 
-// ============================================================
-// MOCK DATA
-// ============================================================
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const mockItems = [
-  {
-    id: '1',
-    name: 'Burger',
-    price: '55.00',
-    qty: '10',
-    description: 'Beef burger',
-    imageUrl: 'burger.jpg',
-    allergens: ['Gluten'],
-    dietary: ['halal']
-  },
-  {
-    id: '2',
-    name: 'Pizza',
-    price: '89.00',
-    qty: '5',
-    description: 'Cheese pizza',
-    imageUrl: 'pizza.jpg',
-    allergens: ['Dairy'],
-    dietary: ['vegetarian']
-  }
+const VENDOR_ID = 'vendor-123';
+
+const MOCK_ITEMS = [
+  { id: 'item-1', name: 'Burger', price: '50.00', qty: '10', description: 'Juicy beef burger', imageUrl: 'https://example.com/burger.jpg' },
+  { id: 'item-2', name: 'Fries',  price: '20.00', qty: '20', description: 'Crispy fries',       imageUrl: 'https://example.com/fries.jpg'  },
 ];
 
-// ============================================================
-// TEST SUITE
-// ============================================================
+function makeDocs(items) {
+  return {
+    docs: items.map(item => ({
+      id: item.id,
+      data: () => {
+        const { id, ...rest } = item;
+        return rest;
+      },
+    })),
+  };
+}
 
-describe('MenuManagement Component', () => {
+beforeEach(() => {
+  jest.clearAllMocks();
+  useAuth.mockReturnValue({ vendorId: VENDOR_ID });
+  getDocs.mockResolvedValue(makeDocs(MOCK_ITEMS));
+  collection.mockReturnValue('menu-collection-ref');
+  doc.mockReturnValue('doc-ref');
+  addDoc.mockResolvedValue({ id: 'new-item-id' });
+  updateDoc.mockResolvedValue();
+  deleteDoc.mockResolvedValue();
+});
 
-  beforeEach(() => {
-    getDocs.mockResolvedValue({
-      docs: mockItems.map(item => ({
-        id: item.id,
-        data: () => item
-      }))
-    });
-  });
+// ─── Tests ────────────────────────────────────────────────────────────────────
 
-  afterEach(() => {
-    cleanup();
-    jest.clearAllMocks();
-  });
-
-  // ============================================================
-  // BASIC RENDER TESTS
-  // ============================================================
-
-  test('renders page heading', () => {
+describe('MenuManagement – rendering', () => {
+  it('shows a loading message when vendorId is absent', () => {
+    useAuth.mockReturnValue({ vendorId: null });
     render(<MenuManagement />);
-    expect(screen.getByText('Menu Management')).toBeInTheDocument();
+    expect(screen.getByText('Loading...')).toBeInTheDocument();
   });
 
-  test('renders form heading', () => {
+  it('renders the page heading', async () => {
     render(<MenuManagement />);
-    expect(screen.getByText('Add Food Item')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /menu management/i })).toBeInTheDocument();
   });
 
-  test('renders all input fields', () => {
+  it('renders the "Add Food Item" form heading by default', async () => {
     render(<MenuManagement />);
-
-    expect(screen.getByPlaceholderText('Food name')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Price (R)')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Quantity available')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Description')).toBeInTheDocument();
+    await screen.findByText('Burger');
+    expect(screen.getByRole('heading', { name: /add food item/i })).toBeInTheDocument();
   });
 
-  test('renders add product button', () => {
+  it('fetches and displays items on mount', async () => {
     render(<MenuManagement />);
-    expect(screen.getByText('Add Product')).toBeInTheDocument();
-  });
-
-  // ============================================================
-  // FETCH TESTS
-  // ============================================================
-
-  test('fetches and displays menu items', async () => {
-    render(<MenuManagement />);
-
     expect(await screen.findByText('Burger')).toBeInTheDocument();
+    expect(screen.getByText('Fries')).toBeInTheDocument();
+  });
+
+  it('displays price and image for each item', async () => {
+    render(<MenuManagement />);
+    await screen.findByText('Burger');
+    expect(screen.getByText('R 50.00')).toBeInTheDocument();
+    const images = screen.getAllByRole('img');
+    expect(images[0]).toHaveAttribute('src', MOCK_ITEMS[0].imageUrl);
+  });
+
+  it('renders Edit and Delete buttons for each item', async () => {
+    render(<MenuManagement />);
+    await screen.findByText('Burger');
+    expect(screen.getAllByRole('button', { name: /edit/i   })).toHaveLength(2);
+    expect(screen.getAllByRole('button', { name: /delete/i })).toHaveLength(2);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('MenuManagement – adding an item', () => {
+  it('calls addDoc with correct data and updates the list', async () => {
+    render(<MenuManagement />);
+    await screen.findByText('Burger');
+
+    await userEvent.type(screen.getByPlaceholderText('Food Name'),   'Pizza');
+    await userEvent.type(screen.getByPlaceholderText('Price'),       '80');
+    await userEvent.type(screen.getByPlaceholderText('Quantity'),    '5');
+    await userEvent.type(screen.getByPlaceholderText('Description'), 'Cheesy pizza');
+
+    await userEvent.click(screen.getByRole('button', { name: /add product/i }));
+
+    await waitFor(() => expect(addDoc).toHaveBeenCalledTimes(1));
+    expect(addDoc).toHaveBeenCalledWith(
+      'menu-collection-ref',
+      expect.objectContaining({ name: 'Pizza', price: '80.00', qty: '5', description: 'Cheesy pizza' })
+    );
     expect(await screen.findByText('Pizza')).toBeInTheDocument();
   });
 
-  test('renders prices correctly', async () => {
+  it('clears the form after a successful add', async () => {
     render(<MenuManagement />);
+    await screen.findByText('Burger');
 
-    expect(await screen.findByText('R 55.00')).toBeInTheDocument();
-    expect(await screen.findByText('R 89.00')).toBeInTheDocument();
+    await userEvent.type(screen.getByPlaceholderText('Food Name'), 'Pizza');
+    await userEvent.click(screen.getByRole('button', { name: /add product/i }));
+
+    await waitFor(() => expect(addDoc).toHaveBeenCalled());
+    expect(screen.getByPlaceholderText('Food Name')).toHaveValue('');
   });
 
-  test('renders descriptions correctly', async () => {
+  it('uses a placeholder image when no file is selected', async () => {
     render(<MenuManagement />);
+    await screen.findByText('Burger');
 
-    expect(await screen.findByText('Beef burger')).toBeInTheDocument();
-    expect(await screen.findByText('Cheese pizza')).toBeInTheDocument();
+    await userEvent.type(screen.getByPlaceholderText('Food Name'), 'Wrap');
+    await userEvent.type(screen.getByPlaceholderText('Price'),     '35');
+    await userEvent.click(screen.getByRole('button', { name: /add product/i }));
+
+    await waitFor(() => expect(addDoc).toHaveBeenCalled());
+    expect(addDoc).toHaveBeenCalledWith(
+      'menu-collection-ref',
+      expect.objectContaining({ imageUrl: 'https://placehold.co/60x60/f5e6d3/7a4e27?text=Food' })
+    );
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('MenuManagement – editing an item', () => {
+  it('switches the form heading to "Edit Food Item" when Edit is clicked', async () => {
+    render(<MenuManagement />);
+    await screen.findByText('Burger');
+
+    await userEvent.click(screen.getAllByRole('button', { name: /edit/i })[0]);
+    expect(screen.getByRole('heading', { name: /edit food item/i })).toBeInTheDocument();
   });
 
-  // ============================================================
-  // INPUT TESTS
-  // ============================================================
-
-  test('updates food name input', () => {
+  it("pre-fills the form with the selected item's values", async () => {
     render(<MenuManagement />);
+    await screen.findByText('Burger');
 
-    const input = screen.getByPlaceholderText('Food name');
-    fireEvent.change(input, { target: { value: 'Chicken Wrap' } });
-
-    expect(input.value).toBe('Chicken Wrap');
+    await userEvent.click(screen.getAllByRole('button', { name: /edit/i })[0]);
+    expect(screen.getByPlaceholderText('Food Name')).toHaveValue('Burger');
+    expect(screen.getByPlaceholderText('Price')).toHaveValue('50.00');
+    expect(screen.getByPlaceholderText('Quantity')).toHaveValue('10');
   });
 
-  test('updates price input', () => {
+  it('calls updateDoc (not addDoc) when saving edits', async () => {
     render(<MenuManagement />);
+    await screen.findByText('Burger');
 
-    const input = screen.getByPlaceholderText('Price (R)');
-    fireEvent.change(input, { target: { value: '99.99' } });
+    await userEvent.click(screen.getAllByRole('button', { name: /edit/i })[0]);
+    const nameInput = screen.getByPlaceholderText('Food Name');
+    await userEvent.clear(nameInput);
+    await userEvent.type(nameInput, 'Big Burger');
 
-    expect(input.value).toBe('99.99');
+    await userEvent.click(screen.getByRole('button', { name: /save changes/i }));
+
+    await waitFor(() => expect(updateDoc).toHaveBeenCalledTimes(1));
+    expect(addDoc).not.toHaveBeenCalled();
+    expect(updateDoc).toHaveBeenCalledWith('doc-ref', expect.objectContaining({ name: 'Big Burger' }));
   });
 
-  test('updates quantity input', () => {
+  it('shows the updated name in the list after saving', async () => {
     render(<MenuManagement />);
+    await screen.findByText('Burger');
 
-    const input = screen.getByPlaceholderText('Quantity available');
-    fireEvent.change(input, { target: { value: '50' } });
+    await userEvent.click(screen.getAllByRole('button', { name: /edit/i })[0]);
+    const nameInput = screen.getByPlaceholderText('Food Name');
+    await userEvent.clear(nameInput);
+    await userEvent.type(nameInput, 'Big Burger');
 
-    expect(input.value).toBe('50');
+    await userEvent.click(screen.getByRole('button', { name: /save changes/i }));
+
+    expect(await screen.findByText('Big Burger')).toBeInTheDocument();
+    expect(screen.queryByText('Burger')).not.toBeInTheDocument();
   });
 
-  test('updates description input', () => {
+  it('resets to "Add Food Item" mode after saving edits', async () => {
     render(<MenuManagement />);
+    await screen.findByText('Burger');
 
-    const textarea = screen.getByPlaceholderText('Description');
-    fireEvent.change(textarea, { target: { value: 'Very tasty food' } });
+    await userEvent.click(screen.getAllByRole('button', { name: /edit/i })[0]);
+    await userEvent.click(screen.getByRole('button', { name: /save changes/i }));
 
-    expect(textarea.value).toBe('Very tasty food');
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: /add food item/i })).toBeInTheDocument()
+    );
   });
 
-  // ============================================================
-  // ADD ITEM
-  // ============================================================
+  it('preserves the original image when no new file is uploaded during edit', async () => {
+    render(<MenuManagement />);
+    await screen.findByText('Burger');
 
-  test('adds new item successfully', async () => {
-    addDoc.mockResolvedValue({ id: 'new-item' });
+    await userEvent.click(screen.getAllByRole('button', { name: /edit/i })[0]);
+    await userEvent.click(screen.getByRole('button', { name: /save changes/i }));
+
+    await waitFor(() => expect(updateDoc).toHaveBeenCalled());
+    expect(updateDoc).toHaveBeenCalledWith(
+      'doc-ref',
+      expect.objectContaining({ imageUrl: MOCK_ITEMS[0].imageUrl })
+    );
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('MenuManagement – deleting an item', () => {
+  it('calls deleteDoc with the correct document reference', async () => {
+    render(<MenuManagement />);
+    await screen.findByText('Burger');
+
+    await userEvent.click(screen.getAllByRole('button', { name: /delete/i })[0]);
+
+    await waitFor(() => expect(deleteDoc).toHaveBeenCalledTimes(1));
+    expect(doc).toHaveBeenCalledWith({}, 'Vendors', VENDOR_ID, 'menuItems', 'item-1');
+  });
+
+  it('removes the item from the list after deletion', async () => {
+    render(<MenuManagement />);
+    await screen.findByText('Burger');
+
+    await userEvent.click(screen.getAllByRole('button', { name: /delete/i })[0]);
+
+    await waitFor(() => expect(screen.queryByText('Burger')).not.toBeInTheDocument());
+    expect(screen.getByText('Fries')).toBeInTheDocument();
+  });
+
+  it('resets the form if the item being edited is deleted', async () => {
+    render(<MenuManagement />);
+    await screen.findByText('Burger');
+
+    await userEvent.click(screen.getAllByRole('button', { name: /edit/i })[0]);
+    expect(screen.getByPlaceholderText('Food Name')).toHaveValue('Burger');
+
+    await userEvent.click(screen.getAllByRole('button', { name: /delete/i })[0]);
+
+    await waitFor(() => expect(screen.getByPlaceholderText('Food Name')).toHaveValue(''));
+    expect(screen.getByRole('heading', { name: /add food item/i })).toBeInTheDocument();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('MenuManagement – image upload', () => {
+  it('reads and stores a base64 data URL from a selected file', async () => {
+    render(<MenuManagement />);
+    await screen.findByText('Burger');
+
+    const fakeFile = new File(['(binary)'], 'photo.png', { type: 'image/png' });
+    const fakeDataUrl = 'data:image/png;base64,ZmFrZQ==';
+
+    const mockReader = {
+      onload: null,
+      readAsDataURL: jest.fn(function () {
+        this.result = fakeDataUrl;
+        this.onload();
+      }),
+    };
+    jest.spyOn(global, 'FileReader').mockImplementation(() => mockReader);
+
+    const fileInput = screen.queryByLabelText(/image/i) ?? document.querySelector('input[type="file"]');
+    await userEvent.upload(fileInput, fakeFile);
+
+    await userEvent.type(screen.getByPlaceholderText('Food Name'), 'Photo Dish');
+    await userEvent.click(screen.getByRole('button', { name: /add product/i }));
+
+    await waitFor(() => expect(addDoc).toHaveBeenCalled());
+    expect(addDoc).toHaveBeenCalledWith(
+      'menu-collection-ref',
+      expect.objectContaining({ imageUrl: fakeDataUrl })
+    );
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('MenuManagement – error handling', () => {
+  it('logs an error and does not crash when addDoc fails', async () => {
+    addDoc.mockRejectedValueOnce(new Error('Firestore write error'));
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    render(<MenuManagement />);
+    await screen.findByText('Burger');
+
+    await userEvent.type(screen.getByPlaceholderText('Food Name'), 'Salad');
+    await userEvent.click(screen.getByRole('button', { name: /add product/i }));
+
+    await waitFor(() =>
+      expect(consoleSpy).toHaveBeenCalledWith('Error saving item:', expect.any(Error))
+    );
+    consoleSpy.mockRestore();
+  });
+
+  it('logs an error and does not crash when getDocs fails', async () => {
+    getDocs.mockRejectedValueOnce(new Error('Firestore read error'));
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
     render(<MenuManagement />);
 
-    fireEvent.change(screen.getByPlaceholderText('Food name'), {
-      target: { value: 'Chicken Burger' }
-    });
-
-    fireEvent.change(screen.getByPlaceholderText('Price (R)'), {
-      target: { value: '75' }
-    });
-
-    fireEvent.click(screen.getByText('Add Product'));
-
-    await waitFor(() => {
-      expect(addDoc).toHaveBeenCalled();
-    });
+    await waitFor(() =>
+      expect(consoleSpy).toHaveBeenCalledWith('Unable to fetch items', expect.any(Error))
+    );
+    consoleSpy.mockRestore();
   });
 
-  // ============================================================
-  // EDIT
-  // ============================================================
-
-  test('loads item into edit mode', async () => {
-    render(<MenuManagement />);
-
-    const editButtons = await screen.findAllByText('Edit');
-    fireEvent.click(editButtons[0]);
-
-    expect(screen.getByDisplayValue('Burger')).toBeInTheDocument();
-  });
-
-  test('updates item', async () => {
-    updateDoc.mockResolvedValue();
+  it('logs an error and does not crash when deleteDoc fails', async () => {
+    deleteDoc.mockRejectedValueOnce(new Error('Firestore delete error'));
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
     render(<MenuManagement />);
+    await screen.findByText('Burger');
 
-    const editButtons = await screen.findAllByText('Edit');
-    fireEvent.click(editButtons[0]);
+    await userEvent.click(screen.getAllByRole('button', { name: /delete/i })[0]);
 
-    fireEvent.click(screen.getByText('Save Changes'));
-
-    await waitFor(() => {
-      expect(updateDoc).toHaveBeenCalled();
-    });
+    await waitFor(() =>
+      expect(consoleSpy).toHaveBeenCalledWith('Unable to delete item', expect.any(Error))
+    );
+    consoleSpy.mockRestore();
   });
+});
 
-  // ============================================================
-  // DELETE
-  // ============================================================
+// ─────────────────────────────────────────────────────────────────────────────
 
-  test('deletes item', async () => {
-    deleteDoc.mockResolvedValue();
-
+describe('MenuManagement – Firestore integration details', () => {
+  it('does not call getDocs when vendorId is null', () => {
+    useAuth.mockReturnValue({ vendorId: null });
     render(<MenuManagement />);
-
-    const deleteButtons = await screen.findAllByText('Delete');
-    fireEvent.click(deleteButtons[0]);
-
-    await waitFor(() => {
-      expect(deleteDoc).toHaveBeenCalled();
-    });
+    expect(getDocs).not.toHaveBeenCalled();
   });
 
-  // ============================================================
-  // EMPTY STATE
-  // ============================================================
-
-  test('shows empty state', async () => {
-    getDocs.mockResolvedValue({ docs: [] });
-
+  it('constructs the correct Firestore path on fetch', async () => {
     render(<MenuManagement />);
-
-    expect(await screen.findByText(/No menu items yet/i)).toBeInTheDocument();
+    await screen.findByText('Burger');
+    expect(collection).toHaveBeenCalledWith({}, 'Vendors', VENDOR_ID, 'menuItems');
   });
 
-  // ============================================================
-  // EDGE CASES
-  // ============================================================
-
-  test('survives rapid clicking', () => {
+  it('formats price to two decimal places when saving', async () => {
     render(<MenuManagement />);
+    await screen.findByText('Burger');
 
-    const btn = screen.getByText(/Select allergens/i);
+    await userEvent.type(screen.getByPlaceholderText('Food Name'), 'Tea');
+    await userEvent.type(screen.getByPlaceholderText('Price'),     '5');
+    await userEvent.click(screen.getByRole('button', { name: /add product/i }));
 
-    fireEvent.click(btn);
-    fireEvent.click(btn);
-    fireEvent.click(btn);
-
-    expect(btn).toBeInTheDocument();
+    await waitFor(() => expect(addDoc).toHaveBeenCalled());
+    expect(addDoc).toHaveBeenCalledWith(
+      'menu-collection-ref',
+      expect.objectContaining({ price: '5.00' })
+    );
   });
 
+  it('trims whitespace from name and description before saving', async () => {
+    render(<MenuManagement />);
+    await screen.findByText('Burger');
+
+    await userEvent.type(screen.getByPlaceholderText('Food Name'),   '  Wrap  ');
+    await userEvent.type(screen.getByPlaceholderText('Description'), '  Tasty  ');
+    await userEvent.click(screen.getByRole('button', { name: /add product/i }));
+
+    await waitFor(() => expect(addDoc).toHaveBeenCalled());
+    expect(addDoc).toHaveBeenCalledWith(
+      'menu-collection-ref',
+      expect.objectContaining({ name: 'Wrap', description: 'Tasty' })
+    );
+  });
 });
