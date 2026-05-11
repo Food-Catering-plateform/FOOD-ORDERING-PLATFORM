@@ -31,7 +31,7 @@ export const approveVendor = (id) =>
 export const suspendVendor = (id) =>
   updateVendorStatus(id, "suspended");
 
-// ─── Admins ──────────────────────────────────────────────────────────────────
+//  Admins 
 
 export const fetchAllAdmins = async () => {
   const snapshot = await getDocs(collection(db, "admins"));
