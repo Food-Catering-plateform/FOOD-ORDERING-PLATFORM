@@ -2,7 +2,6 @@ import React, { useState, useCallback, useEffect } from 'react';
 import Navbar from './components/Navbar/Navbar';
 import Sidebar from './components/Sidebar/Sidebar';
 import Login from './components/login-and-signup/login';
-import Shops from './components/Customer/jsFiles/Shops';
 import Profile from './components/Customer/jsFiles/Profile';
 import Notifications from './components/Customer/jsFiles/Notifications';
 import Orders from './components/Customer/jsFiles/Orders';
