@@ -61,27 +61,30 @@
 }
 
 .export-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border: 1px solid #e2e5ea;
-  border-radius: 8px;
-  background: #fff;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: #333;
+  gap: 5px;
+  padding: 6px 11px;
+  background: transparent;
+  color: #555;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  white-space: nowrap;
 }
 
 .export-btn:hover {
+  border-color: #aaa;
+  color: #222;
   background: #fafafa;
-  border-color: #ccc;
 }
 
 .export-caret {
-  transition: transform 0.2s;
+  transition: transform 0.18s;
+  opacity: 0.5;
 }
 
 .export-caret.open {
@@ -90,67 +93,63 @@
 
 .export-dropdown {
   position: absolute;
-  right: 0;
   top: calc(100% + 6px);
+  right: 0;
+  z-index: 200;
+  min-width: 168px;
   background: #fff;
-  border: 1px solid #e2e5ea;
-  border-radius: 10px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e8e8ee;
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.09);
   list-style: none;
-  padding: 6px;
-  margin: 0;
-  min-width: 190px;
-  z-index: 100;
+  padding: 4px;
+  animation: dropIn 0.13s ease;
+}
+
+@keyframes dropIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .export-option {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   width: 100%;
-  padding: 8px 10px;
+  padding: 8px 9px;
+  background: none;
   border: none;
-  border-radius: 7px;
-  background: transparent;
+  border-radius: 5px;
   cursor: pointer;
   text-align: left;
-  transition: background 0.15s;
+  transition: background 0.1s;
 }
 
-.export-option:hover {
-  background: #f5f6fa;
-}
+.export-option:hover { background: #f5f5f8; }
 
 .export-badge {
-  font-size: 0.7rem;
+  font-size: 9px;
   font-weight: 700;
-  padding: 2px 6px;
+  letter-spacing: .05em;
+  padding: 2px 5px;
   border-radius: 4px;
-  letter-spacing: 0.04em;
   flex-shrink: 0;
 }
 
-.export-badge--csv {
-  background: #dcfce7;
-  color: #16a34a;
-}
-
-.export-badge--pdf {
-  background: #fee2e2;
-  color: #dc2626;
-}
+.export-badge--csv { background: #e6f9f0; color: #16a34a; }
+.export-badge--pdf { background: #fff0e6; color: #c2500a; }
 
 .export-label {
-  font-size: 0.85rem;
+  font-size: 13px;
   font-weight: 500;
-  color: #333;
+  color: #222;
 }
 
 .export-label em {
   font-style: normal;
+  font-size: 11px;
   color: #999;
-  font-size: 0.78rem;
-  margin-left: 4px;
+  margin-left: 3px;
 }
 
 /* ── Stat cards ──────────────────────────────────────── */
@@ -227,6 +226,7 @@
   align-items: center;
   gap: 4px;
   flex: 1;
+  height: 100%;
 }
 
 .bar-track {
@@ -284,8 +284,8 @@
 }
 
 .breakdown-item--completed .dot { background: #22c55e; }
-.breakdown-item--cancelled .dot  { background: #ef4444; }
-.breakdown-item--pending .dot    { background: #f97316; }
+.breakdown-item--cancelled .dot { background: #ef4444; }
+.breakdown-item--pending .dot   { background: #f97316; }
 
 /* ── Top items ───────────────────────────────────────── */
 .top-items {
@@ -320,10 +320,6 @@
   font-size: 0.88rem;
   font-weight: 600;
   color: #1a1a1a;
-}
-
-.bar-track {
-  margin: 0;
 }
 
 .top-item__bar-wrap {

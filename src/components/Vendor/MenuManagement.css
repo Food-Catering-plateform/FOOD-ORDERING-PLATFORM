@@ -161,8 +161,8 @@ textarea {
   background: none;
 }
 
-
-ul {
+/* ── Scoped Menu List Styles ── */
+.menu-items-list {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -171,7 +171,7 @@ ul {
   gap: 12px;
 }
 
-ul li {
+.menu-items-list li {
   display: flex;
   align-items: center;
   gap: 14px;
@@ -182,16 +182,16 @@ ul li {
   transition: border-color 0.2s;
 }
 
-ul li:hover {
+.menu-items-list li:hover {
   border-color: #3a3a3a;
 }
 
-ul li.editing {
+.menu-items-list li.editing {
   border-color: #8b1a1a;
   background: #1e1010;
 }
 
-ul li img {
+.menu-items-list li img {
   width: 60px;
   height: 60px;
   border-radius: 8px;
@@ -201,7 +201,7 @@ ul li img {
 }
 
 /* ── Item info ──────────────────────────────────────── */
-ul li .info {
+.menu-items-list li .info {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -209,7 +209,7 @@ ul li .info {
   min-width: 0;
 }
 
-ul li .info h3 {
+.menu-items-list li .info h3 {
   margin: 0;
   color: #ffffff;
   font-size: 0.95rem;
@@ -219,8 +219,8 @@ ul li .info h3 {
   text-overflow: ellipsis;
 }
 
-ul li .info p,
-ul li .info em {
+.menu-items-list li .info p,
+.menu-items-list li .info em {
   margin: 0;
   font-size: 0.85rem;
   color: #000000;
@@ -246,7 +246,7 @@ ul li .info em {
 }
 
 /* ── Item action buttons ────────────────────────────── */
-ul li button {
+.menu-items-list li button {
   padding: 8px 14px;
   border: none;
   background: #2a2a2a;
@@ -259,17 +259,17 @@ ul li button {
   flex-shrink: 0;
 }
 
-ul li button:hover {
+.menu-items-list li button:hover {
   background: #8b1a1a;
   color: #ffffff;
 }
 
-ul li .delete-btn {
+.menu-items-list li .delete-btn {
   background: #2a1515;
   color: #e08080;
 }
 
-ul li .delete-btn:hover {
+.menu-items-list li .delete-btn:hover {
   background: #7a1010;
   color: #ffffff;
 }
@@ -282,6 +282,7 @@ ul li .delete-btn:hover {
   text-align: center;
   padding: 32px 0;
 }
+
 /* ── Dietary tag variant (green tint) ── */
 .dietary-tag {
   background: rgba(0,200,150,.12) !important;

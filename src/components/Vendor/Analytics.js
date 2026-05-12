@@ -1,79 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './Analytics.css';
 
-const PERIODS = ['Today', 'This Week', 'This Month'];
+import { db } from '../../Firebase/firebaseConfig';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { useAuth } from '../../Services/AuthContext';
 
-const DATA = {
-  'Today': {
-    revenue: 1284.50,
-    orders: 18,
-    completed: 14,
-    cancelled: 2,
-    customers: 16,
-    hourly: [
-      { label: '8am',  value: 3 },
-      { label: '9am',  value: 5 },
-      { label: '10am', value: 2 },
-      { label: '11am', value: 4 },
-      { label: '12pm', value: 8 },
-      { label: '1pm',  value: 7 },
-      { label: '2pm',  value: 4 },
-      { label: '3pm',  value: 3 },
-      { label: '4pm',  value: 5 },
-      { label: '5pm',  value: 6 },
-    ],
-    topItems: [
-      { name: 'Grilled Chicken Burger', sold: 24, revenue: 2159.76 },
-      { name: 'Beef Stew & Rice',       sold: 18, revenue: 1799.82 },
-      { name: 'Cheese Fries',           sold: 15, revenue:  524.85 },
-      { name: 'Veggie Wrap',            sold: 11, revenue:  769.89 },
-      { name: 'Fresh Orange Juice',     sold: 9,  revenue:  269.91 },
-    ],
-  },
-  'This Week': {
-    revenue: 8942.00,
-    orders: 126,
-    completed: 109,
-    cancelled: 10,
-    customers: 98,
-    hourly: [
-      { label: 'Mon', value: 14 },
-      { label: 'Tue', value: 18 },
-      { label: 'Wed', value: 22 },
-      { label: 'Thu', value: 19 },
-      { label: 'Fri', value: 28 },
-      { label: 'Sat', value: 35 },
-      { label: 'Sun', value: 30 },
-    ],
-    topItems: [
-      { name: 'Grilled Chicken Burger', sold: 98,  revenue: 8819.02 },
-      { name: 'Beef Stew & Rice',       sold: 74,  revenue: 7399.26 },
-      { name: 'Cheese Fries',           sold: 63,  revenue: 2204.37 },
-      { name: 'Veggie Wrap',            sold: 51,  revenue: 3569.49 },
-      { name: 'Fresh Orange Juice',     sold: 44,  revenue: 1319.56 },
-    ],
-  },
-  'This Month': {
-    revenue: 34210.75,
-    orders: 512,
-    completed: 468,
-    cancelled: 28,
-    customers: 389,
-    hourly: [
-      { label: 'Wk 1', value: 110 },
-      { label: 'Wk 2', value: 128 },
-      { label: 'Wk 3', value: 142 },
-      { label: 'Wk 4', value: 132 },
-    ],
-    topItems: [
-      { name: 'Grilled Chicken Burger', sold: 380, revenue: 34199.20 },
-      { name: 'Beef Stew & Rice',       sold: 294, revenue: 29394.06 },
-      { name: 'Cheese Fries',           sold: 241, revenue:  8430.59 },
-      { name: 'Veggie Wrap',            sold: 198, revenue: 13860.02 },
-      { name: 'Fresh Orange Juice',     sold: 167, revenue:  5006.33 },
-    ],
-  },
+// FIX: Added a helper to handle Firebase Timestamps so dates don't return "Invalid Date"
+const safeDate = (val) => {
+  if (!val) return new Date(0);
+  return val.toDate ? val.toDate() : new Date(val);
 };
+
+//EXPORT
 
 // helpers
 
@@ -130,13 +68,13 @@ async function loadJsPDF() {
     const s = document.createElement('script');
     s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
     s.onload = resolve; s.onerror = reject;
-    document.head.appendChild(s);
+    document.head.appendChild(s );
   });
   await new Promise((resolve, reject) => {
     const s = document.createElement('script');
     s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js';
     s.onload = resolve; s.onerror = reject;
-    document.head.appendChild(s);
+    document.head.appendChild(s );
   });
   return window.jspdf.jsPDF;
 }
@@ -320,15 +258,142 @@ function ExportButton({ period, data }) {
   );
 }
 
-// Analytics
+// ANALYTICS
+
+const PERIODS = ['Today', 'This Week', 'This Month'];
+// returns the Date object representing the start of the selected period
+// used to filter orders that fall within Today / This Week / This Month
+function getPeriodStart(period) {
+  const now = new Date();
+  if (period === 'Today')      return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (period === 'This Month') return new Date(now.getFullYear(), now.getMonth(), 1);
+  if (period === 'This Week') {
+    // week starts on Monday — getDay() returns 0=Sun so we shift accordingly
+    const day = now.getDay();
+    const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+    return new Date(now.getFullYear(), now.getMonth(), diff);
+  }
+}
+
+// builds the bar chart data depending on the period:
+// Today -one bar per hour 
+// This Week -one bar per day (Mon–Sun)
+// This Month one bar per week (Wk 1–4)
+function buildBarChart(orders, period) {
+  if (period === 'Today') {
+    const labels = ['8am','9am','10am','11am','12pm','1pm','2pm','3pm','4pm','5pm'];
+    const counts = new Array(10).fill(0);
+    orders.forEach(o => {
+      // FIX: Used safeDate() to handle Firebase timestamps
+      const h = safeDate(o.createdAt || o.time).getHours();
+      if (h >= 8 && h <= 17) counts[h - 8]++;
+    });
+    return labels.map((label, i) => ({ label, value: counts[i] }));
+  }
+  if (period === 'This Week') {
+    const labels = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    const counts = new Array(7).fill(0);
+    orders.forEach(o => {
+      // FIX: Used safeDate() to handle Firebase timestamps
+      const day = safeDate(o.createdAt || o.time).getDay(); // 0=Sun
+      // shift so Mon=0, Sun=6
+      counts[day === 0 ? 6 : day - 1]++;
+    });
+    return labels.map((label, i) => ({ label, value: counts[i] }));
+  }
+  if (period === 'This Month') {
+    const labels = ['Wk 1','Wk 2','Wk 3','Wk 4'];
+    const counts = new Array(4).fill(0);
+    orders.forEach(o => {
+      // FIX: Used safeDate() to handle Firebase timestamps
+      const date = safeDate(o.createdAt || o.time).getDate();
+      // clamp to 3 so dates in the 29th–31st still fall into Wk 4
+      counts[Math.min(Math.floor((date - 1) / 7), 3)]++;
+    });
+    return labels.map((label, i) => ({ label, value: counts[i] }));
+  }
+  return [];
+}
+
+
+// aggregates all items sold across orders in the period and returns top 5 by qty sold
+function buildTopItems(orders) {
+  const map = {};
+  orders.forEach(o => {
+    (o.items || []).forEach(item => {
+      if (!map[item.name]) map[item.name] = { sold: 0, revenue: 0 };
+      map[item.name].sold    += item.qty;
+      map[item.name].revenue += item.qty * item.price;
+    });
+  });
+  return Object.entries(map)
+    .map(([name, data]) => ({ name, ...data }))
+    .sort((a, b) => b.sold - a.sold)
+    .slice(0, 5);
+}
 
 function Analytics() {
-  const [period, setPeriod] = useState('Today');
-  const d = DATA[period];
+  const { vendorId } = useAuth();
+  const [period, setPeriod]   = useState('Today');
+  const [loading, setLoading] = useState(true);
+  // data holds computed stats for all three periods so switching tabs is instant (no re-fetch)
+  const [data, setData]       = useState(null);
 
-  const maxBar = Math.max(...d.hourly.map(h => h.value));
-  const maxSold = d.topItems[0]?.sold || 1;
-  const completionRate = Math.round((d.completed / d.orders) * 100);
+  useEffect(() => {
+    if (!vendorId) return;
+
+    const fetchAnalytics = async () => {
+      setLoading(true);
+
+      // fetch ALL orders for this vendor once, then slice by period in JS
+      // avoids making 3 separate Firestore queries every time the tab changes
+      const snap = await getDocs(
+        query(collection(db, 'Orders'), where('vendorID', '==', vendorId))
+      );
+      const allOrders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      const result = {};
+      for (const p of PERIODS) {
+        const start        = getPeriodStart(p);
+        // filter to only orders that started on or after the period start
+        // FIX: Used safeDate() to handle Firebase timestamps
+        const periodOrders = allOrders.filter(o => safeDate(o.createdAt || o.time) >= start);
+
+        // FIX: Added .toLowerCase() to status checks to handle "Completed" vs "completed"
+        const completed = periodOrders.filter(o => o.status?.toLowerCase() === 'completed');
+        const cancelled = periodOrders.filter(o => o.status?.toLowerCase() === 'cancelled').length;
+        // revenue only counts completed orders — pending/cancelled don't count as earned
+        const revenue   = completed.reduce((sum, o) => sum + (o.total || 0), 0);
+        // unique customers = unique customerIds on completed orders (Set removes duplicates)
+        const customers = new Set(completed.map(o => o.customerId)).size;
+
+        result[p] = {
+          revenue,
+          orders:    periodOrders.length,
+          completed: completed.length,
+          cancelled,
+          customers,
+          hourly:    buildBarChart(periodOrders, p),
+          topItems:  buildTopItems(periodOrders),
+        };
+      }
+
+      setData(result);
+      setLoading(false);
+    };
+
+    fetchAnalytics();
+  }, [vendorId]);
+
+  if (loading || !data) {
+    return <article className="analytics"><p style={{ padding: '20px' }}>Loading analytics...</p></article>;
+  }
+
+  const d              = data[period];
+  // guard against dividing by zero when there are no orders yet
+  const maxBar         = Math.max(...d.hourly.map(h => h.value), 1);
+  const maxSold        = d.topItems[0]?.sold || 1;
+  const completionRate = d.orders > 0 ? Math.round((d.completed / d.orders) * 100) : 0;
 
   return (
     <article className="analytics">
@@ -405,26 +470,30 @@ function Analytics() {
 
         <section className="analytics__card analytics__card--items">
           <h2>Top Selling Items</h2>
-          <ul className="top-items">
-            {d.topItems.map((item, i) => (
-              <li key={i} className="top-item">
-                <header className="top-item__info">
-                  <b className="top-item__rank">#{i + 1}</b>
-                  <strong className="top-item__name">{item.name}</strong>
-                </header>
-                <figure className="top-item__bar-wrap">
-                  <b
-                    className="top-item__bar"
-                    style={{ width: `${(item.sold / maxSold) * 100}%` }}
-                  />
-                </figure>
-                <footer className="top-item__meta">
-                  <data value={item.sold}>{item.sold} sold</data>
-                  <data value={item.revenue.toFixed(2)}>R {item.revenue.toLocaleString('en-ZA', { minimumFractionDigits: 2 })}</data>
-                </footer>
-              </li>
-            ))}
-          </ul>
+          {d.topItems.length === 0 ? (
+            <p style={{ color: '#888', fontSize: '0.9rem' }}>No sales data yet for this period.</p>
+          ) : (
+            <ul className="top-items">
+              {d.topItems.map((item, i) => (
+                <li key={i} className="top-item">
+                  <header className="top-item__info">
+                    <b className="top-item__rank">#{i + 1}</b>
+                    <strong className="top-item__name">{item.name}</strong>
+                  </header>
+                  <figure className="top-item__bar-wrap">
+                    <b
+                      className="top-item__bar"
+                      style={{ width: `${(item.sold / maxSold) * 100}%` }}
+                    />
+                  </figure>
+                  <footer className="top-item__meta">
+                    <data value={item.sold}>{item.sold} sold</data>
+                    <data value={item.revenue.toFixed(2)}>R {item.revenue.toLocaleString('en-ZA', { minimumFractionDigits: 2 })}</data>
+                  </footer>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
       </section>
