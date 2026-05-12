@@ -8,7 +8,7 @@ import { collection, getDocs } from "firebase/firestore";
 
 const PERIODS = ['Today', 'This Week', 'This Month'];
 
-function getPeriodStart(period) {
+export function getPeriodStart(period) {
   const now = new Date();
   if (period === 'Today')      return new Date(now.getFullYear(), now.getMonth(), now.getDate());
   if (period === 'This Month') return new Date(now.getFullYear(), now.getMonth(), 1);
@@ -20,7 +20,7 @@ function getPeriodStart(period) {
   return new Date(0);
 }
 
-function buildBarChart(orders, period) {
+export function buildBarChart(orders, period) {
   if (period === 'Today') {
     const labels = ['7am','8am','9am','10am','11am','12pm','1pm','2pm','3pm','4pm','5pm','6pm','7pm','8pm'];
     const counts = new Array(labels.length).fill(0);
@@ -51,7 +51,7 @@ function buildBarChart(orders, period) {
   return [];
 }
 
-function buildVendorSales(orders) {
+export function buildVendorSales(orders) {
   const map = {};
   orders.forEach(o => {
     const vendorName = o.vendorName || 'Unknown Vendor';
@@ -64,7 +64,7 @@ function buildVendorSales(orders) {
     .sort((a, b) => b.revenue - a.revenue);
 }
 
-function buildTopItems(orders) {
+export function buildTopItems(orders) {
   const map = {};
   orders.forEach(o => {
     (o.items || []).forEach(item => {

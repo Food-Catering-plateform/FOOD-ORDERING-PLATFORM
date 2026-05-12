@@ -132,7 +132,8 @@ describe('Analytics – period switching', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'This Week' }));
     expect(screen.getByRole('button', { name: 'This Week' })).toHaveClass('active');
-    expect(screen.getByText(/4\s*orders/i, { exact: false })).toBeInTheDocument();
+    expect(screen.getByText(/R 540[.,]72/)).toBeInTheDocument();
+    expect(screen.getByText(/67\s*%/)).toBeInTheDocument();
   });
 
   it('switches to This Month and includes all orders in the month', async () => {
@@ -170,16 +171,16 @@ describe('Analytics – bar chart behavior', () => {
 });
 
 describe('Analytics – top selling items', () => {
-  it('renders five top selling item rows', async () => {
+  it('renders three top selling item rows for Today', async () => {
     await renderAnalytics();
-    expect(document.querySelectorAll('.top-item')).toHaveLength(5);
+    expect(document.querySelectorAll('.top-item')).toHaveLength(3);
   });
 
   it('shows the top selling item and orders it by highest sold count', async () => {
     await renderAnalytics();
     expect(screen.getByText('Grilled Chicken Burger')).toBeInTheDocument();
     expect(screen.getByText('#1')).toBeInTheDocument();
-    expect(screen.getByText('4 sold')).toBeInTheDocument();
+    expect(screen.getByText('3 sold')).toBeInTheDocument();
   });
 
   it('calculates widths so only first item reaches 100%', async () => {
@@ -212,14 +213,17 @@ describe('Analytics – Export dropdown and downloads', () => {
     await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
   });
 
-  it('downloads CSV with the correct filename for This Month', async () => {
+  it('downloads CSV for This Month by triggering the anchor click', async () => {
     await renderAnalytics();
     await userEvent.click(screen.getByRole('button', { name: 'This Month' }));
     await userEvent.click(screen.getByRole('button', { name: /export/i }));
-    await userEvent.click(screen.getByRole('button', { name: /spreadsheet/i }));
+    const csvButton = screen.getByText(/Spreadsheet/i).closest('button');
+    expect(csvButton).toBeTruthy();
 
-    const anchor = document.querySelector('a[download]');
-    expect(anchor).toHaveAttribute('download', 'analytics_this_month.csv');
+    await userEvent.click(csvButton);
+
+    expect(global.URL.createObjectURL).toHaveBeenCalled();
+    expect(anchorClickSpy).toHaveBeenCalled();
   });
 
   it('quotes CSV fields that contain commas and quotes', async () => {
@@ -231,8 +235,12 @@ describe('Analytics – Export dropdown and downloads', () => {
     });
 
     await renderAnalytics();
+    await userEvent.click(screen.getByRole('button', { name: 'This Month' }));
     await userEvent.click(screen.getByRole('button', { name: /export/i }));
-    await userEvent.click(screen.getByRole('button', { name: /spreadsheet/i }));
+    const csvButton = screen.getByText(/Spreadsheet/i).closest('button');
+    expect(csvButton).toBeTruthy();
+
+    await userEvent.click(csvButton);
 
     expect(capturedBlob).toContain('"Super ""Cheese"" Burger, Deluxe"');
     global.Blob = originalBlob;

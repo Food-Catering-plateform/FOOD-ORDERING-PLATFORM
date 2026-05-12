@@ -19,7 +19,7 @@ export const ALLERGENS = [
   'Soy','Fish','Shellfish','Sesame','Sulphites',
 ];
 
-const ALLERGEN_ICONS = {
+export const ALLERGEN_ICONS = {
   'Gluten': '🌾', 'Dairy': '🥛', 'Eggs': '🥚', 'Nuts': '🥜', 'Peanuts': '🥜',
   'Soy': '🫘', 'Fish': '🐟', 'Shellfish': '🦐', 'Sesame': '🌱', 'Sulphites': '🧪'
 };
