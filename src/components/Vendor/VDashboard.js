@@ -37,7 +37,7 @@ function VDashboard({ uid, onLogout }) {
 
   const renderSection = () => {
     switch (activeSection) {
-      case 'home':      return <VenHome storeName={storeData?.name} />;
+      case 'home':      return <VenHome storeName={storeData?.name} setActiveSection={setActiveSection} />;
       case 'menu':      return <MenuManagement />;
       case 'orders':    return <Orders />;
       case 'analytics': return <Analytics />;
