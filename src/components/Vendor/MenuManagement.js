@@ -33,6 +33,10 @@ function MenuManagement() {
   });
   const [allergenOpen, setAllergenOpen] = useState(false);
   const [dietaryOpen, setDietaryOpen] = useState(false);
+  
+  // FIX: Added state to track which item is waiting for deletion confirmation
+  const [deletingIndex, setDeletingIndex] = useState(null);
+
   const dropdownRef = useRef(null);
   const dietaryRef = useRef(null);
   const formRef = useRef(null);
@@ -117,16 +121,24 @@ function MenuManagement() {
   }
 
   async function deleteItem(index) {
+    // FIX: First click sets the "confirm" state. Second click actually deletes.
+    if (deletingIndex !== index) {
+      setDeletingIndex(index);
+      return;
+    }
+
     const item = items[index];
     try {
       await deleteDoc(doc(db, "Vendors", vendorId, "menuItems", item.id));
       setItems(prev => prev.filter((_, i) => i !== index));
+      setDeletingIndex(null); // Reset confirmation
       if (editingIndex === index) {
         setEditingIndex(null);
         setForm({ name: '', price: '', qty: '', description: '', imageUrl: null, allergens: [], dietary: [] });
       }
     } catch (error) {
       console.error("Unable to delete item", error);
+      setDeletingIndex(null);
     }
   }
 
@@ -222,7 +234,16 @@ function MenuManagement() {
                 )}
               </div>
               <button onClick={() => editItem(index)}>Edit</button>
-              <button className="delete-btn" onClick={() => deleteItem(index)}>Delete</button>
+              
+              {/* FIX: Button changes text and color when clicked once to confirm */}
+              <button 
+                className="delete-btn" 
+                onClick={() => deleteItem(index)}
+                onMouseLeave={() => setDeletingIndex(null)}
+                style={deletingIndex === index ? { background: '#ff4444', color: 'white' } : {}}
+              >
+                {deletingIndex === index ? 'Are you sure?' : 'Delete'}
+              </button>
             </li>
           ))}
         </ul>
