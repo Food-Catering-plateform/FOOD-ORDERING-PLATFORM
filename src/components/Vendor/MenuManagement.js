@@ -4,8 +4,6 @@ import { collection, addDoc, updateDoc, getDocs, doc, deleteDoc } from "firebase
 import { db } from "../../Firebase/firebaseConfig";
 import { useAuth } from "../../Services/AuthContext";
 
-/* ── Standardised dietary / allergen data source (Single source of truth used by ALL vendors — ensures consistent labelling)
-*/
 export const DIETARY_OPTIONS = [
   { key: 'halal',       label: 'Halal',       icon: '☪️'   },
   { key: 'vegan',       label: 'Vegan',       icon: '🌱'   },
@@ -24,17 +22,17 @@ export const ALLERGEN_ICONS = {
   'Soy': '🫘', 'Fish': '🐟', 'Shellfish': '🦐', 'Sesame': '🌱', 'Sulphites': '🧪'
 };
 
+const EMPTY_FORM = {
+  name: '', price: '', qty: '', description: '', imageUrl: null, allergens: [], dietary: []
+};
+
 function MenuManagement() {
   const { vendorId } = useAuth();
   const [items, setItems] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
-  const [form, setForm] = useState({
-    name: '', price: '', qty: '', description: '', imageUrl: null, allergens: [], dietary: []
-  });
+  const [form, setForm] = useState(EMPTY_FORM);
   const [allergenOpen, setAllergenOpen] = useState(false);
   const [dietaryOpen, setDietaryOpen] = useState(false);
-  
-  // FIX: Added state to track which item is waiting for deletion confirmation
   const [deletingIndex, setDeletingIndex] = useState(null);
 
   const dropdownRef = useRef(null);
@@ -59,6 +57,8 @@ function MenuManagement() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const FIELD_MAP = { foodname: 'name', foodprice: 'price', foodqty: 'qty', fooddesc: 'description' };
+
   function handleChange(e) {
     const { id, value, files } = e.target;
     if (id === 'foodImage') {
@@ -69,7 +69,8 @@ function MenuManagement() {
         reader.readAsDataURL(file);
       }
     } else {
-      setForm(prev => ({ ...prev, [id.replace('food', '').toLowerCase()]: value }));
+      const key = FIELD_MAP[id.toLowerCase()] || id.replace('food', '').toLowerCase();
+      setForm(prev => ({ ...prev, [key]: value }));
     }
   }
 
@@ -108,33 +109,40 @@ function MenuManagement() {
         const docRef = await addDoc(collection(db, "Vendors", vendorId, "menuItems"), data);
         setItems(prev => [...prev, { id: docRef.id, ...data }]);
       }
-      setForm({ name: '', price: '', qty: '', description: '', imageUrl: null, allergens: [], dietary: [] });
+      setForm(EMPTY_FORM);
     } catch (error) {
       console.error("Error saving item", error);
     }
   }
 
   function editItem(index) {
+    const item = items[index];
     setEditingIndex(index);
-    setForm(items[index]);
+    setForm({
+      name:        item.name        ?? '',
+      price:       item.price       ?? '',
+      qty:         item.qty         ?? '',
+      description: item.description ?? '',
+      imageUrl:    item.imageUrl    ?? null,
+      allergens:   Array.isArray(item.allergens) ? item.allergens : [],
+      dietary:     Array.isArray(item.dietary)   ? item.dietary   : [],
+    });
     formRef.current?.scrollIntoView({ behavior: 'smooth' });
   }
 
   async function deleteItem(index) {
-    // FIX: First click sets the "confirm" state. Second click actually deletes.
     if (deletingIndex !== index) {
       setDeletingIndex(index);
       return;
     }
-
     const item = items[index];
     try {
       await deleteDoc(doc(db, "Vendors", vendorId, "menuItems", item.id));
       setItems(prev => prev.filter((_, i) => i !== index));
-      setDeletingIndex(null); // Reset confirmation
+      setDeletingIndex(null);
       if (editingIndex === index) {
         setEditingIndex(null);
-        setForm({ name: '', price: '', qty: '', description: '', imageUrl: null, allergens: [], dietary: [] });
+        setForm(EMPTY_FORM);
       }
     } catch (error) {
       console.error("Unable to delete item", error);
@@ -217,27 +225,25 @@ function MenuManagement() {
                 <h3>{item.name}</h3>
                 <p>R {item.price}</p>
                 {item.description ? <p>{item.description}</p> : null}
-                {item.dietary?.length > 0 && (
+                {(item.dietary ?? []).length > 0 && (
                   <p className="allergen-tags">
-                    {item.dietary.map(k => {
+                    {(item.dietary ?? []).map(k => {
                       const d = DIETARY_OPTIONS.find(o => o.key === k);
                       return <span key={k} className="allergen-tag dietary-tag">{d?.icon} {d?.label || k}</span>;
                     })}
                   </p>
                 )}
-                {item.allergens?.length > 0 && (
+                {(item.allergens ?? []).length > 0 && (
                   <p className="allergen-tags">
-                    {item.allergens.map(a => (
+                    {(item.allergens ?? []).map(a => (
                       <span key={a} className="allergen-tag">{ALLERGEN_ICONS[a]} {a}</span>
                     ))}
                   </p>
                 )}
               </div>
               <button onClick={() => editItem(index)}>Edit</button>
-              
-              {/* FIX: Button changes text and color when clicked once to confirm */}
-              <button 
-                className="delete-btn" 
+              <button
+                className="delete-btn"
                 onClick={() => deleteItem(index)}
                 onMouseLeave={() => setDeletingIndex(null)}
                 style={deletingIndex === index ? { background: '#ff4444', color: 'white' } : {}}
