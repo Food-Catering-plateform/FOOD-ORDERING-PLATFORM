@@ -23,7 +23,6 @@
     "eject": "react-scripts eject"
   },
   "jest": {
-    "coverageDirectory": "coverage",
     "coverageReporters": [
       "lcov",
       "text"
