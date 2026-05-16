@@ -1,5 +1,5 @@
 module.exports = {
-  testEnvironment: 'jsdom',        // Change to 'node' if it's not a React app
+  testEnvironment: 'jsdom',
   collectCoverage: true,
   coverageDirectory: 'coverage',
   coverageReporters: ['lcov', 'text', 'json', 'html'],
@@ -9,4 +9,7 @@ module.exports = {
     '/dist/',
     '__tests__'
   ],
+  moduleNameMapper: {
+    '\\.(css|less|scss|sass)$': '<rootDir>/__mocks__/styleMock.js',
+  },
 };
