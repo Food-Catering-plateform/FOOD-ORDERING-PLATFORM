@@ -8,68 +8,46 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    continue-on-error: false
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Clean old coverage artifacts
-        run: |
-          rm -rf coverage || true
-          rm -rf coverage-analytics || true
-          rm -rf coverage-vsidebar || true
-
       - name: Run tests with coverage
         env:
           CI: true
-        run: npm test -- --coverage --watchAll=false
+        run: npm run test:ci
 
-      - name: Inspect generated coverage files
+      - name: 🔍 Debug - Check coverage files
         run: |
-          if [ -d coverage ]; then
-            echo "Coverage directory contents:"
-            find coverage -maxdepth 2 -type f | sort
-            echo "First 20 lines of coverage/lcov.info:"
-            head -20 coverage/lcov.info || true
-          else
-            echo "Coverage directory not found"
-            exit 1
-          fi
-
-      - name: Normalize coverage timestamps
-        run: |
-          if [ -d coverage ]; then
-            find coverage -type f -exec touch {} +
-          fi
-
-      - name: Touch and normalize coverage report before upload
-        if: always()
-        shell: bash
-        run: |
+          echo "=== Files in coverage folder ==="
+          ls -la coverage/ 2>/dev/null || echo "Coverage folder not found"
+          
+          echo "=== lcov.info status ==="
           if [ -f coverage/lcov.info ]; then
-            touch coverage/lcov.info
-            sed -i 's#\\#/#g' coverage/lcov.info
+            echo "✅ SUCCESS: lcov.info found"
+            echo "Size: $(wc -c < coverage/lcov.info) bytes"
+            head -n 15 coverage/lcov.info
+          else
+            echo "❌ lcov.info NOT found"
+            find . -name "*.info" -o -name "lcov*" | head -10
           fi
 
-      - name: Upload coverage reports to Codecov
+      - name: Upload to Codecov
         if: always()
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: coverage/lcov.info
+          files: ./coverage/lcov.info
           flags: jest
           verbose: true
           fail_ci_if_error: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

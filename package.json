@@ -17,11 +17,12 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test --watchAll=false",
-    "eject": "react-scripts eject"
-  },
+  "start": "react-scripts start",
+  "build": "react-scripts build",
+  "test": "react-scripts test",
+  "test:ci": "react-scripts test --watchAll=false --coverage --coverageReporters=lcov --coverageReporters=text",
+  "eject": "react-scripts eject"
+},
   "jest": {    "testEnvironment": "jsdom",    "coverageReporters": [
       "lcov",
       "text"
