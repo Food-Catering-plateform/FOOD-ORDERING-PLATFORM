@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import Sidebar from '../Sidebar';
+import Sidebar from '../VenSidebar';
 
 jest.mock('../Sidebar.css', () => ({}));
 
@@ -26,9 +26,39 @@ describe('Sidebar – rendering', () => {
     expect(screen.getByText('Account Settings')).toBeInTheDocument();
   });
 
-  it('applies the "open" class to the aside when open', () => {
+  it('renders navigation with proper aria-label', () => {
     render(<Sidebar />);
-    expect(document.querySelector('aside')).toHaveClass('open');
+    expect(screen.getByRole('navigation', { name: /vendor navigation/i })).toBeInTheDocument();
+  });
+
+  it('renders nav items as a list', () => {
+    render(<Sidebar />);
+    const list = screen.getByRole('list');
+    expect(list).toBeInTheDocument();
+    expect(list.children).toHaveLength(4);
+  });
+
+  it('renders toggle button with hamburger icon lines', () => {
+    render(<Sidebar />);
+    const button = screen.getByRole('button', { name: /toggle sidebar/i });
+    const lines = button.querySelectorAll('.line');
+    expect(lines).toHaveLength(2);
+  });
+
+  it('renders the sidebar with correct base class', () => {
+    render(<Sidebar />);
+    const aside = document.querySelector('aside');
+    expect(aside).toHaveClass('sidebar');
+    expect(aside).toHaveClass('open');
+  });
+
+  it('renders the sidebar with correct base class when closed', async () => {
+    render(<Sidebar />);
+    await userEvent.click(screen.getByRole('button', { name: /toggle sidebar/i }));
+    const aside = document.querySelector('aside');
+    expect(aside).toHaveClass('sidebar');
+    expect(aside).toHaveClass('closed');
+    expect(aside).not.toHaveClass('open');
   });
 });
 
@@ -66,5 +96,17 @@ describe('Sidebar – toggle behaviour', () => {
     await userEvent.click(screen.getByRole('button', { name: /toggle sidebar/i }));
     expect(screen.queryByText('Menu Management')).not.toBeInTheDocument();
     expect(screen.queryByText('Orders')).not.toBeInTheDocument();
+  });
+
+  it('does not render navigation when sidebar is closed', async () => {
+    render(<Sidebar />);
+    await userEvent.click(screen.getByRole('button', { name: /toggle sidebar/i }));
+    expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
+  });
+
+  it('does not render list when sidebar is closed', async () => {
+    render(<Sidebar />);
+    await userEvent.click(screen.getByRole('button', { name: /toggle sidebar/i }));
+    expect(screen.queryByRole('list')).not.toBeInTheDocument();
   });
 });

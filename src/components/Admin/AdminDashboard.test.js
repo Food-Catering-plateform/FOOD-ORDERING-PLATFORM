@@ -51,6 +51,9 @@ const MOCK_ADMINS = [
   { id: 'a2', name: 'Bob Admin',   email: 'bob@test.com',   status: 'pending'  },
 ];
 
+const mockSetActivePage = jest.fn();
+const renderAdminDashboard = () => render(<AdminDashboard setActivePage={mockSetActivePage} />);
+
 const MOCK_ORDERS = [
   {
     id: 'o1', vendorName: 'Tasty Bites', total: 150, status: 'completed',
@@ -74,27 +77,28 @@ const MOCK_ORDERS = [
 
 describe('AdminDashboard — rendering', () => {
   beforeEach(() => {
+    mockSetActivePage.mockClear();
     mockGetDocs.mockResolvedValue({
       docs: MOCK_ORDERS.map(o => ({ id: o.id, data: () => o })),
     });
   });
 
   test('TC-AD-01: renders the admin sidebar with navigation links', async () => {
-    render(<AdminDashboard />);
+    renderAdminDashboard();
     expect(screen.getByRole('navigation', { name: /admin navigation/i })).toBeInTheDocument();
-    expect(screen.getByText(/dashboard/i)).toBeInTheDocument();
-    expect(screen.getByText(/vendor management/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /dashboard/i })).toBeInTheDocument();
+    expect(screen.getByText(/vendors/i)).toBeInTheDocument();
   });
 
-  test('TC-AD-02: shows the Analytics section by default', async () => {
-    render(<AdminDashboard />);
-    await waitFor(() => {
-      expect(screen.getByText(/analytics/i)).toBeInTheDocument();
-    });
+  test('TC-AD-02: shows the Dashboard section by default', async () => {
+    renderAdminDashboard();
+    expect(screen.getByRole('heading', { name: /dashboard/i })).toBeInTheDocument();
+    expect(screen.getByText(/recent orders/i)).toBeInTheDocument();
   });
 
-  test('TC-AD-03: displays period selector with Today / This Week / This Month', async () => {
-    render(<AdminDashboard />);
+  test('TC-AD-03: displays period selector when Analytics is selected', async () => {
+    renderAdminDashboard();
+    fireEvent.click(screen.getByRole('button', { name: /analytics/i }));
     await waitFor(() => {
       expect(screen.getByText('Today')).toBeInTheDocument();
       expect(screen.getByText('This Week')).toBeInTheDocument();
@@ -102,17 +106,19 @@ describe('AdminDashboard — rendering', () => {
     });
   });
 
-  test('TC-AD-04: shows loading state while fetching orders', () => {
+  test('TC-AD-04: shows loading state while fetching analytics orders', async () => {
     mockGetDocs.mockReturnValue(new Promise(() => {})); // never resolves
-    render(<AdminDashboard />);
-    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+    renderAdminDashboard();
+    fireEvent.click(screen.getByRole('button', { name: /analytics/i }));
+    expect(screen.getByText(/loading analytics/i)).toBeInTheDocument();
   });
 
   test('TC-AD-05: logout button calls signOut and redirects', async () => {
-    render(<AdminDashboard />);
+    renderAdminDashboard();
     const logoutBtn = screen.getByRole('button', { name: /log.?out/i });
     fireEvent.click(logoutBtn);
     await waitFor(() => expect(signOut).toHaveBeenCalledTimes(1));
+    expect(mockSetActivePage).toHaveBeenCalledWith('login');
   });
 });
 
@@ -225,7 +231,7 @@ describe('AdminVendorManagement', () => {
   test('TC-VM-03: "Approve" button calls approveVendor with correct ID', async () => {
     render(<AdminVendorManagement setActivePage={jest.fn()} />);
     await waitFor(() => screen.getByText('Tasty Bites'));
-    const approveBtn = screen.getAllByRole('button', { name: /approve/i })[0];
+    const approveBtn = screen.getByRole('button', { name: /approve tasty@test\.com/i });
     fireEvent.click(approveBtn);
     await waitFor(() => expect(approveVendor).toHaveBeenCalledWith('v1'));
   });
@@ -233,7 +239,7 @@ describe('AdminVendorManagement', () => {
   test('TC-VM-04: "Suspend" button calls suspendVendor with correct ID', async () => {
     render(<AdminVendorManagement setActivePage={jest.fn()} />);
     await waitFor(() => screen.getByText('Spice Garden'));
-    const suspendBtn = screen.getAllByRole('button', { name: /suspend/i })[0];
+    const suspendBtn = screen.getByRole('button', { name: /suspend spice@test\.com/i });
     fireEvent.click(suspendBtn);
     await waitFor(() => expect(suspendVendor).toHaveBeenCalledWith('v2'));
   });
@@ -241,7 +247,7 @@ describe('AdminVendorManagement', () => {
   test('TC-VM-05: vendor status updates optimistically after approval', async () => {
     render(<AdminVendorManagement setActivePage={jest.fn()} />);
     await waitFor(() => screen.getByText('Tasty Bites'));
-    const approveBtn = screen.getAllByRole('button', { name: /approve/i })[0];
+    const approveBtn = screen.getByRole('button', { name: /approve tasty@test\.com/i });
     fireEvent.click(approveBtn);
     await waitFor(() => {
       const cards = screen.getAllByText(/approved/i);
@@ -271,10 +277,10 @@ describe('AdminVendorManagement', () => {
     });
   });
 
-  test('TC-VM-08: shows admin list when Admins tab is clicked', async () => {
+  test('TC-VM-08: shows admin list when Admin Requests tab is clicked', async () => {
     render(<AdminVendorManagement setActivePage={jest.fn()} />);
     await waitFor(() => screen.getByText('Tasty Bites'));
-    const adminTab = screen.getByRole('button', { name: /admins/i });
+    const adminTab = screen.getByRole('button', { name: /admin requests/i });
     fireEvent.click(adminTab);
     await waitFor(() => {
       expect(screen.getByText('Alice Admin')).toBeInTheDocument();
@@ -294,7 +300,7 @@ describe('AdminVendorManagement', () => {
     approveVendor.mockReturnValue(new Promise(() => {})); // hangs
     render(<AdminVendorManagement setActivePage={jest.fn()} />);
     await waitFor(() => screen.getByText('Tasty Bites'));
-    const approveBtn = screen.getAllByRole('button', { name: /approve/i })[0];
+    const approveBtn = screen.getByRole('button', { name: /approve tasty@test\.com/i });
     fireEvent.click(approveBtn);
     expect(approveBtn).toBeDisabled();
   });
@@ -302,9 +308,9 @@ describe('AdminVendorManagement', () => {
   test('TC-VM-11: vendor count badges update correctly per tab', async () => {
     render(<AdminVendorManagement setActivePage={jest.fn()} />);
     await waitFor(() => screen.getByText('Tasty Bites'));
-    // Tab should show total count of vendors
-    const vendorTabCount = screen.getByText('3');
-    expect(vendorTabCount).toBeInTheDocument();
+
+    const vendorTab = screen.getByRole('button', { name: /vendors 3/i });
+    expect(vendorTab).toBeInTheDocument();
   });
 });
 
@@ -378,23 +384,21 @@ describe('Dietary & Allergen — standardised data source', () => {
 
 describe('AdminDashboard — navigation', () => {
   beforeEach(() => {
+    mockSetActivePage.mockClear();
     mockGetDocs.mockResolvedValue({ docs: [] });
   });
 
   test('TC-NAV-01: clicking "Vendor Management" nav item changes active page', async () => {
-    render(<AdminDashboard />);
-    const navItem = await screen.findByText(/vendor management/i);
+    renderAdminDashboard();
+    const navItem = await screen.findByRole('button', { name: /vendors/i });
     fireEvent.click(navItem);
-    await waitFor(() => {
-      expect(screen.getByText(/vendor management/i)).toBeInTheDocument();
-    });
+    expect(mockSetActivePage).toHaveBeenCalledWith('admin-vendor-management');
   });
 
-  test('TC-NAV-02: clicking "Analytics" nav item keeps analytics visible', async () => {
-    render(<AdminDashboard />);
-    await waitFor(() => screen.getByText('Today'));
-    const analyticsLink = screen.getAllByText(/analytics/i)[0];
+  test('TC-NAV-02: clicking "Analytics" nav item shows analytics section', async () => {
+    renderAdminDashboard();
+    const analyticsLink = screen.getByRole('button', { name: /analytics/i });
     fireEvent.click(analyticsLink);
-    expect(screen.getByText('Today')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole('heading', { name: /analytics/i })).toBeInTheDocument());
   });
 });

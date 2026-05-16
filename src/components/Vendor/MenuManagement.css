@@ -16,7 +16,8 @@
 /* ── Form card ──────────────────────────────────────── */
 .card {
   background: #ffffff;
-  padding: 24px;
+  padding: 20px;
+  width: 100%;
   border-radius: 14px;
   border: 1px solid #000000;
 }
@@ -161,8 +162,8 @@ textarea {
   background: none;
 }
 
-
-ul {
+/* ── Scoped Menu List Styles ── */
+.menu-items-list {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -171,37 +172,38 @@ ul {
   gap: 12px;
 }
 
-ul li {
+.menu-items-list li {
   display: flex;
   align-items: center;
   gap: 14px;
-  background: #1e1e1e;
+  background: #C8C9CC;
   padding: 14px 16px;
   border-radius: 12px;
-  border: 1px solid #2a2a2a;
-  transition: border-color 0.2s;
+  border: 1px solid #A8AAAE;
+  transition: border-color 0.2s, background 0.2s;
 }
 
-ul li:hover {
-  border-color: #3a3a3a;
+.menu-items-list li:hover {
+  background: #D4D5D8;
+  border-color: #909298;
 }
 
-ul li.editing {
+.menu-items-list li.editing {
   border-color: #8b1a1a;
-  background: #1e1010;
+  background: #9e9ea0;
 }
 
-ul li img {
+.menu-items-list li img {
   width: 60px;
   height: 60px;
   border-radius: 8px;
   object-fit: cover;
   flex-shrink: 0;
-  border: 1px solid #2a2a2a;
+  border: 1px solid #7a1010;
 }
 
 /* ── Item info ──────────────────────────────────────── */
-ul li .info {
+.menu-items-list li .info {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -209,9 +211,9 @@ ul li .info {
   min-width: 0;
 }
 
-ul li .info h3 {
+.menu-items-list li .info h3 {
   margin: 0;
-  color: #ffffff;
+  color: #000000;
   font-size: 0.95rem;
   font-weight: 700;
   white-space: nowrap;
@@ -219,8 +221,8 @@ ul li .info h3 {
   text-overflow: ellipsis;
 }
 
-ul li .info p,
-ul li .info em {
+.menu-items-list li .info p,
+.menu-items-list li .info em {
   margin: 0;
   font-size: 0.85rem;
   color: #000000;
@@ -236,8 +238,8 @@ ul li .info em {
 
 .allergen-tag {
   display: inline-block;
-  background: #3a1010;
-  color: #e08080;
+  background: rgba(139,26,26,.12);
+  color: #7a1010;
   font-size: 0.7rem;
   font-weight: 600;
   padding: 2px 8px;
@@ -246,11 +248,11 @@ ul li .info em {
 }
 
 /* ── Item action buttons ────────────────────────────── */
-ul li button {
+.menu-items-list li button {
   padding: 8px 14px;
   border: none;
-  background: #2a2a2a;
-  color: #c0b8b8;
+  background: #A8AAAE;
+  color: #1A1C23;
   font-size: 0.82rem;
   font-weight: 600;
   border-radius: 7px;
@@ -259,17 +261,17 @@ ul li button {
   flex-shrink: 0;
 }
 
-ul li button:hover {
+.menu-items-list li button:hover {
   background: #8b1a1a;
   color: #ffffff;
 }
 
-ul li .delete-btn {
-  background: #2a1515;
-  color: #e08080;
+.menu-items-list li .delete-btn {
+  background: #C0A8A8;
+  color: #7a1010;
 }
 
-ul li .delete-btn:hover {
+.menu-items-list li .delete-btn:hover {
   background: #7a1010;
   color: #ffffff;
 }
@@ -282,6 +284,7 @@ ul li .delete-btn:hover {
   text-align: center;
   padding: 32px 0;
 }
+
 /* ── Dietary tag variant (green tint) ── */
 .dietary-tag {
   background: rgba(0,200,150,.12) !important;

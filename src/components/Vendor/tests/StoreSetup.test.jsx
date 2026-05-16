@@ -6,15 +6,19 @@ import StoreSetup from '../StoreSetup';
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
 jest.mock('../../../Services/AuthContext', () => ({ useAuth: jest.fn() }));
-jest.mock('../../../Firebase/firebaseConfig', () => ({ db: {} }));
+jest.mock('../../../Firebase/firebaseConfig', () => ({ db: {}, auth: {} }));
 jest.mock('firebase/firestore', () => ({
   doc:    jest.fn(),
   setDoc: jest.fn(),
+}));
+jest.mock('firebase/auth', () => ({
+  signOut: jest.fn(),
 }));
 jest.mock('../StoreSetup.css', () => ({}));
 
 import { useAuth } from '../../../Services/AuthContext';
 import { doc, setDoc } from 'firebase/firestore';
+import { signOut } from 'firebase/auth';
 
 const VENDOR_ID = 'vendor-xyz';
 
@@ -23,12 +27,17 @@ beforeEach(() => {
   useAuth.mockReturnValue({ vendorId: VENDOR_ID });
   doc.mockReturnValue('doc-ref');
   setDoc.mockResolvedValue();
+  signOut.mockResolvedValue();
   global.URL.createObjectURL = jest.fn(() => 'blob:mock-url');
 });
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-async function fillStep0(name = "Mama's Kitchen", category = 'Fast Food', description = 'Best food in town') {
+async function fillStep0(
+  name = "Mama's Kitchen",
+  category = 'Fast Food',
+  description = 'Best food in town'
+) {
   await userEvent.type(screen.getByPlaceholderText(/mama's kitchen/i), name);
   await userEvent.selectOptions(screen.getByRole('combobox'), category);
   await userEvent.type(screen.getByPlaceholderText(/tell customers/i), description);
@@ -37,6 +46,23 @@ async function fillStep0(name = "Mama's Kitchen", category = 'Fast Food', descri
 async function fillStep1(address = '12 Main St, Soweto', phone = '011 123 4567') {
   await userEvent.type(screen.getByPlaceholderText(/12 main street/i), address);
   await userEvent.type(screen.getByPlaceholderText(/011 123 4567/i), phone);
+}
+
+async function goToStep1() {
+  render(<StoreSetup />);
+  await fillStep0();
+  await userEvent.click(screen.getByRole('button', { name: /next/i }));
+}
+
+async function goToStep2() {
+  await goToStep1();
+  await fillStep1();
+  await userEvent.click(screen.getByRole('button', { name: /next/i }));
+}
+
+async function goToStep3() {
+  await goToStep2();
+  await userEvent.click(screen.getByRole('button', { name: /next/i }));
 }
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
@@ -85,6 +111,16 @@ describe('StoreSetup – rendering', () => {
     await userEvent.type(screen.getByPlaceholderText(/tell customers/i), 'Hello');
     expect(screen.getByText('5/200')).toBeInTheDocument();
   });
+
+  it('renders an Exit button on step 0', () => {
+    render(<StoreSetup />);
+    expect(screen.getByRole('button', { name: /exit/i })).toBeInTheDocument();
+  });
+
+  it('does not render the Back button on step 0', () => {
+    render(<StoreSetup />);
+    expect(screen.queryByRole('button', { name: /back/i })).not.toBeInTheDocument();
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -124,17 +160,24 @@ describe('StoreSetup – step 0 validation', () => {
     await userEvent.click(screen.getByRole('button', { name: /next/i }));
     expect(screen.getByText('Location & Hours')).toBeInTheDocument();
   });
+
+  it('clears a validation error after the field is corrected', async () => {
+    render(<StoreSetup />);
+    await userEvent.click(screen.getByRole('button', { name: /next/i }));
+    expect(screen.getByText('Store name is required')).toBeInTheDocument();
+
+    await userEvent.type(screen.getByPlaceholderText(/mama's kitchen/i), 'My Store');
+    await userEvent.selectOptions(screen.getByRole('combobox'), 'Fast Food');
+    await userEvent.type(screen.getByPlaceholderText(/tell customers/i), 'Great food');
+    await userEvent.click(screen.getByRole('button', { name: /next/i }));
+
+    expect(screen.queryByText('Store name is required')).not.toBeInTheDocument();
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('StoreSetup – step 1 (Location & Hours)', () => {
-  async function goToStep1() {
-    render(<StoreSetup />);
-    await fillStep0();
-    await userEvent.click(screen.getByRole('button', { name: /next/i }));
-  }
-
   it('shows the Location & Hours fieldset on step 1', async () => {
     await goToStep1();
     expect(screen.getByPlaceholderText(/12 main street/i)).toBeInTheDocument();
@@ -163,10 +206,10 @@ describe('StoreSetup – step 1 (Location & Hours)', () => {
 
   it('hides time inputs when a day is marked as closed', async () => {
     await goToStep1();
-    const checkboxes = screen.getAllByRole('checkbox');
-    await userEvent.click(checkboxes[0]);
-    const timeInputs = document.querySelectorAll('input[type="time"]');
-    expect(timeInputs.length).toBe(12);
+    const timeInputsBefore = document.querySelectorAll('input[type="time"]');
+    await userEvent.click(screen.getAllByRole('checkbox')[0]);
+    const timeInputsAfter = document.querySelectorAll('input[type="time"]');
+    expect(timeInputsAfter.length).toBe(timeInputsBefore.length - 2);
   });
 
   it('navigates back to step 0 when Back is clicked', async () => {
@@ -186,14 +229,6 @@ describe('StoreSetup – step 1 (Location & Hours)', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('StoreSetup – step 2 (Branding)', () => {
-  async function goToStep2() {
-    render(<StoreSetup />);
-    await fillStep0();
-    await userEvent.click(screen.getByRole('button', { name: /next/i }));
-    await fillStep1();
-    await userEvent.click(screen.getByRole('button', { name: /next/i }));
-  }
-
   it('renders the Branding fieldset on step 2', async () => {
     await goToStep2();
     expect(screen.getByText('Store Logo')).toBeInTheDocument();
@@ -214,6 +249,20 @@ describe('StoreSetup – step 2 (Branding)', () => {
     expect(screen.getByAltText('Logo preview')).toBeInTheDocument();
   });
 
+  it('shows a banner preview after a file is uploaded', async () => {
+    await goToStep2();
+    const [, bannerInput] = document.querySelectorAll('input[type="file"]');
+    const file = new File(['img'], 'banner.png', { type: 'image/png' });
+    await userEvent.upload(bannerInput, file);
+    expect(screen.getByAltText('Banner preview')).toBeInTheDocument();
+  });
+
+  it('navigates back to step 1 when Back is clicked', async () => {
+    await goToStep2();
+    await userEvent.click(screen.getByRole('button', { name: /back/i }));
+    expect(screen.getByPlaceholderText(/12 main street/i)).toBeInTheDocument();
+  });
+
   it('advances to the Review step when Next is clicked', async () => {
     await goToStep2();
     await userEvent.click(screen.getByRole('button', { name: /next/i }));
@@ -224,7 +273,7 @@ describe('StoreSetup – step 2 (Branding)', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('StoreSetup – step 3 (Review & Submit)', () => {
-  async function goToStep3() {
+  async function goToStep3WithData() {
     render(<StoreSetup />);
     await fillStep0("Mama's Kitchen", 'Fast Food', 'Best in town');
     await userEvent.click(screen.getByRole('button', { name: /next/i }));
@@ -234,42 +283,91 @@ describe('StoreSetup – step 3 (Review & Submit)', () => {
   }
 
   it('shows the entered store name in the review', async () => {
-    await goToStep3();
+    await goToStep3WithData();
     expect(screen.getByText("Mama's Kitchen")).toBeInTheDocument();
   });
 
   it('shows the entered address in the review', async () => {
-    await goToStep3();
+    await goToStep3WithData();
     expect(screen.getByText('12 Main St')).toBeInTheDocument();
   });
 
   it('shows the entered phone in the review', async () => {
-    await goToStep3();
+    await goToStep3WithData();
     expect(screen.getByText('011 000 0000')).toBeInTheDocument();
   });
 
+  it('shows operating hours for each day in the review', async () => {
+    await goToStep3WithData();
+    expect(screen.getByText('08:00 – 20:00')).toBeInTheDocument();
+  });
+
+  it('shows "Closed" for a day that was marked closed', async () => {
+    render(<StoreSetup />);
+    await fillStep0("Mama's Kitchen", 'Fast Food', 'Best in town');
+    await userEvent.click(screen.getByRole('button', { name: /next/i }));
+    await userEvent.click(screen.getAllByRole('checkbox')[0]);
+    await fillStep1('12 Main St', '011 000 0000');
+    await userEvent.click(screen.getByRole('button', { name: /next/i }));
+    await userEvent.click(screen.getByRole('button', { name: /next/i }));
+    expect(screen.getByText('Closed')).toBeInTheDocument();
+  });
+
   it('shows the "Launch Store" button on the final step', async () => {
-    await goToStep3();
+    await goToStep3WithData();
     expect(screen.getByRole('button', { name: /launch store/i })).toBeInTheDocument();
   });
 
+  it('navigates back to step 2 when Back is clicked on step 3', async () => {
+    await goToStep3WithData();
+    await userEvent.click(screen.getByRole('button', { name: /back/i }));
+    expect(screen.getByText('Store Logo')).toBeInTheDocument();
+  });
+
   it('calls setDoc with correct fields on submit', async () => {
-    await goToStep3();
+    await goToStep3WithData();
     await userEvent.click(screen.getByRole('button', { name: /launch store/i }));
 
     await waitFor(() => expect(setDoc).toHaveBeenCalledTimes(1));
     expect(setDoc).toHaveBeenCalledWith(
       'doc-ref',
       expect.objectContaining({
-        businessName: "Mama's Kitchen",
-        category:     'Fast Food',
-        description:  'Best in town',
-        address:      '12 Main St',
-        phoneNumber:  '011 000 0000',
-        status:       'active',
+        businessName:     "Mama's Kitchen",
+        category:         'Fast Food',
+        description:      'Best in town',
+        address:          '12 Main St',
+        phoneNumber:      '011 000 0000',
+        status:           'pending',
+        storeInitialized: true,
       }),
       { merge: true }
     );
+  });
+
+  it('includes hours data in the setDoc call', async () => {
+    await goToStep3WithData();
+    await userEvent.click(screen.getByRole('button', { name: /launch store/i }));
+
+    await waitFor(() => expect(setDoc).toHaveBeenCalled());
+    expect(setDoc).toHaveBeenCalledWith(
+      'doc-ref',
+      expect.objectContaining({
+        hours: expect.objectContaining({
+          Monday: expect.objectContaining({ open: '08:00', close: '20:00', closed: false }),
+        }),
+      }),
+      { merge: true }
+    );
+  });
+
+  it('calls signOut after setDoc on submit', async () => {
+    await goToStep3WithData();
+    await userEvent.click(screen.getByRole('button', { name: /launch store/i }));
+
+    await waitFor(() => expect(signOut).toHaveBeenCalledTimes(1));
+    expect(setDoc).toHaveBeenCalledBefore
+      ? expect(setDoc).toHaveBeenCalledBefore(signOut)
+      : expect(setDoc.mock.invocationCallOrder[0]).toBeLessThan(signOut.mock.invocationCallOrder[0]);
   });
 
   it('calls onComplete callback after successful submit', async () => {
@@ -285,9 +383,23 @@ describe('StoreSetup – step 3 (Review & Submit)', () => {
     await waitFor(() => expect(onComplete).toHaveBeenCalledTimes(1));
   });
 
-  it('does not call setDoc if vendorId is null', async () => {
+  it('does not call setDoc if vendorId is null', () => {
     useAuth.mockReturnValue({ vendorId: null });
     render(<StoreSetup />);
     expect(setDoc).not.toHaveBeenCalled();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('StoreSetup – Exit button', () => {
+  it('calls signOut and onCancel when Exit is clicked on step 0', async () => {
+    const onCancel = jest.fn();
+    render(<StoreSetup onCancel={onCancel} />);
+
+    await userEvent.click(screen.getByRole('button', { name: /exit/i }));
+
+    await waitFor(() => expect(signOut).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(onCancel).toHaveBeenCalledTimes(1));
   });
 });

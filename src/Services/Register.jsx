@@ -50,7 +50,7 @@ const useRegister = (defaultRole) => {
       await setDoc(doc(db, "users", user.uid), userData);
 
       if (activateRole === "vendor") {
-        await setDoc(doc(db, "vendors", user.uid), {
+        await setDoc(doc(db, "Vendors", user.uid), {
           businessName,
           email,
           staffNumber,

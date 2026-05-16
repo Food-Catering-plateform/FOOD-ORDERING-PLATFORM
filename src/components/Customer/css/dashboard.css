@@ -4,7 +4,7 @@
    BASE
 ═══════════════════════════════════════ */
 body {
-  background-color: #FFF7ED;
+  background-color: #fff;
   margin: 0;
   font-family: 'Sora', sans-serif;
 }
@@ -14,127 +14,27 @@ body {
 ═══════════════════════════════════════ */
 .db-page {
   min-height: 100vh;
-  background: #FFFBF7;
+  background: #fff;
   font-family: 'Sora', sans-serif;
   padding-bottom: 4rem;
 }
 
 /* ═══════════════════════════════════════
-   HERO
-═══════════════════════════════════════ */
-.db-hero {
-  position: relative;
-  background: linear-gradient(135deg, #FF6B35 0%, #FF8C42 50%, #FFB347 100%);
-  padding: 2.5rem 2rem 3rem;
-  overflow: hidden;
-}
-
-.db-hero__inner {
-  position: relative;
-  z-index: 2;
-  max-width: 640px;
-}
-
-.db-hero__eyebrow {
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin: 0 0 0.5rem;
-}
-
-.db-hero__title {
-  font-size: clamp(1.6rem, 4vw, 2.4rem);
-  font-weight: 800;
-  color: #fff;
-  margin: 0 0 1.5rem;
-  line-height: 1.15;
-  font-style: normal;
-}
-
-.db-hero__title em {
-  font-style: italic;
-  opacity: 0.9;
-}
-
-.db-hero__blob {
-  position: absolute;
-  border-radius: 50%;
-  z-index: 1;
-}
-
-.db-hero__blob--1 {
-  top: -60px;
-  right: -60px;
-  width: 240px;
-  height: 240px;
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.db-hero__blob--2 {
-  bottom: -60px;
-  right: 15%;
-  width: 160px;
-  height: 160px;
-  background: rgba(255, 255, 255, 0.06);
-}
-
-/* ═══════════════════════════════════════
-   SEARCH BAR
-═══════════════════════════════════════ */
-.db-search {
-  display: flex;
-  align-items: center;
-  background: #fff;
-  border-radius: 50px;
-  padding: 0 1.25rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-  max-width: 440px;
-  gap: 0.5rem;
-}
-
-.db-search__icon {
-  font-size: 15px;
-  flex-shrink: 0;
-}
-
-.db-search__input {
-  flex: 1;
-  border: none;
-  outline: none;
-  padding: 0.75rem 0;
-  font-size: 14px;
-  background: transparent;
-  color: #1a1a1a;
-  font-family: 'Sora', sans-serif;
-}
-
-.db-search__input::placeholder {
-  color: #bbb;
-}
-
-.db-search__clear {
-  border: none;
-  background: none;
-  cursor: pointer;
-  color: #999;
-  font-size: 14px;
-  padding: 0;
-  flex-shrink: 0;
-}
-
-/* ═══════════════════════════════════════
    FILTER PILLS
+   pt accounts for navbar height (80px)
+   so pills are never hidden underneath
 ═══════════════════════════════════════ */
 .db-filters {
   display: flex;
   gap: 0.5rem;
-  padding: 1rem 1.5rem;
+  padding: 12px 1.5rem;
   overflow-x: auto;
   scrollbar-width: none;
   background: #fff;
-  border-bottom: 1px solid #f0ece8;
+  border-bottom: 1px solid #eee;
+  position: sticky;
+  top: 80px;       /* sits flush below the 80px navbar */
+  z-index: 100;
 }
 
 .db-filters::-webkit-scrollbar {
@@ -145,7 +45,7 @@ body {
   flex-shrink: 0;
   padding: 0.35rem 0.9rem;
   border-radius: 50px;
-  border: 1.5px solid #e8e4e0;
+  border: 1.5px solid #e0e0e0;
   background: #fff;
   color: #555;
   font-size: 12px;
@@ -157,13 +57,13 @@ body {
 }
 
 .db-pill:hover {
-  border-color: #FF6B35;
-  color: #FF6B35;
+  border-color: #111;
+  color: #111;
 }
 
 .db-pill--active {
-  background: #FF6B35;
-  border-color: #FF6B35;
+  background: #111;
+  border-color: #111;
   color: #fff;
 }
 
@@ -175,7 +75,7 @@ body {
   align-items: center;
   gap: 0.75rem;
   padding: 0.65rem 1.75rem;
-  background: #FFFBF7;
+  background: #fff;
 }
 
 .db-stats__text {
@@ -187,7 +87,7 @@ body {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: #ccc;
+  background: #ddd;
 }
 
 /* ═══════════════════════════════════════
@@ -202,30 +102,30 @@ body {
 }
 
 /* ═══════════════════════════════════════
-   VENDOR CARD  — compact
+   VENDOR CARD
 ═══════════════════════════════════════ */
 .db-card {
   background: #fff;
   border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-  border: 1px solid #f0ece8;
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+  border: 1px solid #eee;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
 }
 
 .db-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.11);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1);
 }
 
 .db-card:active {
   transform: scale(0.98);
 }
 
-/* ── Card image ── */
+/* ── Image banner — all white/light grey ── */
 .db-card__img-wrap {
   height: 110px;
   display: flex;
@@ -233,6 +133,17 @@ body {
   justify-content: center;
   position: relative;
   overflow: hidden;
+  background: #f7f7f7;
+}
+
+/* Remove per-category coloured backgrounds */
+.db-card--traditional       .db-card__img-wrap,
+.db-card--halal             .db-card__img-wrap,
+.db-card--fast-food         .db-card__img-wrap,
+.db-card--desserts---drinks .db-card__img-wrap,
+.db-card--grills---braai    .db-card__img-wrap,
+.db-card--other             .db-card__img-wrap {
+  background: #f7f7f7;
 }
 
 .db-card__img {
@@ -245,36 +156,7 @@ body {
   font-size: 38px;
 }
 
-/* ── Category banner colours ── */
-.db-card--traditional       .db-card__img-wrap { background: #FFF3E0; }
-.db-card--halal             .db-card__img-wrap { background: #E8F5E9; }
-.db-card--fast-food         .db-card__img-wrap { background: #FFF8E1; }
-.db-card--desserts---drinks .db-card__img-wrap { background: #FCE4EC; }
-.db-card--grills---braai    .db-card__img-wrap { background: #EFEBE9; }
-.db-card--other             .db-card__img-wrap { background: #F3E5F5; }
-
-/* ── Accent colours per category ── */
-.db-card--traditional       .db-card__emoji,
-.db-card--traditional       .db-card__view-btn { color: #E65100; }
-.db-card--halal             .db-card__emoji,
-.db-card--halal             .db-card__view-btn { color: #2E7D32; }
-.db-card--fast-food         .db-card__emoji,
-.db-card--fast-food         .db-card__view-btn { color: #F57F17; }
-.db-card--desserts---drinks .db-card__emoji,
-.db-card--desserts---drinks .db-card__view-btn { color: #AD1457; }
-.db-card--grills---braai    .db-card__emoji,
-.db-card--grills---braai    .db-card__view-btn { color: #4E342E; }
-.db-card--other             .db-card__emoji,
-.db-card--other             .db-card__view-btn { color: #6A1B9A; }
-
-.db-card--traditional       .db-card__view-btn { background: #E65100; }
-.db-card--halal             .db-card__view-btn { background: #2E7D32; }
-.db-card--fast-food         .db-card__view-btn { background: #F57F17; }
-.db-card--desserts---drinks .db-card__view-btn { background: #AD1457; }
-.db-card--grills---braai    .db-card__view-btn { background: #4E342E; }
-.db-card--other             .db-card__view-btn { background: #6A1B9A; }
-
-/* ── Badges ── */
+/* ── Open / closed badge ── */
 .db-card__badge {
   position: absolute;
   top: 8px;
@@ -288,19 +170,20 @@ body {
 }
 
 .db-card__badge--open   { background: #22c55e; }
-.db-card__badge--closed { background: #94a3b8; }
+.db-card__badge--closed { background: #aaa; }
 
+/* ── Category tag ── */
 .db-card__cat-tag {
   position: absolute;
   bottom: 8px;
   right: 8px;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   padding: 2px 8px;
   border-radius: 50px;
-  background: rgba(255, 255, 255, 0.85);
-  color: #444;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.9);
+  color: #555;
+  border: 1px solid #e0e0e0;
 }
 
 /* ── Card body ── */
@@ -313,7 +196,7 @@ body {
   margin: 0 0 0.25rem;
   font-size: 14px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #111;
 }
 
 .db-card__desc {
@@ -330,13 +213,13 @@ body {
 .db-card__address {
   margin: 0;
   font-size: 11px;
-  color: #aaa;
+  color: #bbb;
 }
 
 /* ── Card footer ── */
 .db-card__footer {
   padding: 0.6rem 0.9rem;
-  border-top: 1px solid #f5f0eb;
+  border-top: 1px solid #f0f0f0;
 }
 
 .db-card__view-btn {
@@ -346,7 +229,28 @@ body {
   font-weight: 700;
   padding: 0.35rem 0.85rem;
   border-radius: 50px;
-  background: #424242;
+  background: #111;
+}
+
+/* Remove per-category coloured view buttons */
+.db-card--traditional       .db-card__view-btn,
+.db-card--halal             .db-card__view-btn,
+.db-card--fast-food         .db-card__view-btn,
+.db-card--desserts---drinks .db-card__view-btn,
+.db-card--grills---braai    .db-card__view-btn,
+.db-card--other             .db-card__view-btn {
+  background: #111;
+  color: #fff;
+}
+
+/* Remove per-category emoji colours */
+.db-card--traditional       .db-card__emoji,
+.db-card--halal             .db-card__emoji,
+.db-card--fast-food         .db-card__emoji,
+.db-card--desserts---drinks .db-card__emoji,
+.db-card--grills---braai    .db-card__emoji,
+.db-card--other             .db-card__emoji {
+  color: #444;
 }
 
 /* ═══════════════════════════════════════
@@ -355,7 +259,7 @@ body {
 .db-skeleton {
   height: 220px;
   border-radius: 12px;
-  background: #f0ece8;
+  background: #f5f5f5;
   animation: db-pulse 1.4s ease-in-out infinite;
 }
 

@@ -1,30 +1,42 @@
 import React, { useEffect, useState } from 'react';
 import '../css/MenuView.css';
 import { db } from "../../../Firebase/firebaseConfig";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc } from "firebase/firestore";
 
-/* ── Standardised dietary / allergen data source ── */
+/* ── Dietary / allergen data ── */
 const DIETARY_FLAGS = {
-  halal:    { label: 'Halal',     icon: '☪️',  cls: 'diet-pill--halal'    },
-  vegan:    { label: 'Vegan',     icon: '🌱',  cls: 'diet-pill--vegan'    },
-  vegetarian:{ label: 'Vegetarian',icon: '🥦', cls: 'diet-pill--veggie'   },
-  'nut-free':{ label: 'Nut-Free', icon: '🚫🥜',cls: 'diet-pill--nut-free' },
-  'gluten-free':{ label: 'Gluten-Free', icon: '🌾', cls: 'diet-pill--gluten' },
+  halal:        { label: 'Halal',        icon: '☪️',   cls: 'diet-pill--halal'    },
+  vegan:        { label: 'Vegan',        icon: '🌱',   cls: 'diet-pill--vegan'    },
+  vegetarian:   { label: 'Vegetarian',   icon: '🥦',   cls: 'diet-pill--veggie'   },
+  'nut-free':   { label: 'Nut-Free',     icon: '🚫🥜', cls: 'diet-pill--nut-free' },
+  'gluten-free':{ label: 'Gluten-Free',  icon: '🌾',   cls: 'diet-pill--gluten'   },
 };
 
 const ALLERGEN_ICONS = {
-  Gluten:    '🌾', Dairy:    '🥛', Eggs:      '🥚',
-  Nuts:      '🥜', Peanuts:  '🥜', Soy:       '🫘',
-  Fish:      '🐟', Shellfish:'🦐', Sesame:    '🌿',
+  Gluten: '🌾', Dairy: '🥛', Eggs: '🥚',
+  Nuts: '🥜', Peanuts: '🥜', Soy: '🫘',
+  Fish: '🐟', Shellfish: '🦐', Sesame: '🌿',
   Sulphites: '🍷',
 };
 
+/* ── Check if shop is open right now ── */
+function checkIsOpen(hours) {
+  if (!hours) return false;
+  const today = new Date().toLocaleDateString('en-ZA', { weekday: 'long' });
+  const todayHours = hours[today];
+  if (!todayHours || todayHours.closed) return false;
+  const now = new Date();
+  const [oh, om] = todayHours.open.split(':').map(Number);
+  const [ch, cm] = todayHours.close.split(':').map(Number);
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  return nowMins >= oh * 60 + om && nowMins <= ch * 60 + cm;
+}
+
+/* ── Dietary accordion ── */
 function DietaryInfo({ item }) {
   const [open, setOpen] = useState(false);
-
-  const hasDietary  = item.dietary  && item.dietary.length  > 0;
+  const hasDietary   = item.dietary  && item.dietary.length  > 0;
   const hasAllergens = item.allergens && item.allergens.length > 0;
-
   if (!hasDietary && !hasAllergens) return null;
 
   return (
@@ -37,7 +49,6 @@ function DietaryInfo({ item }) {
       >
         {open ? '▲' : '▼'} Dietary & Allergen Info
       </button>
-
       {open && (
         <div>
           {hasDietary && (
@@ -55,7 +66,6 @@ function DietaryInfo({ item }) {
               </div>
             </div>
           )}
-
           {hasAllergens && (
             <div className="menu-item__allergens">
               <p className="menu-item__allergen-label">⚠️ Contains Allergens</p>
@@ -74,30 +84,59 @@ function DietaryInfo({ item }) {
   );
 }
 
+/* ── Main component ── */
 const MenuView = ({ shop, onBack, addToBasket }) => {
   const [menuItems, setMenuItems] = useState([]);
-  const [addedId, setAddedId]     = useState(null);
+  const [addedId,   setAddedId]   = useState(null);
+  const [isOpen,    setIsOpen]    = useState(false);
+  const [hours,     setHours]     = useState(null);
 
   useEffect(() => {
-    const fetchMenu = async () => {
-      if (!shop?.id) return;
+    if (!shop?.id) return;
+
+    const fetchData = async () => {
+      // Fetch vendor hours
+      const vendorSnap = await getDoc(doc(db, 'Vendors', shop.id));
+      if (vendorSnap.exists()) {
+        const vendorHours = vendorSnap.data().hours || null;
+        setHours(vendorHours);
+        setIsOpen(checkIsOpen(vendorHours));
+      }
+
+      // Fetch menu items
       const menuSnapshot = await getDocs(
-        collection(db, "Vendors", shop.id, "menuItems")
+        collection(db, 'Vendors', shop.id, 'menuItems')
       );
       const items = [];
-      menuSnapshot.forEach((doc) => {
-        items.push({ id: doc.id, ...doc.data() });
-      });
+      menuSnapshot.forEach(d => items.push({ id: d.id, ...d.data() }));
       setMenuItems(items);
     };
-    fetchMenu();
+
+    fetchData();
   }, [shop]);
+
+  /* Format today's hours for display */
+  const todayLabel = () => {
+    if (!hours) return null;
+    const today = new Date().toLocaleDateString('en-ZA', { weekday: 'long' });
+    const t = hours[today];
+    if (!t) return 'No hours listed for today';
+    if (t.closed) return `Closed today`;
+    return `Today: ${t.open} – ${t.close}`;
+  };
 
   return (
     <section className="menu-container">
       <header>
-        <h2>{shop?.name || "Menu"} Menu</h2>
-        <p>Select items to add to your order.</p>
+        <h2>{shop?.name || 'Menu'}</h2>
+
+        {/* ── Open / closed banner ── */}
+        <div className={`menu-status-banner ${isOpen ? 'menu-status-banner--open' : 'menu-status-banner--closed'}`}>
+          <span className="menu-status-banner__dot" />
+          <span>{isOpen ? 'Open now' : 'Closed'}</span>
+          {todayLabel() && <span className="menu-status-banner__hours"> · {todayLabel()}</span>}
+        </div>
+        {isOpen && <p>Select items to add to your order.</p>}
       </header>
 
       <section className="menu-list">
@@ -110,26 +149,30 @@ const MenuView = ({ shop, onBack, addToBasket }) => {
                 <h3>{item.name}</h3>
                 <data value={item.price}>R{item.price}</data>
               </header>
-
               {item.description && <p>{item.description}</p>}
-
-              {/* ── Dietary & allergen accordion ── */}
               <DietaryInfo item={item} />
             </div>
 
             <footer>
               <small>Qty: {item.qty}</small>
-              <button
-                type="button"
-                className={addedId === item.id ? 'added' : ''}
-                onClick={() => {
-                  addToBasket(item, shop);
-                  setAddedId(item.id);
-                  setTimeout(() => setAddedId(null), 1000);
-                }}
-              >
-                {addedId === item.id ? '✓ Added!' : 'Add to Basket'}
-              </button>
+
+              {isOpen ? (
+                <button
+                  type="button"
+                  className={addedId === item.id ? 'added' : ''}
+                  onClick={() => {
+                    addToBasket(item, shop);
+                    setAddedId(item.id);
+                    setTimeout(() => setAddedId(null), 1000);
+                  }}
+                >
+                  {addedId === item.id ? '✓ Added!' : 'Add to Basket'}
+                </button>
+              ) : (
+                <button type="button" className="btn-closed" disabled>
+                  Shop Closed
+                </button>
+              )}
             </footer>
           </article>
         ))}

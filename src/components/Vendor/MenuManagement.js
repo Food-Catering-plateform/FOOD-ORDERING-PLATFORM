@@ -4,8 +4,6 @@ import { collection, addDoc, updateDoc, getDocs, doc, deleteDoc } from "firebase
 import { db } from "../../Firebase/firebaseConfig";
 import { useAuth } from "../../Services/AuthContext";
 
-/* ── Standardised dietary / allergen data source (Single source of truth used by ALL vendors — ensures consistent labelling)
-*/
 export const DIETARY_OPTIONS = [
   { key: 'halal',       label: 'Halal',       icon: '☪️'   },
   { key: 'vegan',       label: 'Vegan',       icon: '🌱'   },
@@ -20,34 +18,50 @@ export const ALLERGENS = [
 ];
 
 export const ALLERGEN_ICONS = {
-  Gluten:'🌾', Dairy:'🥛', Eggs:'🥚', Nuts:'🥜', Peanuts:'🥜',
-  Soy:'🫘', Fish:'🐟', Shellfish:'🦐', Sesame:'🌿', Sulphites:'🍷',
+  'Gluten': '🌾', 'Dairy': '🥛', 'Eggs': '🥚', 'Nuts': '🥜', 'Peanuts': '🥜',
+  'Soy': '🫘', 'Fish': '🐟', 'Shellfish': '🦐', 'Sesame': '🌱', 'Sulphites': '🧪'
+};
+
+const EMPTY_FORM = {
+  name: '', price: '', qty: '', description: '', imageUrl: null, allergens: [], dietary: []
 };
 
 function MenuManagement() {
   const { vendorId } = useAuth();
-
-  const [items, setItems]               = useState([]);
+  const [items, setItems] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
+  const [form, setForm] = useState(EMPTY_FORM);
   const [allergenOpen, setAllergenOpen] = useState(false);
-  const [dietaryOpen, setDietaryOpen]   = useState(false);
-  const [form, setForm] = useState({
-    name: '', price: '', qty: '', description: '',
-    imageUrl: null, allergens: [], dietary: []
-  });
+  const [dietaryOpen, setDietaryOpen] = useState(false);
+  const [deletingIndex, setDeletingIndex] = useState(null);
 
-  const formRef     = useRef(null);
   const dropdownRef = useRef(null);
-  const dietaryRef  = useRef(null);
+  const dietaryRef = useRef(null);
+  const formRef = useRef(null);
+
+  useEffect(() => {
+    if (!vendorId) return;
+    const fetchItems = async () => {
+        try {
+          const snap = await getDocs(collection(db, "Vendors", vendorId, "menuItems"));
+          setItems(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        } catch (error) {
+          console.error('Unable to fetch items', error);
+        }
+    };
+    fetchItems();
+  }, [vendorId]);
 
   useEffect(() => {
     function handleClickOutside(e) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setAllergenOpen(false);
-      if (dietaryRef.current  && !dietaryRef.current.contains(e.target))  setDietaryOpen(false);
+      if (dietaryRef.current && !dietaryRef.current.contains(e.target)) setDietaryOpen(false);
     }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const FIELD_MAP = { foodname: 'name', foodprice: 'price', foodqty: 'qty', fooddesc: 'description' };
 
   function handleChange(e) {
     const { id, value, files } = e.target;
@@ -55,110 +69,88 @@ function MenuManagement() {
       const file = files[0];
       if (file) {
         const reader = new FileReader();
-        reader.onload = () => setForm(f => ({ ...f, imageUrl: reader.result }));
+        reader.onloadend = () => setForm(prev => ({ ...prev, imageUrl: reader.result }));
         reader.readAsDataURL(file);
       }
     } else {
-      const key = { foodName:'name', foodPrice:'price', foodQty:'qty', foodDesc:'description' }[id];
-      setForm(f => ({ ...f, [key]: value }));
+      const key = FIELD_MAP[id.toLowerCase()] || id.replace('food', '').toLowerCase();
+      setForm(prev => ({ ...prev, [key]: value }));
     }
   }
 
   function toggleAllergen(allergen) {
-    setForm(f => ({
-      ...f,
-      allergens: f.allergens.includes(allergen)
-        ? f.allergens.filter(a => a !== allergen)
-        : [...f.allergens, allergen]
+    setForm(prev => ({
+      ...prev,
+      allergens: prev.allergens.includes(allergen)
+        ? prev.allergens.filter(a => a !== allergen)
+        : [...prev.allergens, allergen]
     }));
   }
 
   function toggleDietary(key) {
-    setForm(f => ({
-      ...f,
-      dietary: f.dietary.includes(key)
-        ? f.dietary.filter(d => d !== key)
-        : [...f.dietary, key]
+    setForm(prev => ({
+      ...prev,
+      dietary: prev.dietary.includes(key)
+        ? prev.dietary.filter(k => k !== key)
+        : [...prev.dietary, key]
     }));
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!vendorId) return;
-
-    const menuCollectionRef = collection(db, "Vendors", vendorId, "menuItems");
-    const imageUrl = form.imageUrl || (
-      editingIndex !== null
-        ? items[editingIndex].imageUrl
-        : 'https://placehold.co/300x160/F5F4F2/FF6B2B?text=Food'
-    );
-
-    const newItem = {
-      name:        form.name.trim(),
-      price:       parseFloat(form.price).toFixed(2),
-      qty:         form.qty,
-      description: form.description.trim(),
-      imageUrl,
-      allergens: form.allergens,
-      dietary:   form.dietary,
-    };
-
+    const data = { ...form, price: parseFloat(form.price), qty: parseInt(form.qty) || 0 };
     try {
       if (editingIndex !== null) {
-        const itemToEdit = items[editingIndex];
-        await updateDoc(doc(db, "Vendors", vendorId, "menuItems", itemToEdit.id), newItem);
-        setItems(prev => prev.map((item, i) => i === editingIndex ? { ...newItem, id: itemToEdit.id } : item));
+        const item = items[editingIndex];
+        await updateDoc(doc(db, "Vendors", vendorId, "menuItems", item.id), data);
+        setItems(prev => {
+          const next = [...prev];
+          next[editingIndex] = { ...item, ...data };
+          return next;
+        });
         setEditingIndex(null);
       } else {
-        const docRef = await addDoc(menuCollectionRef, newItem);
-        setItems(prev => [...prev, { ...newItem, id: docRef.id }]);
+        const docRef = await addDoc(collection(db, "Vendors", vendorId, "menuItems"), data);
+        setItems(prev => [...prev, { id: docRef.id, ...data }]);
       }
-      setForm({ name:'', price:'', qty:'', description:'', imageUrl:null, allergens:[], dietary:[] });
+      setForm(EMPTY_FORM);
     } catch (error) {
-      console.error("Error saving item:", error);
+        console.error("Error saving item:", error);
     }
   }
-
-  useEffect(() => {
-    if (!vendorId) return;
-    const fetchItems = async () => {
-      try {
-        const ref = collection(db, "Vendors", vendorId, "menuItems");
-        const data = await getDocs(ref);
-        setItems(data.docs.map(d => ({ id: d.id, ...d.data() })));
-      } catch (error) {
-        console.error("Unable to fetch items", error);
-      }
-    };
-    fetchItems();
-  }, [vendorId]);
 
   function editItem(index) {
     const item = items[index];
     setEditingIndex(index);
     setForm({
-      name:        item.name,
-      price:       item.price,
-      qty:         item.qty,
-      description: item.description,
-      imageUrl:    item.imageUrl,
-      allergens:   item.allergens || [],
-      dietary:     item.dietary   || [],
+      name:        item.name        ?? '',
+      price:       item.price       ?? '',
+      qty:         item.qty         ?? '',
+      description: item.description ?? '',
+      imageUrl:    item.imageUrl    ?? null,
+      allergens:   Array.isArray(item.allergens) ? item.allergens : [],
+      dietary:     Array.isArray(item.dietary)   ? item.dietary   : [],
     });
     formRef.current?.scrollIntoView({ behavior: 'smooth' });
   }
 
   async function deleteItem(index) {
+    if (deletingIndex !== index) {
+      setDeletingIndex(index);
+      return;
+    }
     const item = items[index];
     try {
       await deleteDoc(doc(db, "Vendors", vendorId, "menuItems", item.id));
       setItems(prev => prev.filter((_, i) => i !== index));
+      setDeletingIndex(null);
       if (editingIndex === index) {
         setEditingIndex(null);
-        setForm({ name:'', price:'', qty:'', description:'', imageUrl:null, allergens:[], dietary:[] });
+        setForm(EMPTY_FORM);
       }
     } catch (error) {
       console.error("Unable to delete item", error);
+      setDeletingIndex(null);
     }
   }
 
@@ -171,10 +163,8 @@ function MenuManagement() {
   return (
     <section className="page">
       <h1>Menu Management</h1>
-
       <section className="card" ref={formRef}>
         <h2>{editingIndex !== null ? 'Edit Food Item' : 'Add Food Item'}</h2>
-
         <form onSubmit={handleSubmit}>
           <input id="foodName"  placeholder="Food name"          value={form.name}        onChange={handleChange} required />
           <input id="foodPrice" placeholder="Price (R)"          value={form.price}       onChange={handleChange} required />
@@ -182,7 +172,6 @@ function MenuManagement() {
           <textarea id="foodDesc" placeholder="Description"      value={form.description} onChange={handleChange} />
           <input id="foodImage" type="file" accept="image/*"     onChange={handleChange} />
 
-          {/* ── Dietary picker (standardised source) ── */}
           <div className="allergen-dropdown" ref={dietaryRef}>
             <button type="button" className="allergen-toggle" onClick={() => setDietaryOpen(o => !o)}>
               {dietaryLabel}
@@ -202,7 +191,6 @@ function MenuManagement() {
             )}
           </div>
 
-          {/* ── Allergen picker (standardised source) ── */}
           <div className="allergen-dropdown" ref={dropdownRef}>
             <button type="button" className="allergen-toggle" onClick={() => setAllergenOpen(o => !o)}>
               {form.allergens.length > 0
@@ -233,7 +221,7 @@ function MenuManagement() {
       {items.length === 0 ? (
         <p id="emptyMsg">No menu items yet. Add your first item above.</p>
       ) : (
-        <ul>
+        <ul className="menu-items-list">
           {items.map((item, index) => (
             <li key={item.id} className={editingIndex === index ? 'editing' : ''}>
               <img src={item.imageUrl} alt={item.name} />
@@ -241,24 +229,31 @@ function MenuManagement() {
                 <h3>{item.name}</h3>
                 <p>R {item.price}</p>
                 {item.description ? <p>{item.description}</p> : null}
-                {item.dietary?.length > 0 && (
+                {(item.dietary ?? []).length > 0 && (
                   <p className="allergen-tags">
-                    {item.dietary.map(k => {
+                    {(item.dietary ?? []).map(k => {
                       const d = DIETARY_OPTIONS.find(o => o.key === k);
                       return <span key={k} className="allergen-tag dietary-tag">{d?.icon} {d?.label || k}</span>;
                     })}
                   </p>
                 )}
-                {item.allergens?.length > 0 && (
+                {(item.allergens ?? []).length > 0 && (
                   <p className="allergen-tags">
-                    {item.allergens.map(a => (
+                    {(item.allergens ?? []).map(a => (
                       <span key={a} className="allergen-tag">{ALLERGEN_ICONS[a]} {a}</span>
                     ))}
                   </p>
                 )}
               </div>
               <button onClick={() => editItem(index)}>Edit</button>
-              <button className="delete-btn" onClick={() => deleteItem(index)}>Delete</button>
+              <button
+                className="delete-btn"
+                onClick={() => deleteItem(index)}
+                onMouseLeave={() => setDeletingIndex(null)}
+                style={deletingIndex === index ? { background: '#ff4444', color: 'white' } : {}}
+              >
+                {deletingIndex === index ? 'Are you sure?' : 'Delete'}
+              </button>
             </li>
           ))}
         </ul>

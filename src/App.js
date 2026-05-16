@@ -2,7 +2,6 @@ import React, { useState, useCallback, useEffect } from 'react';
 import Navbar from './components/Navbar/Navbar';
 import Sidebar from './components/Sidebar/Sidebar';
 import Login from './components/login-and-signup/login';
-import Shops from './components/Customer/jsFiles/Shops';
 import Profile from './components/Customer/jsFiles/Profile';
 import Notifications from './components/Customer/jsFiles/Notifications';
 import Orders from './components/Customer/jsFiles/Orders';
@@ -17,7 +16,7 @@ import Payment from './components/Customer/jsFiles/Payment';
 import { auth, db } from './Firebase/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
-import Dashboard from './components/Customer/jsFiles/Dashboard'
+import Dashboard from './components/Customer/jsFiles/Dashboard';
 
 function App() {
   const isPaymentSuccess = window.location.search.includes('page=payment-success');
@@ -29,11 +28,12 @@ function App() {
     return 'login';
   });
 
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // closed by default
   const [selectedShop, setSelectedShop] = useState(null);
   const [vendorUid, setVendorUid] = useState(null);
   const [checking, setChecking] = useState(!isPaymentSuccess);
   const [basket, setBasket] = useState([]);
+  const [search, setSearch] = useState(''); // ✅ fixed typo: was setsSearch
 
   const addToBasket = (item, shop) => {
     setBasket(prev => {
@@ -89,7 +89,6 @@ function App() {
   }, []);
 
   useEffect(() => {
-    // Skip auth check entirely for payment-success redirect
     if (isPaymentSuccess) return;
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -110,13 +109,11 @@ function App() {
                 return;
               }
               if (vd.status !== 'approved') { setActivePage('vendor-pending'); setChecking(false); return; }
-              // Vendor is approved — go straight to their dashboard
               setVendorUid(user.uid);
               setActivePage('vendor-dashboard');
               setChecking(false);
               return;
             } else {
-              // No vendor document yet — send to store setup
               setVendorUid(user.uid);
               setActivePage('store-setup');
               setChecking(false);
@@ -201,10 +198,11 @@ function App() {
       case 'shops':
         return (
           <Dashboard
-           setActivePage={setActivePage}
-           setSelectedShop={setSelectedShop}
-        />
-     );
+            setActivePage={setActivePage}
+            setSelectedShop={setSelectedShop}
+            search={search}
+          />
+        );
       case 'menu-view':
         return (
           <MenuView
@@ -274,7 +272,13 @@ function App() {
 
   return (
     <>
-      {useCustomerChrome && <Navbar setActivePage={setActivePage} />}
+      {useCustomerChrome && (
+        <Navbar
+          setActivePage={setActivePage}
+          search={search}
+          setSearch={setSearch}
+        />
+      )}
       <section className="app-shell" style={{ display: 'flex' }}>
         {useCustomerChrome && (
           <Sidebar
@@ -286,14 +290,14 @@ function App() {
         )}
         <main
           style={{
-            marginLeft: useCustomerChrome ? (sidebarOpen ? '187px' : '60px') : '0',
-            transition: '0.3s ease',
-            paddingTop: useCustomerChrome ? '60px' : '0',
-            padding: isAuthScreen ? '0' : '60px',
+            marginLeft: useCustomerChrome ? (sidebarOpen ? '200px' : '0') : '0',
+            transition: 'margin-left 0.3s ease',
+            paddingTop: useCustomerChrome ? '80px' : '0',
+            padding: isAuthScreen ? '0' : undefined,
             flex: 1,
             display: 'flex',
             justifyContent: 'center',
-            background: isAuthScreen ? '#f3f4f6' :'#FFF7ED',
+            background: isAuthScreen ? '#f3f4f6' : '#FFF7ED',
             minHeight: '100vh',
           }}
         >

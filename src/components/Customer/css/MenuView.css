@@ -118,8 +118,6 @@
   gap: 5px;
 }
 
-/* Pill styles (using global classes from App.css) */
-.diet-pill { /* inherited from App.css */ }
 
 /* ── Allergen warning ── */
 .menu-item__allergens {
@@ -226,3 +224,59 @@ nav { display: flex; justify-content: flex-start; margin-top: 24px; }
   transition: background .15s, border-color .15s;
 }
 .back-btn:hover { background: #ECEAE6; border-color: #C9C5BC; }
+
+.menu-status-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 50px;
+  margin: 6px 0 10px;
+}
+ 
+.menu-status-banner--open {
+  background: #dcfce7;
+  color: #15803d;
+}
+ 
+.menu-status-banner--closed {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+ 
+.menu-status-banner__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+ 
+.menu-status-banner__hours {
+  font-weight: 400;
+  opacity: 0.8;
+}
+ 
+/* Warning notice when closed */
+.menu-closed-notice {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #c2410c;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+ 
+/* Disabled "Shop Closed" button */
+.btn-closed {
+  background: #e5e7eb;
+  color: #9ca3af;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: not-allowed;
+}
