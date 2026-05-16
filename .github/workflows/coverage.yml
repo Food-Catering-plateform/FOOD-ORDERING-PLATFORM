@@ -53,31 +53,13 @@ jobs:
             find coverage -type f -exec touch {} +
           fi
 
-      - name: Touch coverage report before upload
+      - name: Touch and normalize coverage report before upload
         if: always()
+        shell: bash
         run: |
           if [ -f coverage/lcov.info ]; then
             touch coverage/lcov.info
-          fi
-
-      - name: Normalize LCOV path separators
-        if: always()
-        run: |
-          if [ -f coverage/lcov.info ]; then
-            python3 - <<'PY'
-from pathlib import Path
-path = Path('coverage/lcov.info')
-text = path.read_text(encoding='utf-8')
-path.write_text(text.replace('\\', '/'), encoding='utf-8')
-PY
-          fi
-
-      - name: Verify normalized LCOV paths
-        if: always()
-        run: |
-          if [ -f coverage/lcov.info ]; then
-            echo 'First 20 SF entries after normalization:'
-            grep -n '^SF:' coverage/lcov.info | head -20
+            sed -i 's#\\#/#g' coverage/lcov.info
           fi
 
       - name: Upload coverage reports to Codecov
