@@ -142,3 +142,18 @@
   padding: 32px 28px;
   overflow-y: auto;
 }
+.vendor-main {
+  display: flex;
+  flex-direction: column;
+}
+
+.vendor-main__topbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 12px 20px;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 999;
+}

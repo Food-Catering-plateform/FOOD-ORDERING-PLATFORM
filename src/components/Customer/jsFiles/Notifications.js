@@ -4,11 +4,40 @@ import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { db } from '../../../Firebase/firebaseConfig';
 import { useAuth } from '../../../Services/AuthContext';
 
-/**
- * In-app notifications for the same `Orders` collection the vendor uses (Vendor/Orders.js).
- * Pickup-ready **emails** are sent from the vendor dashboard when status becomes `ready`
- * (see `Services/pickupReadyEmail.js` + `Vendor/Orders.js`) so customers do not need this page open.
- */
+// Maps each order status to a badge label, emoji and css modifier
+const STATUS_CONFIG = {
+  pending: {
+    label:   'Order Received',
+    emoji:   '🧾',
+    message: 'Your order has been received and is waiting for the vendor to confirm.',
+    mod:     'pending',
+  },
+  preparing: {
+    label:   'Being Prepared',
+    emoji:   '👨‍🍳',
+    message: 'Your order is currently being prepared in the kitchen.',
+    mod:     'preparing',
+  },
+  ready: {
+    label:   'Ready for Collection',
+    emoji:   '✅',
+    message: 'Your order is ready! Head to the vendor to collect it now.',
+    mod:     'ready',
+  },
+  completed: {
+    label:   'Order Completed',
+    emoji:   '🎉',
+    message: 'You have collected your order. Enjoy your meal!',
+    mod:     'completed',
+  },
+  cancelled: {
+    label:   'Order Cancelled',
+    emoji:   '❌',
+    message: 'Your order was cancelled by the vendor. Please place a new order.',
+    mod:     'cancelled',
+  },
+};
+
 const Notifications = () => {
   const { currentUser, authLoading } = useAuth();
   const [orders, setOrders]         = useState([]);
