@@ -20,7 +20,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "test:ci": "react-scripts test --watchAll=false --coverage --coverageReporters=lcov --coverageReporters=text",
+    "test:ci": "react-scripts test --watchAll=false --coverage --coverageReporters=lcov --coverageReporters=text --collectCoverageFrom=src/**/*.{js,jsx} --collectCoverageFrom=!src/index.js --collectCoverageFrom=!src/reportWebVitals.js",
     "eject": "react-scripts eject"
   },
 
