@@ -13,6 +13,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -29,6 +31,8 @@ jobs:
           rm -rf coverage-vsidebar || true
 
       - name: Run tests with coverage
+        env:
+          CI: true
         run: npm test -- --coverage --watchAll=false
 
       - name: Inspect generated coverage files
@@ -56,6 +60,8 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage/lcov.info
           flags: jest
+          branch: ${{ github.head_ref || github.ref_name }}
+          commit: ${{ github.sha }}
           verbose: true
           fail_ci_if_error: true
         env:
