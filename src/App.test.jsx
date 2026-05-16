@@ -324,11 +324,9 @@ describe('App Component', () => {
     expect(screen.getByText('Toggle Sidebar')).toBeInTheDocument();
 
     const main = container.querySelector('main');
-    // sidebar closed by default → marginLeft: 0
     expect(main).toHaveStyle('margin-left: 0');
 
     fireEvent.click(screen.getByText('Toggle Sidebar'));
-    // sidebar open → marginLeft: 200px
     expect(main).toHaveStyle('margin-left: 200px');
   });
 
@@ -350,15 +348,37 @@ describe('App Component', () => {
   });
 
   test('addToBasket adds a new item then increments qty on duplicate', () => {
-    setSearch('?page=menu-view');
     renderApp();
+    fireEvent.click(screen.getByRole('button', { name: /login page/i }));
+    fireEvent.click(screen.getByRole('button', { name: /open shop/i }));
+    expect(screen.getByText('Menu View Page')).toBeInTheDocument();
+
     fireEvent.click(screen.getByRole('button', { name: /add item/i }));
     fireEvent.click(screen.getByRole('button', { name: /add same item again/i }));
-    // navigate to basket to verify
-    setSearch('?page=basket');
-    // basket state lives in App; re-check via menu-view addToBasket side effect
-    // The basket mock reads from prop; verify no crash and menu view still renders
-    expect(screen.getByText('Menu View Page')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /back/i }));
+    fireEvent.click(screen.getByRole('button', { name: /open shop/i }));
+    fireEvent.click(screen.getByRole('button', { name: /back/i }));
+
+    window.history.pushState({}, 'Test page', 'http://localhost?page=basket');
+    fireEvent.click(screen.getByRole('button', { name: /open shop/i }));
+  });
+
+  test('addToBasket qty increment is reflected in basket', () => {
+    const { rerender } = renderApp();
+    fireEvent.click(screen.getByRole('button', { name: /login page/i }));
+    fireEvent.click(screen.getByRole('button', { name: /open shop/i }));
+
+    fireEvent.click(screen.getByRole('button', { name: /add item/i }));
+    fireEvent.click(screen.getByRole('button', { name: /add same item again/i }));
+
+    fireEvent.click(screen.getByRole('button', { name: /back/i }));
+
+    window.history.pushState({}, 'Test page', 'http://localhost?page=basket');
+    rerender(<App />);
+
+    expect(screen.getByText(/Basket Page/i)).toBeInTheDocument();
+    expect(screen.getByText(/item-1:2/i)).toBeInTheDocument();
   });
 
   test('menu-view onBack navigates to shops', () => {
@@ -625,8 +645,139 @@ describe('App Component', () => {
   test('auth effect skips check entirely when page=payment-success', () => {
     setSearch('?page=payment-success');
     renderApp();
-    // onAuthStateChanged should NOT be called because isPaymentSuccess=true
     expect(mockOnAuthStateChanged).not.toHaveBeenCalled();
     expect(screen.getByText('Payment Success Page')).toBeInTheDocument();
+  });
+
+  // ── NEW: previously uncovered branches ──────────────────────────────────
+
+  test('auth effect routes approved admin to admin-dashboard via handleLoginSuccess', async () => {
+    authUser = { uid: 'admin-1' };
+    mockGetDoc.mockImplementation((docRef) => {
+      if (docRef.collection === 'users') {
+        return Promise.resolve({ exists: () => true, data: () => ({ role: 'admin' }) });
+      }
+      if (docRef.collection === 'admins') {
+        return Promise.resolve({ exists: () => true, data: () => ({ status: 'approved' }) });
+      }
+      return Promise.resolve({ exists: () => false });
+    });
+    renderApp();
+    expect(await screen.findByText('Admin Dashboard Page')).toBeInTheDocument();
+  });
+
+  test('auth effect routes admin with no admins doc to admin-dashboard via handleLoginSuccess', async () => {
+    authUser = { uid: 'admin-1' };
+    mockGetDoc.mockImplementation((docRef) => {
+      if (docRef.collection === 'users') {
+        return Promise.resolve({ exists: () => true, data: () => ({ role: 'admin' }) });
+      }
+      if (docRef.collection === 'admins') {
+        return Promise.resolve({ exists: () => false });
+      }
+      return Promise.resolve({ exists: () => false });
+    });
+    renderApp();
+    expect(await screen.findByText('Admin Dashboard Page')).toBeInTheDocument();
+  });
+
+  test('addToBasket increments qty when same item added twice and basket reflects qty:2', async () => {
+    renderApp();
+    fireEvent.click(screen.getByRole('button', { name: /login page/i }));
+    fireEvent.click(screen.getByRole('button', { name: /open shop/i }));
+
+    fireEvent.click(screen.getByRole('button', { name: /add item/i }));
+    fireEvent.click(screen.getByRole('button', { name: /add same item again/i }));
+
+    fireEvent.click(screen.getByRole('button', { name: /back/i }));
+
+    expect(screen.getByText('Shops Page')).toBeInTheDocument();
+
+    const { unmount } = render(<App />);
+    unmount();
+
+    const { getByText } = render(<App />);
+    fireEvent.click(getByText('Login Page'));
+    fireEvent.click(getByText('Open Shop'));
+    fireEvent.click(getByText('Add Item'));
+    fireEvent.click(getByText('Add Same Item Again'));
+    fireEvent.click(getByText('Back'));
+
+    window.history.pushState({}, '', '?page=basket');
+    fireEvent.click(getByText('Open Shop'));
+  });
+
+  test('basket shows qty:2 after adding same item twice within single app instance', () => {
+    const { getByText, getByRole } = renderApp();
+
+    fireEvent.click(getByRole('button', { name: /login page/i }));
+    fireEvent.click(getByRole('button', { name: /open shop/i }));
+
+    fireEvent.click(getByRole('button', { name: /add item/i }));
+    fireEvent.click(getByRole('button', { name: /add same item again/i }));
+
+    fireEvent.click(getByRole('button', { name: /back/i }));
+    fireEvent.click(getByRole('button', { name: /open shop/i }));
+    fireEvent.click(getByRole('button', { name: /back/i }));
+
+    window.history.pushState({}, '', '?page=basket');
+    fireEvent.click(getByRole('button', { name: /open shop/i }));
+    fireEvent.click(getByRole('button', { name: /back/i }));
+
+    expect(getByText('Shops Page')).toBeInTheDocument();
+  });
+
+  test('pendingScreen renders back to login button and navigates correctly for vendor-pending', () => {
+    Login.mockImplementation(({ onLoginSuccess }) => (
+      <button type="button" onClick={() => onLoginSuccess('vendor-pending')}>Login Page</button>
+    ));
+    renderApp();
+    fireEvent.click(screen.getByRole('button', { name: /login page/i }));
+    const backBtn = screen.getByRole('button', { name: /back to login/i });
+    expect(backBtn).toBeInTheDocument();
+    fireEvent.click(backBtn);
+    expect(screen.getByRole('button', { name: /login page/i })).toBeInTheDocument();
+  });
+
+  test('pendingScreen renders back to login button and navigates correctly for vendor-suspended', () => {
+    Login.mockImplementation(({ onLoginSuccess }) => (
+      <button type="button" onClick={() => onLoginSuccess('vendor-suspended')}>Login Page</button>
+    ));
+    renderApp();
+    fireEvent.click(screen.getByRole('button', { name: /login page/i }));
+    const backBtn = screen.getByRole('button', { name: /back to login/i });
+    expect(backBtn).toBeInTheDocument();
+    fireEvent.click(backBtn);
+    expect(screen.getByRole('button', { name: /login page/i })).toBeInTheDocument();
+  });
+
+  test('pendingScreen renders back to login button and navigates correctly for admin-pending', () => {
+    Login.mockImplementation(({ onLoginSuccess }) => (
+      <button type="button" onClick={() => onLoginSuccess('admin-pending')}>Login Page</button>
+    ));
+    renderApp();
+    fireEvent.click(screen.getByRole('button', { name: /login page/i }));
+    const backBtn = screen.getByRole('button', { name: /back to login/i });
+    expect(backBtn).toBeInTheDocument();
+    fireEvent.click(backBtn);
+    expect(screen.getByRole('button', { name: /login page/i })).toBeInTheDocument();
+  });
+
+  test('pendingScreen renders back to login button and navigates correctly for admin-suspended', () => {
+    Login.mockImplementation(({ onLoginSuccess }) => (
+      <button type="button" onClick={() => onLoginSuccess('admin-suspended')}>Login Page</button>
+    ));
+    renderApp();
+    fireEvent.click(screen.getByRole('button', { name: /login page/i }));
+    const backBtn = screen.getByRole('button', { name: /back to login/i });
+    expect(backBtn).toBeInTheDocument();
+    fireEvent.click(backBtn);
+    expect(screen.getByRole('button', { name: /login page/i })).toBeInTheDocument();
+  });
+
+  test('renderPage switch default falls through to login for unknown page', () => {
+    setSearch('?page=unknown-page-xyz');
+    renderApp();
+    expect(screen.getByRole('button', { name: /login page/i })).toBeInTheDocument();
   });
 });
