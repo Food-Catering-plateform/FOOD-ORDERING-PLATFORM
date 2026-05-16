@@ -235,4 +235,4 @@ describe('AdminVendorManagement', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: /Suspend tasty@test\.com/i })).toBeInTheDocument());
     spy.mockRestore();
   });
-
+});    
