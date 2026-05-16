@@ -156,3 +156,186 @@
 .status-line.active {
   background: #f97316;
 }
+/* ── Add this to the bottom of your existing customer Orders.css ── */
+
+/* Tabs */
+.orders-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 0;
+}
+
+.orders-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.orders-tab:hover {
+  color: #333;
+}
+
+.orders-tab--active {
+  color: #ff6b35;
+  border-bottom-color: #ff6b35;
+  font-weight: 600;
+}
+
+.orders-tab__badge {
+  background: #ff6b35;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+}
+
+.orders-tab__badge--grey {
+  background: #aaa;
+}
+
+/* Empty state */
+.orders-empty {
+  text-align: center;
+  padding: 48px 20px;
+  color: #aaa;
+}
+
+.orders-empty__icon {
+  font-size: 2.5rem;
+  margin-bottom: 12px;
+}
+
+.orders-empty__text {
+  font-size: 0.95rem;
+}
+
+/* Status pill on each order card */
+.order-status-pill {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  text-transform: capitalize;
+}
+
+.order-status-pill--pending,
+.order-status-pill--paid {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.order-status-pill--preparing {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.order-status-pill--ready {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.order-status-pill--completed {
+  background: #f3f4f6;
+  color: #555;
+}
+
+.order-status-pill--cancelled {
+  background: #ffebee;
+  color: #c62828;
+}
+/* ── Paste at the bottom of src/components/Customer/css/Orders.css ── */
+
+/* Tabs */
+.cust-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 24px;
+  border-bottom: 2px solid #e8e8e8;
+}
+
+.cust-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #999;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.cust-tab:hover {
+  color: #333;
+}
+
+.cust-tab--on {
+  color: #ff6b35;
+  border-bottom-color: #ff6b35;
+  font-weight: 700;
+}
+
+.cust-tab__dot {
+  background: #ff6b35;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+}
+
+.cust-tab__dot--grey {
+  background: #bbb;
+}
+
+/* Empty state */
+.cust-empty {
+  text-align: center;
+  padding: 48px 20px;
+  color: #aaa;
+  font-size: 0.95rem;
+}
+
+/* Status pill */
+.cust-status-pill {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 999px;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.cust-status-pill--pending,
+.cust-status-pill--paid      { background: #fff3e0; color: #e65100; }
+.cust-status-pill--preparing { background: #e3f2fd; color: #1565c0; }
+.cust-status-pill--ready     { background: #e8f5e9; color: #2e7d32; }
+.cust-status-pill--completed { background: #f3f4f6; color: #555;    }
+.cust-status-pill--cancelled { background: #ffebee; color: #c62828; }

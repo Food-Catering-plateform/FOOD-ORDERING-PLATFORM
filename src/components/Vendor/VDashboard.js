@@ -8,6 +8,7 @@ import VenHome from './VenHome';
 import MenuManagement from './MenuManagement';
 import Orders from './Orders';
 import Analytics from './Analytics';
+import NotificationBell from './NotificationBell'; 
 import AccSettings from './AccSettings';
 
 const navItems = [
@@ -105,6 +106,9 @@ function VDashboard({ uid, onLogout }) {
       </aside>
 
       <main className="vendor-main">
+        <div className="vendor-main__topbar">
+          <NotificationBell />
+        </div>
         {renderSection()}
       </main>
 

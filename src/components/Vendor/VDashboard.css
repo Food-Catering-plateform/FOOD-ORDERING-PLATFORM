@@ -142,20 +142,18 @@
   padding: 32px 28px;
   overflow-y: auto;
 }
-
-/* Logout sits inside nav with a separator above it */
-.vendor-sidebar__logout-item {
-  margin-top: 1rem;
-  border-top: 1px solid rgba(255,255,255,.07);
-  padding-top: 0.5rem;
+.vendor-main {
+  display: flex;
+  flex-direction: column;
 }
 
-/* Logout colour — red tint to signal it is a destructive action */
-.vendor-sidebar__item--logout {
-  color: rgba(255, 100, 100, 0.8);
-}
-
-.vendor-sidebar__item--logout:hover {
-  background: rgba(239, 68, 68, .08);
-  color: #F87171;
+.vendor-main__topbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 12px 20px;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 999;
 }
