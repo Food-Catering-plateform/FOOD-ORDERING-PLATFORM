@@ -72,6 +72,14 @@ path.write_text(text.replace('\\', '/'), encoding='utf-8')
 PY
           fi
 
+      - name: Verify normalized LCOV paths
+        if: always()
+        run: |
+          if [ -f coverage/lcov.info ]; then
+            echo 'First 20 SF entries after normalization:'
+            grep -n '^SF:' coverage/lcov.info | head -20
+          fi
+
       - name: Upload coverage reports to Codecov
         if: always()
         uses: codecov/codecov-action@v5
