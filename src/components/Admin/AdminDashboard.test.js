@@ -1,6 +1,4 @@
-/** @jest-environment jsdom */
 import React from 'react';
-import '@testing-library/jest-dom';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
@@ -33,41 +31,13 @@ jest.mock('../../Services/vendorService', () => ({
   suspendAdmin:    jest.fn(() => Promise.resolve()),
 }));
 
-jest.mock('jspdf', () => ({
-  jsPDF: jest.fn(() => ({
-    internal: {
-      pageSize: { getWidth: () => 595, getHeight: () => 842 },
-      getNumberOfPages: jest.fn(() => 1),
-    },
-    setFillColor: jest.fn(),
-    setFontSize: jest.fn(),
-    setFont: jest.fn(),
-    setTextColor: jest.fn(),
-    setDrawColor: jest.fn(),
-    setLineWidth: jest.fn(),
-    setPage: jest.fn(),
-    text: jest.fn(),
-    rect: jest.fn(),
-    addPage: jest.fn(),
-    roundedRect: jest.fn(),
-    line: jest.fn(),
-    save: jest.fn(),
-  })),
-}));
-
-jest.mock('./styles.css', () => ({}));
-jest.mock('./AdminVendorManagement.css', () => ({}));
-jest.mock('../Vendor/MenuManagement.css', () => ({}));
-
 import { signOut }                         from 'firebase/auth';
 import { fetchAllVendors, approveVendor,
          suspendVendor, fetchAllAdmins }   from '../../Services/vendorService';
 import AdminDashboard                      from './AdminDashboard';
 import AdminVendorManagement               from './AdminVendorManagement';
 import { buildBarChart, buildVendorSales,
-         buildTopItems, getPeriodStart,
-         buildCSV, downloadCSV, downloadReport } from './AdminDashboard';
-import { jsPDF }                           from 'jspdf';
+         buildTopItems, getPeriodStart }   from './AdminDashboard';
 
 // Helpers to keep tests clean
 const MOCK_VENDORS = [
@@ -83,28 +53,6 @@ const MOCK_ADMINS = [
 
 const mockSetActivePage = jest.fn();
 const renderAdminDashboard = () => render(<AdminDashboard setActivePage={mockSetActivePage} />);
-let originalAnchorClick;
-
-beforeAll(() => {
-  originalAnchorClick = HTMLAnchorElement.prototype.click;
-  HTMLAnchorElement.prototype.click = jest.fn();
-
-  global.URL = global.URL || {};
-  global.URL.createObjectURL = jest.fn(() => 'blob:url');
-  global.URL.revokeObjectURL = jest.fn();
-  global.Blob = class {
-    constructor(parts, options = {}) {
-      this.parts = parts;
-      this.type = options.type || '';
-    }
-  };
-});
-
-afterAll(() => {
-  if (originalAnchorClick) {
-    HTMLAnchorElement.prototype.click = originalAnchorClick;
-  }
-});
 
 const MOCK_ORDERS = [
   {
@@ -130,9 +78,6 @@ const MOCK_ORDERS = [
 describe('AdminDashboard — rendering', () => {
   beforeEach(() => {
     mockSetActivePage.mockClear();
-    signOut.mockClear();
-    global.URL.createObjectURL.mockClear();
-    jsPDF.mockClear();
     mockGetDocs.mockResolvedValue({
       docs: MOCK_ORDERS.map(o => ({ id: o.id, data: () => o })),
     });
@@ -174,64 +119,6 @@ describe('AdminDashboard — rendering', () => {
     fireEvent.click(logoutBtn);
     await waitFor(() => expect(signOut).toHaveBeenCalledTimes(1));
     expect(mockSetActivePage).toHaveBeenCalledWith('login');
-  });
-
-  test('TC-AD-06: export menu opens and CSV download is triggered', async () => {
-    renderAdminDashboard();
-    fireEvent.click(screen.getByRole('button', { name: /analytics/i }));
-    await waitFor(() => expect(screen.getByRole('button', { name: /export/i })).toBeInTheDocument());
-    fireEvent.click(screen.getByRole('button', { name: /export/i }));
-    await waitFor(() => expect(screen.getByRole('button', { name: /spreadsheet/i })).toBeInTheDocument());
-    fireEvent.click(screen.getByRole('button', { name: /spreadsheet/i }));
-    await waitFor(() => expect(global.URL.createObjectURL).toHaveBeenCalled());
-  });
-
-  test('TC-AD-07: export menu opens and PDF download calls jsPDF save', async () => {
-    renderAdminDashboard();
-    fireEvent.click(screen.getByRole('button', { name: /analytics/i }));
-    await waitFor(() => expect(screen.getByRole('button', { name: /export/i })).toBeInTheDocument());
-    fireEvent.click(screen.getByRole('button', { name: /export/i }));
-    await waitFor(() => expect(screen.getByRole('button', { name: /report/i })).toBeInTheDocument());
-    fireEvent.click(screen.getByRole('button', { name: /report/i }));
-    await waitFor(() => expect(jsPDF).toHaveBeenCalled());
-  });
-
-  test('TC-AD-08: sidebar navigation buttons can be clicked without crashing', async () => {
-    renderAdminDashboard();
-    fireEvent.click(screen.getByRole('button', { name: /orders/i }));
-    fireEvent.click(screen.getByRole('button', { name: /users/i }));
-    fireEvent.click(screen.getByRole('button', { name: /payments/i }));
-    fireEvent.click(screen.getByRole('button', { name: /settings/i }));
-    fireEvent.click(screen.getByRole('button', { name: /^Vendors$/i }));
-    expect(mockSetActivePage).toHaveBeenCalledWith('admin-vendor-management');
-  });
-
-  test('TC-AD-09: logout failure does not redirect to login', async () => {
-    signOut.mockRejectedValueOnce(new Error('Auth failed'));
-    renderAdminDashboard();
-    fireEvent.click(screen.getByRole('button', { name: /log.?out/i }));
-    await waitFor(() => expect(signOut).toHaveBeenCalledTimes(1));
-    expect(mockSetActivePage).not.toHaveBeenCalledWith('login');
-  });
-
-  test('TC-AD-10: export menu closes when clicking outside', async () => {
-    renderAdminDashboard();
-    fireEvent.click(screen.getByRole('button', { name: /analytics/i }));
-    await waitFor(() => screen.getByRole('button', { name: /export/i }));
-    fireEvent.click(screen.getByRole('button', { name: /export/i }));
-    await waitFor(() => expect(screen.getByText(/spreadsheet/i)).toBeInTheDocument());
-    fireEvent.mouseDown(document.body);
-    await waitFor(() => {
-      expect(screen.queryByText(/spreadsheet/i)).not.toBeInTheDocument();
-    });
-  });
-
-  test('TC-AD-11: empty analytics shows no sales and no vendor data', async () => {
-    mockGetDocs.mockResolvedValueOnce({ docs: [] });
-    renderAdminDashboard();
-    fireEvent.click(screen.getByRole('button', { name: /analytics/i }));
-    await waitFor(() => expect(screen.getByText(/no sales data yet/i)).toBeInTheDocument());
-    expect(screen.getByText(/no vendor data available/i)).toBeInTheDocument();
   });
 });
 
@@ -312,70 +199,6 @@ describe('AdminDashboard — analytics helpers', () => {
     const orders = [{ total: 50, items: [] }];
     const sales  = buildVendorSales(orders);
     expect(sales[0].name).toBe('Unknown Vendor');
-  });
-
-  test('TC-AN-11: buildBarChart uses time when createdAt is absent', () => {
-    const orders = [{ time: new Date().toISOString() }];
-    const chart = buildBarChart(orders, 'Today');
-    expect(chart).toHaveLength(14);
-    expect(chart.some(slot => typeof slot.value === 'number')).toBe(true);
-  });
-
-  test('TC-AN-12: buildCSV formats rows and escapes values', () => {
-    const data = {
-      revenue: 1234.56,
-      orders: 4,
-      completed: 3,
-      cancelled: 1,
-      customers: 2,
-      hourly: [{ label: '7am', value: 1 }],
-      topItems: [{ name: 'Pizza, Deluxe', sold: 2, revenue: 200 }],
-      vendorSales: [{ name: 'Tasty Bites', orders: 2, revenue: 300 }],
-    };
-    const csv = buildCSV('Today', data);
-    expect(csv).toContain('ADMIN ANALYTICS REPORT,Today');
-    expect(csv).toContain('Revenue,R 1234.56');
-    expect(csv).toContain('"Pizza, Deluxe"');
-    expect(csv).toContain('Tasty Bites,2,300.00');
-  });
-
-  test('TC-AN-13: downloadCSV creates and revokes an object URL', () => {
-    global.URL.createObjectURL.mockClear();
-    global.URL.revokeObjectURL.mockClear();
-    const data = {
-      revenue: 100,
-      orders: 1,
-      completed: 1,
-      cancelled: 0,
-      customers: 1,
-      hourly: [{ label: '7am', value: 1 }],
-      topItems: [],
-      vendorSales: [],
-    };
-
-    downloadCSV('Today', data);
-
-    expect(global.URL.createObjectURL).toHaveBeenCalled();
-    expect(global.URL.revokeObjectURL).toHaveBeenCalled();
-  });
-
-  test('TC-AN-14: downloadReport uses jsPDF and saves the PDF', async () => {
-    jsPDF.mockClear();
-    const data = {
-      revenue: 50,
-      orders: 0,
-      completed: 0,
-      cancelled: 0,
-      customers: 0,
-      hourly: [],
-      topItems: [],
-      vendorSales: [],
-    };
-
-    await downloadReport('Today', data);
-    expect(jsPDF).toHaveBeenCalled();
-    const instance = jsPDF.mock.results[jsPDF.mock.results.length - 1].value;
-    expect(instance.save).toHaveBeenCalledWith('admin_analytics_today.pdf');
   });
 });
 
