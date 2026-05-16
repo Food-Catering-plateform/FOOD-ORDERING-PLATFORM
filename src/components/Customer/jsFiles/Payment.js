@@ -18,7 +18,7 @@ function Payment({ setActivePage, setBasket }) {
   const paymentId = `order_${Date.now()}`;
   localStorage.setItem('pendingPaymentId', paymentId);
 
-  // STEP 1 — define params (no signature yet)
+  
   const params = {
     merchant_id:   '10048201',
     merchant_key:  'alyr23z2b1yii',
@@ -31,8 +31,7 @@ function Payment({ setActivePage, setBasket }) {
     item_name:     'Campus Food Order',
   };
 
-  // STEP 2 — generate signature from params
-  // STEP 2 — generate signature (merchant_key must be INCLUDED in signature for sandbox)
+  
 const signatureString = Object.entries(params)
   .map(([key, val]) => `${key}=${encodeURIComponent(String(val)).replace(/%20/g, '+')}`)
   .join('&');
