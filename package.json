@@ -22,7 +22,8 @@
     "test": "react-scripts test --watchAll=false",
     "eject": "react-scripts eject"
   },
-  "jest": {    "testEnvironment": "jsdom",    "coverageReporters": [
+  "jest": {
+    "coverageReporters": [
       "lcov",
       "text"
     ],
@@ -53,9 +54,6 @@
     "@babel/preset-env": "^7.29.5",
     "@babel/preset-react": "^7.28.5",
     "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.2",
-    "babel-jest": "^30.4.1",
-    "jest": "^30.3.0",
-    "jest-environment-jsdom": "^30.4.1"
+    "@testing-library/react": "^16.3.2"
   }
 }

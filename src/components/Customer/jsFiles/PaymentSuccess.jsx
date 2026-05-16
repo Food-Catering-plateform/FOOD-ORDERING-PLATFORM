@@ -4,10 +4,10 @@ import { collection, addDoc } from 'firebase/firestore';
 
 function PaymentSuccess({ setActivePage, setBasket }) {
   const [status, setStatus] = useState('Confirming your order...');
-  const hasSaved = useRef(false); // ← prevents double save in React Strict Mode
+  const hasSaved = useRef(false);
 
   useEffect(() => {
-    if (hasSaved.current) return; // ← if already ran, skip
+    if (hasSaved.current) return;
     hasSaved.current = true;
 
     const saveOrder = async () => {
@@ -30,7 +30,8 @@ function PaymentSuccess({ setActivePage, setBasket }) {
         for (const [vendorId, { vendorName, items }] of Object.entries(byVendor)) {
           const vendorTotal = items.reduce((sum, i) => sum + parseFloat(i.price) * i.qty, 0);
 
-          await addDoc(collection(db, 'Orders'), {
+          // Save the order
+          const orderDoc = await addDoc(collection(db, 'Orders'), {
             vendorID:      vendorId,
             vendorName:    vendorName,
             customerId:    order.customerId,
@@ -38,10 +39,18 @@ function PaymentSuccess({ setActivePage, setBasket }) {
             customerName:  order.customerName,
             items:         items.map(i => ({ name: i.name || 'Item', qty: i.qty, price: parseFloat(i.price) })),
             total:         parseFloat(vendorTotal.toFixed(2)),
-            status:        'pending', // ← changed back to pending so status tracker works
+            status:        'pending',
             time:          new Date().toLocaleString('en-ZA'),
             createdAt:     new Date().toISOString(),
             notes:         '',
+          });
+
+          // ── Save notification directly to vendor's notifications subcollection ──
+          await addDoc(collection(db, 'Vendors', vendorId, 'notifications'), {
+            orderId: orderDoc.id,
+            message: `New order #${orderDoc.id.slice(-6).toUpperCase()} — R ${vendorTotal.toFixed(2)}`,
+            time:    new Date().toISOString(),
+            read:    false,
           });
         }
 

@@ -9,11 +9,6 @@ import { db } from '../../../Firebase/firebaseConfig';
 // Import authentication context (current logged-in user)
 import { useAuth } from '../../../Services/AuthContext';
 
-/**
- * In-app notifications for the same `Orders` collection the vendor uses (Vendor/Orders.js).
- * Pickup-ready **emails** are sent from the vendor dashboard when status becomes `ready`
- * (see `Services/pickupReadyEmail.js` + `Vendor/Orders.js`) so customers do not need this page open.
- */
 const Notifications = () => {
   const { currentUser, authLoading } = useAuth();
   const [orders, setOrders] = useState([]);
