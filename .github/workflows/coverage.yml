@@ -13,8 +13,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -31,8 +29,6 @@ jobs:
           rm -rf coverage-vsidebar || true
 
       - name: Run tests with coverage
-        env:
-          CI: true
         run: npm test -- --coverage --watchAll=false
 
       - name: Inspect generated coverage files
@@ -53,15 +49,6 @@ jobs:
             find coverage -type f -exec touch {} +
           fi
 
-      - name: Touch and normalize coverage report before upload
-        if: always()
-        shell: bash
-        run: |
-          if [ -f coverage/lcov.info ]; then
-            touch coverage/lcov.info
-            sed -i 's#\\#/#g' coverage/lcov.info
-          fi
-
       - name: Upload coverage reports to Codecov
         if: always()
         uses: codecov/codecov-action@v5
@@ -70,6 +57,6 @@ jobs:
           files: coverage/lcov.info
           flags: jest
           verbose: true
-          fail_ci_if_error: false
+          fail_ci_if_error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

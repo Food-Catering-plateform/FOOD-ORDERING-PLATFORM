@@ -12,11 +12,11 @@ import NotificationBell from './NotificationBell';
 import AccSettings from './AccSettings';
 
 const navItems = [
-  { key: 'home',      label: 'Dashboard',        icon: 'ti-home'  },
-  { key: 'menu',      label: 'Menu Management',  icon: 'ti-tools-kitchen-2', section: null      },
-  { key: 'orders',    label: 'Orders',            icon: 'ti-shopping-bag',    section: null      },
-  { key: 'analytics', label: 'Analytics',         icon: 'ti-chart-bar' },
-  { key: 'settings',  label: 'Account Settings',  icon: 'ti-settings' },
+  { key: 'home',      label: 'Dashboard',       icon: 'ti-home'              },
+  { key: 'menu',      label: 'Menu Management', icon: 'ti-tools-kitchen-2'   },
+  { key: 'orders',    label: 'Orders',           icon: 'ti-shopping-bag'      },
+  { key: 'analytics', label: 'Analytics',        icon: 'ti-chart-bar'         },
+  { key: 'settings',  label: 'Account Settings', icon: 'ti-settings'          },
 ];
 
 function VDashboard({ uid, onLogout }) {
@@ -53,9 +53,7 @@ function VDashboard({ uid, onLogout }) {
       <aside className={`vendor-sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
 
         <header className="vendor-sidebar__header">
-          <div className="vendor-sidebar__logo">
-            
-          </div>
+          <div className="vendor-sidebar__logo"></div>
           <button
             className="vendor-sidebar__toggle"
             onClick={() => setSidebarOpen(prev => !prev)}
@@ -89,16 +87,21 @@ function VDashboard({ uid, onLogout }) {
                 </li>
               </React.Fragment>
             ))}
+
+            {/* MOVED - logout now inside nav list so it is always visible */}
+            {/* REMOVED - was a separate button outside nav hidden at very bottom */}
+            <li className="vendor-sidebar__logout-item">
+              <button
+                className="vendor-sidebar__item vendor-sidebar__item--logout"
+                onClick={() => signOut(auth).then(onLogout)}
+              >
+                <i className="ti ti-logout" aria-hidden="true" />
+                <span>Logout</span>
+              </button>
+            </li>
+
           </ul>
         </nav>
-
-        <button
-          className="vendor-sidebar__logout"
-          onClick={() => signOut(auth).then(onLogout)}
-        >
-          <i className="ti ti-logout" aria-hidden="true" />
-          <span>Logout</span>
-        </button>
 
       </aside>
 

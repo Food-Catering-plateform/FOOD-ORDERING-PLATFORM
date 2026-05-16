@@ -42,8 +42,12 @@ function MenuManagement() {
   useEffect(() => {
     if (!vendorId) return;
     const fetchItems = async () => {
-      const snap = await getDocs(collection(db, "Vendors", vendorId, "menuItems"));
-      setItems(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        try {
+          const snap = await getDocs(collection(db, "Vendors", vendorId, "menuItems"));
+          setItems(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        } catch (error) {
+          console.error('Unable to fetch items', error);
+        }
     };
     fetchItems();
   }, [vendorId]);
@@ -111,7 +115,7 @@ function MenuManagement() {
       }
       setForm(EMPTY_FORM);
     } catch (error) {
-      console.error("Error saving item", error);
+        console.error("Error saving item:", error);
     }
   }
 

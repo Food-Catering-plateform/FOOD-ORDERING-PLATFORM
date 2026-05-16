@@ -142,12 +142,3 @@
   padding: 32px 28px;
   overflow-y: auto;
 }
-/* ── Add this to the bottom of your existing VDashboard.css ── */
-
-/* Topbar that holds the notification bell — sits top-right of main content */
-.vendor-main__topbar {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  padding: 12px 20px 0;
-}
