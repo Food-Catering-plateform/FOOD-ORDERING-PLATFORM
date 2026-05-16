@@ -4,53 +4,59 @@ on:
   push:
     branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    continue-on-error: false
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
-          cache: 'npm'
+          node-version: '18'
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests + Generate coverage
-        env:
-          CI: true
-        run: npm run test:ci
-
-      - name: 🔍 Debug Coverage Files
+      - name: Clean old coverage artifacts
         run: |
-          pwd
-          ls -la
-          echo "=== Coverage folder ==="
-          ls -la coverage/ 2>/dev/null || echo "No coverage folder"
-          echo "=== lcov.info ==="
-          if [ -f coverage/lcov.info ]; then
-            echo "✅ Found!"
-            wc -l coverage/lcov.info
-            head -n 20 coverage/lcov.info
+          rm -rf coverage || true
+          rm -rf coverage-analytics || true
+          rm -rf coverage-vsidebar || true
+
+      - name: Run tests with coverage
+        run: npm test -- --coverage --watchAll=false
+
+      - name: Inspect generated coverage files
+        run: |
+          if [ -d coverage ]; then
+            echo "Coverage directory contents:"
+            find coverage -maxdepth 2 -type f | sort
+            echo "First 20 lines of coverage/lcov.info:"
+            head -20 coverage/lcov.info || true
           else
-            echo "❌ NOT FOUND"
-            echo "Looking for any coverage files..."
-            find . -name "*coverage*" -o -name "*.lcov" -o -name "lcov.info" | head -10
+            echo "Coverage directory not found"
+            exit 1
           fi
 
-      - name: Upload to Codecov
+      - name: Normalize coverage timestamps
+        run: |
+          if [ -d coverage ]; then
+            find coverage -type f -exec touch {} +
+          fi
+
+      - name: Upload coverage reports to Codecov
         if: always()
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage/lcov.info
+          files: coverage/lcov.info
           flags: jest
           verbose: true
-          fail_ci_if_error: false
+          fail_ci_if_error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
