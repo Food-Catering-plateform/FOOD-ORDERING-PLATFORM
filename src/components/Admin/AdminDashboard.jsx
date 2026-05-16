@@ -88,7 +88,7 @@ function escapeCSV(val) {
     : str;
 }
 
-function buildCSV(period, d) {
+export function buildCSV(period, d) {
   const completionRate = d.orders > 0 ? Math.round((d.completed / d.orders) * 100) : 0;
   const rows = [];
 
@@ -123,7 +123,7 @@ function buildCSV(period, d) {
   return rows.map(r => r.map(escapeCSV).join(',')).join('\r\n');
 }
 
-function downloadCSV(period, d) {
+export function downloadCSV(period, d) {
   const csv = buildCSV(period, d);
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
@@ -134,7 +134,7 @@ function downloadCSV(period, d) {
   URL.revokeObjectURL(url);
 }
 
-async function downloadReport(period, d) {
+export async function downloadReport(period, d) {
   const { jsPDF } = await import('jspdf');
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
 
