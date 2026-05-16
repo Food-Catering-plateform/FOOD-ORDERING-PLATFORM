@@ -20,10 +20,9 @@ const FILTERS = [
 const categoryClass = (cat) =>
   (cat || 'other').toLowerCase().replace(/[^a-z]/g, '-');
 
-export default function Dashboard({ setActivePage, setSelectedShop }) {
+export default function Dashboard({ setActivePage, setSelectedShop, search = '' }) {
   const [vendors, setVendors] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search,  setSearch]  = useState('');
   const [filter,  setFilter]  = useState('All');
 
   useEffect(() => {
@@ -61,30 +60,6 @@ export default function Dashboard({ setActivePage, setSelectedShop }) {
 
   return (
     <div className="db-page">
-
-      {/* ── Hero ── */}
-      <header className="db-hero">
-        <div className="db-hero__inner">
-          <p className="db-hero__eyebrow">🎓 UniEats</p>
-          <h1 className="db-hero__title">
-            What are you<br /><em>craving today?</em>
-          </h1>
-          <div className="db-search">
-            <span className="db-search__icon">🔍</span>
-            <input
-              className="db-search__input"
-              placeholder="Search shops or food..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-            />
-            {search && (
-              <button className="db-search__clear" onClick={() => setSearch('')}>✕</button>
-            )}
-          </div>
-        </div>
-        <div className="db-hero__blob db-hero__blob--1" />
-        <div className="db-hero__blob db-hero__blob--2" />
-      </header>
 
       {/* ── Category filter pills ── */}
       <nav className="db-filters">
@@ -126,8 +101,8 @@ export default function Dashboard({ setActivePage, setSelectedShop }) {
         )}
 
         {!loading && filtered.map(vendor => {
-          const open    = isOpenNow(vendor);
-          const catCls  = categoryClass(vendor.category);
+          const open   = isOpenNow(vendor);
+          const catCls = categoryClass(vendor.category);
           const catIcon = CATEGORY_COLORS[vendor.category]?.icon || '🍽️';
 
           return (
