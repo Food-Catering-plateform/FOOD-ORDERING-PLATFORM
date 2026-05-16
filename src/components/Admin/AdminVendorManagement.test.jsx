@@ -77,6 +77,54 @@ describe('AdminVendorManagement', () => {
     expect(suspendBtn).toBeEnabled();
   });
 
+  test('back button calls setActivePage with admin-dashboard', async () => {
+    const mockSet = jest.fn();
+    render(<AdminVendorManagement setActivePage={mockSet} />);
+    await waitFor(() => screen.getByText('Tasty Bites'));
+    fireEvent.click(screen.getByText(/Back to Dashboard/i));
+    expect(mockSet).toHaveBeenCalledWith('admin-dashboard');
+  });
+
+  test('renders placeholder for missing businessName and email and shows Pending when status falsy', async () => {
+    // Prepare vendor with missing fields
+    mockFetchAllVendors.mockResolvedValueOnce([
+      { id: 'vx', businessName: '', email: '', status: null },
+    ]);
+    mockFetchAllAdmins.mockResolvedValueOnce([]);
+
+    render(<AdminVendorManagement setActivePage={jest.fn()} />);
+    // Wait for table to render
+    await waitFor(() => screen.getByRole('table'));
+    const table = screen.getByRole('table');
+    const rows = table.querySelectorAll('tbody tr');
+    expect(rows.length).toBeGreaterThan(0);
+    const firstRow = rows[0];
+    // within the first row, expect placeholders
+    expect(firstRow.querySelector('strong.avm-vendor-name').textContent).toBe('—');
+    expect(firstRow.querySelectorAll('td')[1].textContent).toBe('—');
+    // There should be a Pending mark when status is falsy
+    expect(table.querySelector('mark.avm-badge').textContent).toMatch(/Pending/i);
+  });
+
+  test('shows loading indicator "..." on action button while awaiting service', async () => {
+    // make approve resolve only when we call resolver
+    let resolveApprove;
+    mockApproveVendor.mockImplementation(() => new Promise(r => { resolveApprove = r; }));
+
+    render(<AdminVendorManagement setActivePage={jest.fn()} />);
+    await waitFor(() => screen.getByText('Tasty Bites'));
+
+    const approveBtn = screen.getByRole('button', { name: /Approve tasty@test\.com/i });
+    fireEvent.click(approveBtn);
+
+    // Immediately after clicking, the approve button itself should show "..."
+    expect(approveBtn.textContent).toBe('...');
+
+    // Finish the approve operation
+    resolveApprove();
+    await waitFor(() => expect(mockApproveVendor).toHaveBeenCalledWith('v1'));
+  });
+
   test('approve vendor calls service and updates row to approved', async () => {
     render(<AdminVendorManagement setActivePage={jest.fn()} />);
     await waitFor(() => screen.getByText('Tasty Bites'));
@@ -118,6 +166,21 @@ describe('AdminVendorManagement', () => {
     await waitFor(() => expect(screen.queryByRole('button', { name: /Approve alice@test\.com/i })).not.toBeInTheDocument());
   });
 
+  test('admin placeholder when name/lastName missing and suspend admin works', async () => {
+    mockFetchAllVendors.mockResolvedValueOnce([]);
+    mockFetchAllAdmins.mockResolvedValueOnce([{ id: 'a2', name: '', lastName: '', email: 'no@test.com', status: null }]);
+
+    render(<AdminVendorManagement setActivePage={jest.fn()} />);
+    // switch to admin tab (vendors list is empty here)
+    fireEvent.click(screen.getByRole('button', { name: /Admin Requests/i }));
+    await waitFor(() => screen.getByRole('table'));
+    await waitFor(() => screen.getByText('—'));
+    // suspend admin
+    const suspendBtn = screen.getByRole('button', { name: /Suspend no@test\.com/i });
+    fireEvent.click(suspendBtn);
+    await waitFor(() => expect(mockSuspendAdmin).toHaveBeenCalledWith('a2'));
+  });
+
   test('filter by status shows only matching rows', async () => {
     render(<AdminVendorManagement setActivePage={jest.fn()} />);
     await waitFor(() => screen.getByText('Tasty Bites'));
@@ -143,4 +206,33 @@ describe('AdminVendorManagement', () => {
     render(<AdminVendorManagement setActivePage={jest.fn()} />);
     expect(screen.getByText(/Loading.../i)).toBeInTheDocument();
   });
-});
+
+  test('approve vendor failure resets actionLoading and logs error', async () => {
+    const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    mockApproveVendor.mockRejectedValueOnce(new Error('boom'));
+    render(<AdminVendorManagement setActivePage={jest.fn()} />);
+    await waitFor(() => screen.getByText('Tasty Bites'));
+
+    const approveBtn = screen.getByRole('button', { name: /Approve tasty@test\.com/i });
+    fireEvent.click(approveBtn);
+
+    await waitFor(() => expect(mockApproveVendor).toHaveBeenCalledWith('v1'));
+    // after rejection, button should be back to showing Approve (actionLoading cleared)
+    await waitFor(() => expect(screen.getByRole('button', { name: /Approve tasty@test\.com/i })).toBeInTheDocument());
+    spy.mockRestore();
+  });
+
+  test('suspend vendor failure resets actionLoading and logs error', async () => {
+    const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    mockSuspendVendor.mockRejectedValueOnce(new Error('boom'));
+    render(<AdminVendorManagement setActivePage={jest.fn()} />);
+    await waitFor(() => screen.getByText('Tasty Bites'));
+
+    const suspendBtn = screen.getByRole('button', { name: /Suspend tasty@test\.com/i });
+    fireEvent.click(suspendBtn);
+
+    await waitFor(() => expect(mockSuspendVendor).toHaveBeenCalledWith('v1'));
+    await waitFor(() => expect(screen.getByRole('button', { name: /Suspend tasty@test\.com/i })).toBeInTheDocument());
+    spy.mockRestore();
+  });
+

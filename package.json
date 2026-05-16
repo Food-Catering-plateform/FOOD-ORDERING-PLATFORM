@@ -26,7 +26,10 @@
     "coverageReporters": [
       "lcov",
       "text"
-    ]
+    ],
+    "moduleNameMapper": {
+      "\\\\.(css|less|scss|sass)$": "<rootDir>/__mocks__/styleMock.js"
+    }
   },
   "eslintConfig": {
     "extends": [
