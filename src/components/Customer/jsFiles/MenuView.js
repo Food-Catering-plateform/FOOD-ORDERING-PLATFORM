@@ -145,44 +145,55 @@ const MenuView = ({ shop, onBack, addToBasket }) => {
         </header>
 
         <section className="menu-list">
-          {menuItems.map((item) => (
-            <article key={item.id} className="menu-item">
-              {item.imageUrl && <img src={item.imageUrl} alt={item.name} className="menu-item__img" />}
+          {menuItems.map((item) => {
+            // --- NEW: Availability Logic ---
+            // Item is available if NOT manually sold out AND (qty is not set OR qty > 0)
+            const isAvailable = !item.isSoldOut && (item.qty === undefined || item.qty === '' || parseInt(item.qty) > 0);
 
-              <div className="menu-item-body">
-                <header className="menu-item__header">
-                  <h3>{item.name}</h3>
-                  <data value={item.price} className="menu-item__price">
-                    R{parseFloat(item.price || 0).toFixed(2)}
-                  </data>
-                </header>
-                {item.description && <p className="menu-item__description">{item.description}</p>}
-                <DietaryInfo item={item} />
-              </div>
+            return (
+              <article key={item.id} className={`menu-item ${!isAvailable ? 'menu-item--sold-out' : ''}`}>
+                {item.imageUrl && <img src={item.imageUrl} alt={item.name} className="menu-item__img" />}
 
-              <footer className="menu-item__footer">
-                <small className="menu-item__qty">Qty: {item.qty}</small>
+                <div className="menu-item-body">
+                  <header className="menu-item__header">
+                    <h3>{item.name}</h3>
+                    <data value={item.price} className="menu-item__price">
+                      R{parseFloat(item.price || 0).toFixed(2)}
+                    </data>
+                  </header>
+                  {item.description && <p className="menu-item__description">{item.description}</p>}
+                  <DietaryInfo item={item} />
+                </div>
 
-                {isOpen ? (
-                  <button
-                    type="button"
-                    className={`menu-item__add-btn ${addedId === item.id ? 'added' : ''}`}
-                    onClick={() => {
-                      addToBasket(item, shop);
-                      setAddedId(item.id);
-                      setTimeout(() => setAddedId(null), 1000);
-                    }}
-                  >
-                    {addedId === item.id ? '✓ Added!' : 'Add to Basket'}
-                  </button>
-                ) : (
-                  <button type="button" className="btn-closed" disabled>
-                    Shop Closed
-                  </button>
-                )}
-              </footer>
-            </article>
-          ))}
+                <footer className="menu-item__footer">
+                  {/* --- NEW: Show Availability Tag instead of Qty --- */}
+                  <small className={`menu-item__availability ${isAvailable ? 'available' : 'sold-out'}`} style={{ fontWeight: '700', color: isAvailable ? '#00C896' : '#ef4444' }}>
+                    {isAvailable ? '● Available' : '○ Sold Out'}
+                  </small>
+
+                  {isOpen ? (
+                    <button
+                      type="button"
+                      disabled={!isAvailable} // --- NEW: Disable button if sold out
+                      className={`menu-item__add-btn ${addedId === item.id ? 'added' : ''} ${!isAvailable ? 'disabled' : ''}`}
+                      onClick={() => {
+                        if (!isAvailable) return;
+                        addToBasket(item, shop);
+                        setAddedId(item.id);
+                        setTimeout(() => setAddedId(null), 1000);
+                      }}
+                    >
+                      {addedId === item.id ? '✓ Added!' : (isAvailable ? 'Add to Basket' : 'Sold Out')}
+                    </button>
+                  ) : (
+                    <button type="button" className="btn-closed" disabled>
+                      Shop Closed
+                    </button>
+                  )}
+                </footer>
+              </article>
+            );
+          })}
         </section>
 
         <nav className="menu-nav">

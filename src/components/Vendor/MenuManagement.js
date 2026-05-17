@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react'; // Added useRef
 import './MenuManagement.css';
 import { collection, addDoc, updateDoc, getDocs, doc, deleteDoc } from "firebase/firestore";
 import { db } from "../../Firebase/firebaseConfig";
@@ -23,7 +23,8 @@ export const ALLERGEN_ICONS = {
 };
 
 const EMPTY_FORM = {
-  name: '', price: '', qty: '', description: '', imageUrl: null, allergens: [], dietary: []
+  name: '', price: '', qty: '', description: '', imageUrl: null, allergens: [], dietary: [],
+  isSoldOut: false // --- NEW: Added isSoldOut to initial state
 };
 
 function MenuManagement() {
@@ -98,7 +99,14 @@ function MenuManagement() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    const data = { ...form, price: parseFloat(form.price), qty: parseInt(form.qty) || 0 };
+    // --- NEW: Added isSoldOut to the data object being saved
+    const data = { 
+        ...form, 
+        price: parseFloat(form.price), 
+        qty: parseInt(form.qty) || 0,
+        isSoldOut: form.isSoldOut || false 
+    };
+    
     try {
       if (editingIndex !== null) {
         const item = items[editingIndex];
@@ -130,6 +138,7 @@ function MenuManagement() {
       imageUrl:    item.imageUrl    ?? null,
       allergens:   Array.isArray(item.allergens) ? item.allergens : [],
       dietary:     Array.isArray(item.dietary)   ? item.dietary   : [],
+      isSoldOut:   item.isSoldOut   ?? false, // --- NEW: Load isSoldOut status when editing
     });
     formRef.current?.scrollIntoView({ behavior: 'smooth' });
   }
@@ -171,6 +180,20 @@ function MenuManagement() {
           <input id="foodQty"   placeholder="Quantity available"  value={form.qty}         onChange={handleChange} />
           <textarea id="foodDesc" placeholder="Description"      value={form.description} onChange={handleChange} />
           <input id="foodImage" type="file" accept="image/*"     onChange={handleChange} />
+
+          {/* --- NEW: Sold Out Toggle Switch --- */}
+          <div style={{ margin: '10px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <input 
+              type="checkbox" 
+              id="isSoldOut"
+              checked={form.isSoldOut} 
+              onChange={(e) => setForm(prev => ({ ...prev, isSoldOut: e.target.checked }))} 
+              style={{ width: 'auto' }}
+            />
+            <label htmlFor="isSoldOut" style={{ fontWeight: '600', color: '#ff4444' }}>
+              Mark as Sold Out (Manual)
+            </label>
+          </div>
 
           <div className="allergen-dropdown" ref={dietaryRef}>
             <button type="button" className="allergen-toggle" onClick={() => setDietaryOpen(o => !o)}>
@@ -227,8 +250,11 @@ function MenuManagement() {
               <img src={item.imageUrl} alt={item.name} />
               <div className="info">
                 <h3>{item.name}</h3>
+                {/* --- NEW: Show Sold Out Badge in the list --- */}
+                {item.isSoldOut && <span style={{ background: '#fee2e2', color: '#ef4444', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold' }}>SOLD OUT</span>}
                 <p>R {parseFloat(item.price || 0).toFixed(2)}</p>
                 {item.description ? <p>{item.description}</p> : null}
+                {/* ... rest of the item display ... */}
                 {(item.dietary ?? []).length > 0 && (
                   <p className="allergen-tags">
                     {(item.dietary ?? []).map(k => {
