@@ -29,7 +29,7 @@ export default function NotificationBell({ setActivePage, activePage, onSeenStat
     isFirstUnreadRef.current = true;
     prevUnreadCountRef.current = 0;
     if (onSeenStatusChange) onSeenStatusChange(loaded);
-  }, [currentUser?.uid]);
+  }, [currentUser?.uid, onSeenStatusChange]);
 
   const unreadOrders = useMemo(
     () => getUnreadOrders(orders, seenStatus),
