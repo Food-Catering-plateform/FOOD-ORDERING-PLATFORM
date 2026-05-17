@@ -17,6 +17,7 @@ import { auth, db } from './Firebase/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import Dashboard from './components/Customer/jsFiles/Dashboard';
+import { CustomerOrdersProvider } from './Context/CustomerOrdersContext';
 
 function App() {
   const isPaymentSuccess = window.location.search.includes('page=payment-success');
@@ -28,12 +29,34 @@ function App() {
     return 'login';
   });
 
-  const [sidebarOpen, setSidebarOpen] = useState(false); // closed by default
+  const [sidebarOpen, setSidebarOpen]   = useState(false);
   const [selectedShop, setSelectedShop] = useState(null);
-  const [vendorUid, setVendorUid] = useState(null);
-  const [checking, setChecking] = useState(!isPaymentSuccess);
-  const [basket, setBasket] = useState([]);
-  const [search, setSearch] = useState(''); // ✅ fixed typo: was setsSearch
+  const [vendorUid, setVendorUid]       = useState(null);
+  const [checking, setChecking]         = useState(!isPaymentSuccess);
+  const [basket, setBasket]             = useState([]);
+  const [search, setSearch]             = useState('');
+
+  // ADDED - seenStatus tracks which order notifications have been read
+  const [seenStatus, setSeenStatus] = useState({});
+
+  // ADDED - marks a single order notification as read
+  const handleMarkRead = useCallback((order) => {
+    setSeenStatus(prev => ({ ...prev, [order.id]: true }));
+  }, []);
+
+  // ADDED - marks all order notifications as read
+  const handleMarkAllRead = useCallback(() => {
+    setSeenStatus(prev => {
+      const allRead = { ...prev };
+      Object.keys(allRead).forEach(id => { allRead[id] = true; });
+      return allRead;
+    });
+  }, []);
+
+  // ADDED - syncs seenStatus when NotificationBell updates it
+  const handleSeenStatusChange = useCallback((newStatus) => {
+    setSeenStatus(newStatus);
+  }, []);
 
   const addToBasket = (item, shop) => {
     setBasket(prev => {
@@ -75,9 +98,6 @@ function App() {
     }
 
     if (roleOrStatus === 'admin') {
-      // Pure admins (signed up as admin) go straight to admin dashboard.
-      // Vendor-admins are caught earlier in the auth listener and routed to
-      // vendor-dashboard, so they never reach this branch.
       setActivePage('admin-dashboard');
     } else if (roleOrStatus === 'vendor') {
       const uid = auth.currentUser.uid;
@@ -101,8 +121,6 @@ function App() {
           const { role } = userSnap.data();
 
           if (role === 'vendor' || (role === 'admin' && userSnap.data().isAdmin)) {
-            // Vendor-admins (isAdmin: true but role stays 'vendor') always land
-            // on the vendor dashboard. The "Access Admin Panel" button handles switching.
             const targetUid = user.uid;
             const vendorSnap = await getDoc(doc(db, 'Vendors', targetUid));
             if (vendorSnap.exists()) {
@@ -191,8 +209,17 @@ function App() {
     switch (activePage) {
       case 'profile':
         return <Profile setActivePage={setActivePage} />;
+
+      // UPDATED - now passes seenStatus and handlers so individual read works
       case 'notifications':
-        return <Notifications />;
+        return (
+          <Notifications
+            seenStatus={seenStatus}
+            onMarkRead={handleMarkRead}
+            onMarkAllRead={handleMarkAllRead}
+          />
+        );
+
       case 'orders':
         return <Orders />;
       case 'basket':
@@ -276,14 +303,17 @@ function App() {
     return <>{renderPage()}</>;
   }
 
-  return (
+  const shell = (
     <>
       {useCustomerChrome && (
+        // UPDATED - now passes seenStatus and handlers so bell stays in sync
         <Navbar
           setActivePage={setActivePage}
           search={search}
           setSearch={setSearch}
           activePage={activePage}
+          seenStatus={seenStatus}
+          onSeenStatusChange={handleSeenStatusChange}
         />
       )}
       <section className="app-shell" style={{ display: 'flex' }}>
@@ -313,6 +343,12 @@ function App() {
       </section>
     </>
   );
+
+  if (useCustomerChrome) {
+    return <CustomerOrdersProvider>{shell}</CustomerOrdersProvider>;
+  }
+
+  return shell;
 }
 
 const pendingStyles = {

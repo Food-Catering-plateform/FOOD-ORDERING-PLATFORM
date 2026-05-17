@@ -2,54 +2,43 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import './NotificationBell.css';
 import { assets } from '../../Assets/assets';
 import { useAuth } from '../../Services/AuthContext';
-import { useCustomerOrders } from '../../hooks/useCustomerOrders';
-import { getNotificationKey, STATUS_CONFIG } from '../Customer/notificationConfig';
-import { loadReadKeys, saveReadKeys } from '../../utils/notificationReadState';
+import { useCustomerOrders } from '../../Context/CustomerOrdersContext';
+import { STATUS_CONFIG } from '../Customer/notificationConfig';
+import {
+  getUnreadOrders,
+  loadSeenStatus,
+  markAllOrdersSeen,
+  markOrderSeen,
+  saveSeenStatus,
+} from '../../utils/notificationReadState';
 
-export default function NotificationBell({ setActivePage, activePage }) {
+export default function NotificationBell({ setActivePage, activePage, onSeenStatusChange }) {
   const { currentUser } = useAuth();
   const { orders, loading } = useCustomerOrders();
-  const [readKeys, setReadKeys] = useState(() => loadReadKeys(currentUser?.uid));
+  const [seenStatus, setSeenStatus] = useState(() => loadSeenStatus(currentUser?.uid));
   const [open, setOpen] = useState(false);
   const [shaking, setShaking] = useState(false);
   const rootRef = useRef(null);
   const prevUnreadCountRef = useRef(0);
   const isFirstUnreadRef = useRef(true);
-  const [baselineKeys, setBaselineKeys] = useState(null);
 
+  // Reload seen status when user changes
   useEffect(() => {
-    setReadKeys(loadReadKeys(currentUser?.uid));
-    setBaselineKeys(null);
+    const loaded = loadSeenStatus(currentUser?.uid);
+    setSeenStatus(loaded);
     isFirstUnreadRef.current = true;
     prevUnreadCountRef.current = 0;
+    if (onSeenStatusChange) onSeenStatusChange(loaded);
   }, [currentUser?.uid]);
 
-  useEffect(() => {
-    if (!loading && baselineKeys === null) {
-      setBaselineKeys(new Set(orders.map(getNotificationKey)));
-    }
-  }, [loading, orders, baselineKeys]);
-
-  useEffect(() => {
-    if (activePage === 'notifications' && currentUser?.uid && orders.length > 0) {
-      const allKeys = new Set(orders.map(getNotificationKey));
-      setReadKeys(allKeys);
-      saveReadKeys(currentUser.uid, allKeys);
-    }
-  }, [activePage, currentUser?.uid, orders]);
-
   const unreadOrders = useMemo(
-    () => orders.filter((o) => {
-      const key = getNotificationKey(o);
-      if (readKeys.has(key)) return false;
-      if (baselineKeys?.has(key)) return false;
-      return true;
-    }),
-    [orders, readKeys, baselineKeys]
+    () => getUnreadOrders(orders, seenStatus),
+    [orders, seenStatus]
   );
 
   const unreadCount = unreadOrders.length;
 
+  // Shake bell when new unread arrives — but NOT on initial load
   useEffect(() => {
     if (loading) return;
 
@@ -69,6 +58,7 @@ export default function NotificationBell({ setActivePage, activePage }) {
     prevUnreadCountRef.current = unreadCount;
   }, [unreadCount, loading]);
 
+  // Close panel on outside click or Escape key
   useEffect(() => {
     if (!open) return;
 
@@ -90,12 +80,24 @@ export default function NotificationBell({ setActivePage, activePage }) {
     };
   }, [open]);
 
-  const markKeyRead = (key) => {
+  // Mark a single order as seen and propagate to parent
+  const acknowledgeOrder = (order) => {
     if (!currentUser?.uid) return;
-    setReadKeys((prev) => {
-      const next = new Set(prev);
-      next.add(key);
-      saveReadKeys(currentUser.uid, next);
+    setSeenStatus((prev) => {
+      const next = markOrderSeen(prev, order);
+      saveSeenStatus(currentUser.uid, next);
+      if (onSeenStatusChange) onSeenStatusChange(next);
+      return next;
+    });
+  };
+
+  // Mark ALL orders as seen and propagate to parent
+  const acknowledgeAll = () => {
+    if (!currentUser?.uid || orders.length === 0) return;
+    setSeenStatus((prev) => {
+      const next = markAllOrdersSeen(prev, orders);
+      saveSeenStatus(currentUser.uid, next);
+      if (onSeenStatusChange) onSeenStatusChange(next);
       return next;
     });
   };
@@ -104,18 +106,15 @@ export default function NotificationBell({ setActivePage, activePage }) {
     setOpen((prev) => !prev);
   };
 
+  // Click a specific notification: mark ONLY that one as read, then navigate
   const handleItemClick = (order) => {
-    markKeyRead(getNotificationKey(order));
+    acknowledgeOrder(order);
     setOpen(false);
     setActivePage('notifications');
   };
 
+  // "View all" — just navigate, do NOT mark anything as read
   const handleViewAll = () => {
-    if (currentUser?.uid && orders.length > 0) {
-      const allKeys = new Set(orders.map(getNotificationKey));
-      setReadKeys(allKeys);
-      saveReadKeys(currentUser.uid, allKeys);
-    }
     setOpen(false);
     setActivePage('notifications');
   };
@@ -144,9 +143,20 @@ export default function NotificationBell({ setActivePage, activePage }) {
         <section className="nav-notif__panel" role="menu" aria-label="Unread notifications">
           <header className="nav-notif__panel-header">
             <strong>Notifications</strong>
-            {unreadCount > 0 && (
-              <span className="nav-notif__panel-count">{unreadCount} unread</span>
-            )}
+            <div className="nav-notif__panel-header-right">
+              {unreadCount > 0 && (
+                <>
+                  <span className="nav-notif__panel-count">{unreadCount} unread</span>
+                  <button
+                    type="button"
+                    className="nav-notif__mark-all-btn"
+                    onClick={acknowledgeAll}
+                  >
+                    Mark all read
+                  </button>
+                </>
+              )}
+            </div>
           </header>
 
           <ul className="nav-notif__list">
@@ -158,7 +168,7 @@ export default function NotificationBell({ setActivePage, activePage }) {
               unreadOrders.map((order) => {
                 const config = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
                 return (
-                  <li key={getNotificationKey(order)}>
+                  <li key={`${order.id}-${order.status}`}>
                     <button
                       type="button"
                       className="nav-notif__item"

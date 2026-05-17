@@ -9,20 +9,23 @@ import SignupCustomer from './components/login-and-signup/signupCustomer';
 import SignupVendor from './components/login-and-signup/signupVendor';
 import SignupAdmin from './components/login-and-signup/signupAdmin';
 import { AuthProvider } from './Services/AuthContext';
+import { CustomerOrdersProvider } from './Context/CustomerOrdersContext'; // ADDED
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/signup-role" element={<SignupRole />} />
-          <Route path="/signup-customer" element={<SignupCustomer />} />
-          <Route path="/signup-vendor" element={<SignupVendor />} />
-          <Route path="/signup-admin" element={<SignupAdmin />} />
-          <Route path="/*" element={<App />} />
-        </Routes>
-      </BrowserRouter>
+      <CustomerOrdersProvider> {/* ADDED - makes order data available everywhere */}
+        <BrowserRouter>
+          <Routes>
+            <Route path="/signup-role" element={<SignupRole />} />
+            <Route path="/signup-customer" element={<SignupCustomer />} />
+            <Route path="/signup-vendor" element={<SignupVendor />} />
+            <Route path="/signup-admin" element={<SignupAdmin />} />
+            <Route path="/*" element={<App />} />
+          </Routes>
+        </BrowserRouter>
+      </CustomerOrdersProvider> {/* ADDED */}
     </AuthProvider>
   </React.StrictMode>
 );

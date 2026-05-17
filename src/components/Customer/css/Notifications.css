@@ -22,6 +22,35 @@
   font-size: 0.9rem;
 }
 
+/* Header top row — title+subtitle on left, mark-all button on right */
+.notif-header__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Mark all as read — page-level button */
+.notif-mark-all-btn {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #F97316;
+  background: none;
+  border: 1px solid #F97316;
+  border-radius: 6px;
+  padding: 0.35rem 0.75rem;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+  transition: background 0.2s, color 0.2s;
+}
+
+.notif-mark-all-btn:hover {
+  background: #F97316;
+  color: #FFFFFF;
+}
+
 /* SECTION */
 .notif-section {
   margin-bottom: 2rem;
@@ -30,7 +59,7 @@
 .notif-section-title {
   font-size: 1rem;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #C2410C;
   margin-bottom: 0.75rem;
   padding-bottom: 0.4rem;
   border-bottom: 2px solid rgba(255,255,255,0.15);
@@ -49,6 +78,13 @@
 
 .notif-card:hover {
   transform: translateY(-2px);
+}
+
+/* Unread card — orange left accent + subtle warm tint */
+.notif-card--unread {
+  border-left-color: #F97316 !important;
+  background: #1f2a3a;
+  box-shadow: 0 2px 12px rgba(249, 115, 22, 0.15);
 }
 
 /* CARD STATUS COLOURS */
@@ -98,12 +134,43 @@
   line-height: 1.5;
 }
 
+/* Right-side slot: time + mark-read button stacked */
+.notif-card__right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+  padding-left: 0.5rem;
+}
+
 .notif-card__time {
   font-size: 0.78rem;
   color: #9CA3AF;
   white-space: nowrap;
-  margin-left: auto;
-  padding-left: 0.5rem;
+}
+
+/* Per-card mark-as-read button */
+.notif-card__mark-read {
+  background: none;
+  border: 1px solid #4B5563;
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  color: #9CA3AF;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.notif-card__mark-read:hover {
+  background: #052e16;
+  border-color: #22C55E;
+  color: #22C55E;
 }
 
 /* ORDER ITEMS LIST */
@@ -207,6 +274,7 @@
   margin-bottom: 1rem;
 }
 
+/* RESPONSIVE */
 @media (max-width: 600px) {
   .notif-page {
     padding: 1rem;
@@ -221,10 +289,16 @@
     gap: 0.5rem;
   }
 
-  .notif-card__time {
+  /* On mobile, right slot goes full width below the info */
+  .notif-card__right {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
     width: 100%;
     padding-left: 0;
-    margin-left: 0;
+  }
+
+  .notif-card__time {
     font-size: 0.72rem;
     color: #6B7280;
   }
@@ -245,6 +319,18 @@
 
   .notif-header h1 {
     font-size: 1.3rem;
+  }
+
+  /* Stack header: title above, mark-all button below */
+  .notif-header__top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+  }
+
+  .notif-mark-all-btn {
+    width: 100%;
+    text-align: center;
   }
 
   .notif-items {
