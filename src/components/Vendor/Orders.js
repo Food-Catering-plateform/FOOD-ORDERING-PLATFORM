@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react'; // Added useState, useEffect
 import './Orders.css';
-import { collection, updateDoc, onSnapshot, doc, query, where } from "firebase/firestore";
+import { collection, updateDoc, onSnapshot, doc, query, where, getDoc } from "firebase/firestore"; // Added getDoc
 import { db } from "../../Firebase/firebaseConfig";
 import { useAuth } from "../../Services/AuthContext";
 import { sendOrderReadyForPickupEmail } from "../../Services/pickupReadyEmail";
@@ -55,6 +55,33 @@ function Orders() {
 
     const newStatus  = STATUS_FLOW[order.status];
 
+    // --- NEW: Reduce Quantity in Inventory when order is COMPLETED ---
+    if (newStatus === 'completed') {
+      console.log('[Orders] Reducing inventory for completed order:', id);
+      try {
+        for (const item of order.items) {
+          // Path to the specific menu item in the vendor's subcollection
+          const itemRef = doc(db, "Vendors", vendorId, "menuItems", item.id);
+          const itemSnap = await getDoc(itemRef);
+          
+          if (itemSnap.exists()) {
+            const currentData = itemSnap.data();
+            const currentQty = parseInt(currentData.qty) || 0;
+            const reducedQty = Math.max(0, currentQty - (item.qty || 1));
+            
+            await updateDoc(itemRef, { 
+              qty: reducedQty,
+              // Automatically mark as sold out if it hits 0
+              isSoldOut: currentData.isSoldOut || reducedQty === 0 
+            });
+          }
+        }
+      } catch (error) {
+        console.error("[Orders] Error updating inventory:", error);
+      }
+    }
+    // --- End of Inventory Logic ---
+
     await updateDoc(doc(db, "Orders", id), { status: newStatus });
 
     const nextOrder = { ...order, id, status: newStatus };
@@ -70,7 +97,6 @@ function Orders() {
         const result = await sendOrderReadyForPickupEmail(nextOrder);
 
         if (result.ok) {
-          // FIX - mark email as sent in Firestore so it never sends twice
           await updateDoc(doc(db, "Orders", id), {
             pickupEmailSent:   true,
             pickupEmailSentAt: new Date().toISOString(),
@@ -87,7 +113,6 @@ function Orders() {
           console.log('[Orders] Pickup email sent successfully for order:', id);
 
         } else {
-          // FIX - now shows visible warning in console and alert so vendor knows
           console.warn('[Orders] Pickup email failed:', result.error);
           alert(`Order marked as ready but pickup email failed: ${result.error}`);
         }

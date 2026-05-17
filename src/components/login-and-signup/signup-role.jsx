@@ -21,9 +21,7 @@ function SignupRole() {
             <Link to="/signup-vendor" className="role-btn">
               Sign up as Vendor
             </Link>
-            <Link to="/signup-admin" className="role-btn role-btn--admin">
-              Apply for Admin Access
-            </Link>
+
           </nav>
 
           <p>

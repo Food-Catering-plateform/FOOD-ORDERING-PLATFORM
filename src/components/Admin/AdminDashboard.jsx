@@ -4,7 +4,6 @@ import { auth, db } from "../../Firebase/firebaseConfig";
 import { signOut } from "firebase/auth";
 import { collection, getDocs } from "firebase/firestore";
 
-//   Analytics helpers          
 
 const PERIODS = ['Today', 'This Week', 'This Month'];
 
@@ -79,7 +78,7 @@ export function buildTopItems(orders) {
     .slice(0, 5);
 }
 
-//   Export helpers          
+        
 
 function escapeCSV(val) {
   const str = String(val);
@@ -312,7 +311,7 @@ export async function downloadReport(period, d) {
     });
   }
 
-  //    Sales per vendor   
+ 
   sectionTitle('Sales per Vendor');
   if (d.vendorSales.length === 0) {
     doc.setFontSize(9); doc.setTextColor(136, 136, 136);
@@ -347,7 +346,7 @@ export async function downloadReport(period, d) {
   doc.save(`admin_analytics_${period.replace(/\s+/g, '_').toLowerCase()}.pdf`);
 }
 
-//   ExportButton           
+//   ExportButton         
 
 function ExportButton({ period, data }) {
   const [open, setOpen] = useState(false);
@@ -412,7 +411,7 @@ function ExportButton({ period, data }) {
               onMouseLeave={e => e.currentTarget.style.background = 'none'}
             >
               <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.05em', padding: '2px 5px', borderRadius: '4px', background: '#e6f9f0', color: '#16a34a', flexShrink: 0 }}>CSV</span>
-              <span style={{ fontSize: '13px', fontWeight: 500, color: '#ffffff' }}>
+              <span style={{ fontSize: '13px', fontWeight: 500, color: '#1a1c23' }}>
                 Spreadsheet <span style={{ fontSize: '11px', color: '#999' }}>.csv</span>
               </span>
             </button>
@@ -429,7 +428,7 @@ function ExportButton({ period, data }) {
               onMouseLeave={e => e.currentTarget.style.background = 'none'}
             >
               <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.05em', padding: '2px 5px', borderRadius: '4px', background: '#fff0e6', color: '#c2500a', flexShrink: 0 }}>PDF</span>
-              <span style={{ fontSize: '13px', fontWeight: 500, color: '#ffffff' }}>
+              <span style={{ fontSize: '13px', fontWeight: 500, color: '#1a1c23' }}>
                 Report <span style={{ fontSize: '11px', color: '#999' }}>.pdf</span>
               </span>
             </button>
@@ -611,6 +610,464 @@ function AnalyticsSection() {
   );
 }
 
+
+
+function OrdersSection() {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('all');
+
+  useEffect(() => {
+    const fetch_ = async () => {
+      setLoading(true);
+      try {
+        const snap = await getDocs(collection(db, 'Orders'));
+        const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        all.sort((a, b) => new Date(b.createdAt || b.time || 0) - new Date(a.createdAt || a.time || 0));
+        setOrders(all);
+      } catch (e) { console.error(e); }
+      setLoading(false);
+    };
+    fetch_();
+  }, []);
+
+  if (loading) return <p style={{ padding: '24px' }}>Loading orders…</p>;
+
+  const statusClass = s => {
+    if (!s) return 'status-pending';
+    const v = s.toLowerCase();
+    if (v === 'completed' || v === 'delivered') return 'status-approved';
+    if (v === 'cancelled') return 'status-suspended';
+    return 'status-pending';
+  };
+
+  const FILTERS = ['all', 'pending', 'completed', 'cancelled'];
+  const visible = filter === 'all' ? orders : orders.filter(o => (o.status || '').toLowerCase() === filter);
+
+  const counts = {
+    all: orders.length,
+    pending: orders.filter(o => !['completed','delivered','cancelled'].includes((o.status||'').toLowerCase())).length,
+    completed: orders.filter(o => ['completed','delivered'].includes((o.status||'').toLowerCase())).length,
+    cancelled: orders.filter(o => (o.status||'').toLowerCase() === 'cancelled').length,
+  };
+
+  return (
+    <section>
+      <nav style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
+        {FILTERS.map(f => (
+          <button key={f} onClick={() => setFilter(f)} style={{
+            padding: '7px 18px', borderRadius: '8px', border: '1.5px solid #E8E6E1',
+            background: filter === f ? '#1A1C23' : '#fff',
+            color: filter === f ? '#fff' : '#555',
+            fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', textTransform: 'capitalize',
+          }}>
+            {f.charAt(0).toUpperCase() + f.slice(1)} <span style={{ opacity: 0.6, fontSize: '0.78rem' }}>({counts[f]})</span>
+          </button>
+        ))}
+      </nav>
+
+      {visible.length === 0 ? (
+        <p style={{ color: '#888' }}>No orders found.</p>
+      ) : (
+        <table>
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Customer</th>
+              <th>Vendor</th>
+              <th>Items</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {visible.map(o => (
+              <tr key={o.id}>
+                <td style={{ fontFamily: 'monospace', fontSize: '0.78rem', color: '#888' }}>#{o.id.slice(0, 8)}</td>
+                <td>{o.customerName || o.customerId || '—'}</td>
+                <td>{o.vendorName || '—'}</td>
+                <td style={{ fontSize: '0.82rem', color: '#666' }}>
+                  {(o.items || []).map(i => `${i.name} x${i.qty}`).join(', ') || '—'}
+                </td>
+                <td>R {(o.total || 0).toLocaleString('en-ZA', { minimumFractionDigits: 2 })}</td>
+                <td><span className={statusClass(o.status)}>{o.status || 'Unknown'}</span></td>
+                <td style={{ color: '#888', fontSize: '0.82rem' }}>
+                  {o.createdAt || o.time ? new Date(o.createdAt || o.time).toLocaleString('en-ZA') : '—'}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </section>
+  );
+}
+
+function UsersSection() {
+  const [customers, setCustomers] = useState([]);
+  const [vendors, setVendors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState('customers');
+
+  useEffect(() => {
+    const fetch_ = async () => {
+      setLoading(true);
+      try {
+        const [cSnap, vSnap] = await Promise.all([
+          getDocs(collection(db, 'customers')),
+          getDocs(collection(db, 'vendors')),
+        ]);
+        setCustomers(cSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setVendors(vSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+      } catch (e) { console.error(e); }
+      setLoading(false);
+    };
+    fetch_();
+  }, []);
+
+  if (loading) return <p style={{ padding: '24px' }}>Loading users…</p>;
+
+  const list = tab === 'customers' ? customers : vendors;
+
+  return (
+    <section>
+      <nav style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+        {['customers', 'vendors'].map(t => (
+          <button key={t} onClick={() => setTab(t)} style={{
+            padding: '7px 20px', borderRadius: '8px', border: '1.5px solid #E8E6E1',
+            background: tab === t ? '#1A1C23' : '#fff',
+            color: tab === t ? '#fff' : '#555',
+            fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', textTransform: 'capitalize',
+          }}>
+            {t.charAt(0).toUpperCase() + t.slice(1)} <span style={{ opacity: 0.6, fontSize: '0.78rem' }}>
+              ({tab === 'customers' ? customers.length : vendors.length})
+            </span>
+          </button>
+        ))}
+      </nav>
+
+      {list.length === 0 ? (
+        <p style={{ color: '#888' }}>No {tab} found.</p>
+      ) : (
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              {tab === 'vendors' && <th>Store</th>}
+              <th>Joined</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {list.map(u => (
+              <tr key={u.id}>
+                <td>{u.name || u.displayName || '—'}</td>
+                <td style={{ color: '#555', fontSize: '0.88rem' }}>{u.email || '—'}</td>
+                {tab === 'vendors' && <td>{u.storeName || u.businessName || '—'}</td>}
+                <td style={{ color: '#888', fontSize: '0.82rem' }}>
+                  {u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-ZA') : '—'}
+                </td>
+                <td>
+                  <span className={u.suspended ? 'status-suspended' : 'status-approved'}>
+                    {u.suspended ? 'Suspended' : 'Active'}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </section>
+  );
+}
+
+function PaymentsSection() {
+  const [payments, setPayments] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetch_ = async () => {
+      setLoading(true);
+      try {
+        let all = [];
+        try {
+          const snap = await getDocs(collection(db, 'Payments'));
+          all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch (_) {}
+
+        if (all.length === 0) {
+          const snap = await getDocs(collection(db, 'Orders'));
+          all = snap.docs
+            .map(d => ({ id: d.id, ...d.data() }))
+            .filter(o => ['completed', 'delivered'].includes((o.status || '').toLowerCase()));
+        }
+
+        all.sort((a, b) => new Date(b.createdAt || b.time || b.paidAt || 0) - new Date(a.createdAt || a.time || a.paidAt || 0));
+        setPayments(all);
+      } catch (e) { console.error(e); }
+      setLoading(false);
+    };
+    fetch_();
+  }, []);
+
+  if (loading) return <p style={{ padding: '24px' }}>Loading payments…</p>;
+
+  const total = payments.reduce((s, p) => s + (p.total || p.amount || 0), 0);
+
+  return (
+    <section>
+      <section className="cards" style={{ marginBottom: '24px', padding: 0 }}>
+        <article>
+          <h3>Total Processed</h3>
+          <p className="stat-value">R {total.toLocaleString('en-ZA', { minimumFractionDigits: 2 })}</p>
+        </article>
+        <article>
+          <h3>Transactions</h3>
+          <p className="stat-value">{payments.length}</p>
+        </article>
+        <article>
+          <h3>Avg. Order Value</h3>
+          <p className="stat-value">
+            R {payments.length ? (total / payments.length).toLocaleString('en-ZA', { minimumFractionDigits: 2 }) : '0.00'}
+          </p>
+        </article>
+      </section>
+
+      {payments.length === 0 ? (
+        <p style={{ color: '#888' }}>No payments found.</p>
+      ) : (
+        <table>
+          <thead>
+            <tr>
+              <th>Ref</th>
+              <th>Customer</th>
+              <th>Vendor</th>
+              <th>Amount</th>
+              <th>Method</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {payments.map(p => (
+              <tr key={p.id}>
+                <td style={{ fontFamily: 'monospace', fontSize: '0.78rem', color: '#888' }}>#{p.id.slice(0, 8)}</td>
+                <td>{p.customerName || p.customerId || '—'}</td>
+                <td>{p.vendorName || '—'}</td>
+                <td style={{ fontWeight: 600 }}>R {(p.total || p.amount || 0).toLocaleString('en-ZA', { minimumFractionDigits: 2 })}</td>
+                <td style={{ color: '#555', fontSize: '0.85rem' }}>{p.paymentMethod || p.method || 'PayFast'}</td>
+                <td style={{ color: '#888', fontSize: '0.82rem' }}>
+                  {p.createdAt || p.time || p.paidAt
+                    ? new Date(p.createdAt || p.time || p.paidAt).toLocaleString('en-ZA')
+                    : '—'}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </section>
+  );
+}
+
+function SettingsSection() {
+  const [saved, setSaved] = useState(false);
+  const [settings, setSettings] = useState({
+    siteName: 'UniEats',
+    supportEmail: 'support@unieats.co.za',
+    orderNotifications: true,
+    maintenanceMode: false,
+    maxVendors: '',
+    allowNewSignups: true,
+  });
+
+  const handleChange = (key, val) => setSettings(s => ({ ...s, [key]: val }));
+
+  const handleSave = async () => {
+    try {
+      // Save to Firestore if desired — using localStorage as lightweight fallback
+      localStorage.setItem('adminSettings', JSON.stringify(settings));
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch (e) { console.error(e); }
+  };
+
+  const row = (label, desc, child) => (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 0', borderBottom: '1px solid #F0EEE9' }}>
+      <div>
+        <p style={{ margin: 0, fontWeight: 600, fontSize: '0.92rem' }}>{label}</p>
+        {desc && <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#888' }}>{desc}</p>}
+      </div>
+      {child}
+    </div>
+  );
+
+  const toggle = (key) => (
+    <button
+      onClick={() => handleChange(key, !settings[key])}
+      style={{
+        width: '46px', height: '26px', borderRadius: '99px', border: 'none', cursor: 'pointer',
+        background: settings[key] ? '#1A1C23' : '#ddd',
+        position: 'relative', transition: 'background .2s', flexShrink: 0,
+      }}
+    >
+      <span style={{
+        position: 'absolute', top: '3px',
+        left: settings[key] ? '23px' : '3px',
+        width: '20px', height: '20px', borderRadius: '50%',
+        background: '#fff', transition: 'left .2s', display: 'block',
+      }} />
+    </button>
+  );
+
+  return (
+    <section>
+      <article style={{ maxWidth: '600px' }}>
+        <h3 style={{ marginTop: 0 }}>General</h3>
+        {row('Platform Name', 'Displayed across the app',
+          <input value={settings.siteName} onChange={e => handleChange('siteName', e.target.value)}
+            style={{ padding: '7px 12px', borderRadius: '8px', border: '1.5px solid #E8E6E1', fontSize: '0.88rem', width: '180px' }} />
+        )}
+        {row('Support Email', 'Where user queries are sent',
+          <input value={settings.supportEmail} onChange={e => handleChange('supportEmail', e.target.value)}
+            style={{ padding: '7px 12px', borderRadius: '8px', border: '1.5px solid #E8E6E1', fontSize: '0.88rem', width: '220px' }} />
+        )}
+        {row('Max Vendors', 'Leave blank for unlimited',
+          <input type="number" value={settings.maxVendors} onChange={e => handleChange('maxVendors', e.target.value)}
+            placeholder="Unlimited"
+            style={{ padding: '7px 12px', borderRadius: '8px', border: '1.5px solid #E8E6E1', fontSize: '0.88rem', width: '120px' }} />
+        )}
+
+        <h3 style={{ marginTop: '28px' }}>Notifications & Access</h3>
+        {row('Order Notifications', 'Send email alerts for new orders', toggle('orderNotifications'))}
+        {row('Allow New Sign-ups', 'Let new customers & vendors register', toggle('allowNewSignups'))}
+        {row('Maintenance Mode', 'Take the platform offline for users', toggle('maintenanceMode'))}
+
+        <div style={{ marginTop: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button onClick={handleSave} style={{
+            padding: '10px 28px', background: '#1A1C23', color: '#fff',
+            border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer',
+          }}>
+            Save Changes
+          </button>
+          {saved && <span style={{ color: '#16a34a', fontWeight: 600, fontSize: '0.88rem' }}>✓ Saved</span>}
+        </div>
+      </article>
+    </section>
+  );
+}
+
+
+
+function DashboardOverview() {
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({ totalOrders: 0, revenue: 0, newUsers: 0 });
+  const [recentOrders, setRecentOrders] = useState([]);
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      setLoading(true);
+      try {
+        const snap = await getDocs(collection(db, 'Orders'));
+        const allOrders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        const completed = allOrders.filter(o => o.status === 'completed');
+        const revenue = completed.reduce((sum, o) => sum + (o.total || 0), 0);
+
+        // Sort by createdAt descending and take 10 most recent
+        const sorted = [...allOrders].sort((a, b) => {
+          const aTime = new Date(a.createdAt || a.time || 0).getTime();
+          const bTime = new Date(b.createdAt || b.time || 0).getTime();
+          return bTime - aTime;
+        });
+
+        setStats({
+          totalOrders: allOrders.length,
+          revenue,
+          newUsers: new Set(allOrders.map(o => o.customerId).filter(Boolean)).size,
+        });
+        setRecentOrders(sorted.slice(0, 10));
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      }
+      setLoading(false);
+    };
+    fetchDashboard();
+  }, []);
+
+  if (loading) return <p style={{ padding: '24px' }}>Loading dashboard…</p>;
+
+  const statusClass = (status) => {
+    if (!status) return '';
+    const s = status.toLowerCase();
+    if (s === 'completed' || s === 'delivered') return 'status-approved';
+    if (s === 'cancelled') return 'status-suspended';
+    return 'status-pending';
+  };
+
+  return (
+    <>
+      <section className="cards" aria-label="Summary statistics">
+        <article>
+          <h3>Total Orders</h3>
+          <p className="stat-value">{stats.totalOrders}</p>
+        </article>
+        <article>
+          <h3>Revenue</h3>
+          <p className="stat-value">R {stats.revenue.toLocaleString('en-ZA', { minimumFractionDigits: 2 })}</p>
+        </article>
+        <article>
+          <h3>Unique Customers</h3>
+          <p className="stat-value">{stats.newUsers}</p>
+        </article>
+      </section>
+
+      <section aria-labelledby="recent-orders-heading" style={{ paddingTop: 0 }}>
+        <h2 id="recent-orders-heading" className="section-title">Recent Orders</h2>
+        {recentOrders.length === 0 ? (
+          <p style={{ color: '#888' }}>No orders found.</p>
+        ) : (
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Order ID</th>
+                <th scope="col">Customer</th>
+                <th scope="col">Vendor</th>
+                <th scope="col">Total</th>
+                <th scope="col">Status</th>
+                <th scope="col">Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recentOrders.map((order) => (
+                <tr key={order.id}>
+                  <td style={{ fontFamily: 'monospace', fontSize: '0.8rem', color: '#888' }}>
+                    #{order.id.slice(0, 8)}
+                  </td>
+                  <td>{order.customerName || order.customerId || '—'}</td>
+                  <td>{order.vendorName || '—'}</td>
+                  <td>R {(order.total || 0).toLocaleString('en-ZA', { minimumFractionDigits: 2 })}</td>
+                  <td>
+                    <span className={statusClass(order.status)}>
+                      {order.status || 'Unknown'}
+                    </span>
+                  </td>
+                  <td style={{ color: '#888', fontSize: '0.85rem' }}>
+                    {order.createdAt || order.time
+                      ? new Date(order.createdAt || order.time).toLocaleDateString('en-ZA')
+                      : '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
+    </>
+  );
+}
+
 //  Main AdminDashboard 
 
 const AdminDashboard = ({ setActivePage }) => {
@@ -625,19 +1082,49 @@ const AdminDashboard = ({ setActivePage }) => {
     }
   };
 
+  const PAGE_TITLES = {
+    dashboard: 'Dashboard',
+    orders: 'Orders',
+    vendors: 'Vendors',
+    users: 'Users',
+    payments: 'Payments',
+    settings: 'Settings',
+    analytics: 'Analytics',
+  };
+
+  const navBtn = (page, label) => (
+    <li className={localPage === page ? 'active' : ''}>
+      <button onClick={() => {
+        if (page === 'vendors') { setActivePage('admin-vendor-management'); }
+        else { setLocalPage(page); }
+      }}>{label}</button>
+    </li>
+  );
+
+  const renderPage = () => {
+    switch (localPage) {
+      case 'orders':    return <OrdersSection />;
+      case 'users':     return <UsersSection />;
+      case 'payments':  return <PaymentsSection />;
+      case 'settings':  return <SettingsSection />;
+      case 'analytics': return <AnalyticsSection />;
+      default:          return <DashboardOverview />;
+    }
+  };
+
   return (
     <section className="dashboard-container">
       <aside>
         <h2>Admin</h2>
         <nav aria-label="Admin navigation">
           <ul>
-            <li><button onClick={() => setLocalPage("dashboard")}>Dashboard</button></li>
-            <li><button onClick={() => {}}>Orders</button></li>
-            <li><button onClick={() => setActivePage('admin-vendor-management')}>Vendors</button></li>
-            <li><button onClick={() => {}}>Users</button></li>
-            <li><button onClick={() => {}}>Payments</button></li>
-            <li><button onClick={() => {}}>Settings</button></li>
-            <li><button onClick={() => setLocalPage("analytics")}>Analytics</button></li>
+            {navBtn('dashboard', 'Dashboard')}
+            {navBtn('orders', 'Orders')}
+            {navBtn('vendors', 'Vendors')}
+            {navBtn('users', 'Users')}
+            {navBtn('payments', 'Payments')}
+            {navBtn('settings', 'Settings')}
+            {navBtn('analytics', 'Analytics')}
             <li><button onClick={handleLogout}>Logout</button></li>
           </ul>
         </nav>
@@ -645,47 +1132,10 @@ const AdminDashboard = ({ setActivePage }) => {
 
       <main>
         <header>
-          <h1>{localPage === 'analytics' ? 'Analytics' : 'Dashboard'}</h1>
+          <h1>{PAGE_TITLES[localPage] || 'Dashboard'}</h1>
         </header>
 
-        {localPage === 'analytics' ? (
-          <AnalyticsSection />
-        ) : (
-          <>
-            <section className="cards" aria-label="Summary statistics">
-              <article>
-                <h3>Total Orders</h3>
-                <p>120</p>
-              </article>
-              <article>
-                <h3>Revenue</h3>
-                <p>R5,000</p>
-              </article>
-              <article>
-                <h3>New Users</h3>
-                <p>10</p>
-              </article>
-            </section>
-
-            <section aria-labelledby="recent-orders-heading">
-              <h2 id="recent-orders-heading">Recent Orders</h2>
-              <table>
-                <thead>
-                  <tr>
-                    <th scope="col">Order ID</th>
-                    <th scope="col">Customer</th>
-                    <th scope="col">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr><td>#001</td><td>John</td><td>Delivered</td></tr>
-                  <tr><td>#002</td><td>Alice</td><td>Pending</td></tr>
-                  <tr><td>#003</td><td>Mike</td><td>Cancelled</td></tr>
-                </tbody>
-              </table>
-            </section>
-          </>
-        )}
+        {renderPage()}
 
         <footer>
           <small>© 2026 UniEats</small>

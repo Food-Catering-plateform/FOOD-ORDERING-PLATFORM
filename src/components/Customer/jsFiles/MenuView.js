@@ -40,7 +40,7 @@ function DietaryInfo({ item }) {
   if (!hasDietary && !hasAllergens) return null;
 
   return (
-    <div>
+    <div className="menu-item__dietary-container">
       <button
         type="button"
         className="menu-item__info-toggle"
@@ -50,7 +50,7 @@ function DietaryInfo({ item }) {
         {open ? '▲' : '▼'} Dietary & Allergen Info
       </button>
       {open && (
-        <div>
+        <div className="menu-item__dietary-details">
           {hasDietary && (
             <div className="menu-item__dietary">
               <p className="menu-item__dietary-title">Dietary</p>
@@ -90,20 +90,20 @@ const MenuView = ({ shop, onBack, addToBasket }) => {
   const [addedId,   setAddedId]   = useState(null);
   const [isOpen,    setIsOpen]    = useState(false);
   const [hours,     setHours]     = useState(null);
+  const [banner,    setBanner]    = useState(null);
 
   useEffect(() => {
     if (!shop?.id) return;
 
     const fetchData = async () => {
-      // Fetch vendor hours
       const vendorSnap = await getDoc(doc(db, 'Vendors', shop.id));
       if (vendorSnap.exists()) {
-        const vendorHours = vendorSnap.data().hours || null;
-        setHours(vendorHours);
-        setIsOpen(checkIsOpen(vendorHours));
+        const data = vendorSnap.data();
+        setHours(data.hours || null);
+        setIsOpen(checkIsOpen(data.hours));
+        setBanner(data.bannerImageUrl || null);
       }
 
-      // Fetch menu items
       const menuSnapshot = await getDocs(
         collection(db, 'Vendors', shop.id, 'menuItems')
       );
@@ -115,7 +115,6 @@ const MenuView = ({ shop, onBack, addToBasket }) => {
     fetchData();
   }, [shop]);
 
-  /* Format today's hours for display */
   const todayLabel = () => {
     if (!hours) return null;
     const today = new Date().toLocaleDateString('en-ZA', { weekday: 'long' });
@@ -126,64 +125,84 @@ const MenuView = ({ shop, onBack, addToBasket }) => {
   };
 
   return (
-    <section className="menu-container">
-      <header>
-        <h2>{shop?.name || 'Menu'}</h2>
-
-        {/* ── Open / closed banner ── */}
-        <div className={`menu-status-banner ${isOpen ? 'menu-status-banner--open' : 'menu-status-banner--closed'}`}>
-          <span className="menu-status-banner__dot" />
-          <span>{isOpen ? 'Open now' : 'Closed'}</span>
-          {todayLabel() && <span className="menu-status-banner__hours"> · {todayLabel()}</span>}
+    <main className="menu-container">
+      {/* Banner as a simple image on top */}
+      {banner && (
+        <div className="menu-banner">
+          <img src={banner} alt="" className="menu-banner__img" />
         </div>
-        {isOpen && <p>Select items to add to your order.</p>}
-      </header>
+      )}
 
-      <section className="menu-list">
-        {menuItems.map((item) => (
-          <article key={item.id} className="menu-item">
-            {item.imageUrl && <img src={item.imageUrl} alt={item.name} />}
+      <div className="menu-content">
+        <header className="menu-header">
+          <h2>{shop?.name || 'Menu'}</h2>
+          <div className={`menu-status-banner ${isOpen ? 'menu-status-banner--open' : 'menu-status-banner--closed'}`}>
+            <span className="menu-status-banner__dot" />
+            <span>{isOpen ? 'Open now' : 'Closed'}</span>
+            {todayLabel() && <span className="menu-status-banner__hours"> · {todayLabel()}</span>}
+          </div>
+          {isOpen && <p className="menu-instruction">Select items to add to your order.</p>}
+        </header>
 
-            <div className="menu-item-body">
-              <header>
-                <h3>{item.name}</h3>
-                <data value={item.price}>R{item.price}</data>
-              </header>
-              {item.description && <p>{item.description}</p>}
-              <DietaryInfo item={item} />
-            </div>
+        <section className="menu-list">
+          {menuItems.map((item) => {
+            // --- NEW: Availability Logic ---
+            // Item is available if NOT manually sold out AND (qty is not set OR qty > 0)
+            const isAvailable = !item.isSoldOut && (item.qty === undefined || item.qty === '' || parseInt(item.qty) > 0);
 
-            <footer>
-              <small>Qty: {item.qty}</small>
+            return (
+              <article key={item.id} className={`menu-item ${!isAvailable ? 'menu-item--sold-out' : ''}`}>
+                {item.imageUrl && <img src={item.imageUrl} alt={item.name} className="menu-item__img" />}
 
-              {isOpen ? (
-                <button
-                  type="button"
-                  className={addedId === item.id ? 'added' : ''}
-                  onClick={() => {
-                    addToBasket(item, shop);
-                    setAddedId(item.id);
-                    setTimeout(() => setAddedId(null), 1000);
-                  }}
-                >
-                  {addedId === item.id ? '✓ Added!' : 'Add to Basket'}
-                </button>
-              ) : (
-                <button type="button" className="btn-closed" disabled>
-                  Shop Closed
-                </button>
-              )}
-            </footer>
-          </article>
-        ))}
-      </section>
+                <div className="menu-item-body">
+                  <header className="menu-item__header">
+                    <h3>{item.name}</h3>
+                    <data value={item.price} className="menu-item__price">
+                      R{parseFloat(item.price || 0).toFixed(2)}
+                    </data>
+                  </header>
+                  {item.description && <p className="menu-item__description">{item.description}</p>}
+                  <DietaryInfo item={item} />
+                </div>
 
-      <nav>
-        <button type="button" className="back-btn" onClick={onBack}>
-          ← Back to Shops
-        </button>
-      </nav>
-    </section>
+                <footer className="menu-item__footer">
+                  {/* --- NEW: Show Availability Tag instead of Qty --- */}
+                  <small className={`menu-item__availability ${isAvailable ? 'available' : 'sold-out'}`} style={{ fontWeight: '700', color: isAvailable ? '#00C896' : '#ef4444' }}>
+                    {isAvailable ? '● Available' : '○ Sold Out'}
+                  </small>
+
+                  {isOpen ? (
+                    <button
+                      type="button"
+                      disabled={!isAvailable} // --- NEW: Disable button if sold out
+                      className={`menu-item__add-btn ${addedId === item.id ? 'added' : ''} ${!isAvailable ? 'disabled' : ''}`}
+                      onClick={() => {
+                        if (!isAvailable) return;
+                        addToBasket(item, shop);
+                        setAddedId(item.id);
+                        setTimeout(() => setAddedId(null), 1000);
+                      }}
+                    >
+                      {addedId === item.id ? '✓ Added!' : (isAvailable ? 'Add to Basket' : 'Sold Out')}
+                    </button>
+                  ) : (
+                    <button type="button" className="btn-closed" disabled>
+                      Shop Closed
+                    </button>
+                  )}
+                </footer>
+              </article>
+            );
+          })}
+        </section>
+
+        <nav className="menu-nav">
+          <button type="button" className="back-btn" onClick={onBack}>
+            ← Back to Shops
+          </button>
+        </nav>
+      </div>
+    </main>
   );
 };
 

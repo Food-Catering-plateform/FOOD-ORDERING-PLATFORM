@@ -1,10 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import '../css/Notifications.css';
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { collection, onSnapshot, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../../Firebase/firebaseConfig';
 import { useAuth } from '../../../Services/AuthContext';
 
-// Maps each order status to a badge label, emoji and css modifier
 const STATUS_CONFIG = {
   pending: {
     label:   'Order Received',
@@ -51,21 +50,15 @@ const Notifications = () => {
 
     setError('');
 
-    const qById = query(
-      collection(db, 'Orders'),
-      where('customerId', '==', currentUser.uid)
-    );
-
-    const mergeDocs = (snapshots) => {
+    const mergeAndSet = (snapshots) => {
       const map = new Map();
       snapshots.forEach((snap) => {
-        snap.docs.forEach((d) => {
+        (snap.docs || []).forEach((d) => {
           map.set(d.id, { id: d.id, ...d.data() });
         });
       });
-      // Sort by most recent first using createdAt
       const sorted = [...map.values()].sort(
-        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
       );
       setOrders(sorted);
     };
@@ -73,42 +66,82 @@ const Notifications = () => {
     let snapById          = null;
     let snapByEmail       = null;
     let snapByDisplayName = null;
+    let usedFallback      = false;
 
     const tryMerge = () => {
       const snaps = [snapById, snapByEmail, snapByDisplayName].filter(Boolean);
-      if (snaps.length > 0) mergeDocs(snaps);
+      if (snaps.length > 0) mergeAndSet(snaps);
     };
 
-    const unsubById = onSnapshot(
-      qById,
-      (snap) => { snapById = snap; tryMerge(); },
-      (err)  => { console.error(err); setError('Could not load notifications.'); setOrders([]); }
-    );
+    // Fallback for when onSnapshot is blocked by Firestore rules or missing index
+    const fetchFallback = async () => {
+      if (usedFallback) return;
+      usedFallback = true;
+      try {
+        const snap = await getDocs(
+          query(collection(db, 'Orders'), where('customerId', '==', currentUser.uid))
+        );
+        let allSnaps = [snap];
+        if (snap.docs.length === 0 && currentUser.email) {
+          const snapEmail = await getDocs(
+            query(collection(db, 'Orders'), where('customerEmail', '==', currentUser.email))
+          ).catch(() => ({ docs: [] }));
+          allSnaps = [snap, snapEmail];
+        }
+        mergeAndSet(allSnaps);
+      } catch (err) {
+        console.error('Fallback getDocs failed:', err);
+        setError('Could not load notifications. Please check your connection and try again.');
+      }
+    };
 
+    let unsubById = () => {};
     let unsubByEmail = () => {};
-    if (currentUser.email) {
-      const qByEmail = query(
+    let unsubByDisplayName = () => {};
+
+    try {
+      const qById = query(
         collection(db, 'Orders'),
-        where('customerName', '==', currentUser.email)
+        where('customerId', '==', currentUser.uid)
       );
-      unsubByEmail = onSnapshot(
-        qByEmail,
-        (snap) => { snapByEmail = snap; tryMerge(); },
-        (err)  => console.error(err)
+      unsubById = onSnapshot(
+        qById,
+        (snap) => { snapById = snap; tryMerge(); },
+        (err)  => {
+          console.error('onSnapshot by UID failed:', err);
+          fetchFallback();
+        }
       );
+    } catch (err) {
+      fetchFallback();
     }
 
-    let unsubByDisplayName = () => {};
+    if (currentUser.email) {
+      try {
+        const qByEmail = query(
+          collection(db, 'Orders'),
+          where('customerName', '==', currentUser.email)
+        );
+        unsubByEmail = onSnapshot(
+          qByEmail,
+          (snap) => { snapByEmail = snap; tryMerge(); },
+          (err)  => console.error('onSnapshot by email:', err)
+        );
+      } catch (err) { /* ignore */ }
+    }
+
     if (currentUser.displayName) {
-      const qByDisplayName = query(
-        collection(db, 'Orders'),
-        where('customerName', '==', currentUser.displayName)
-      );
-      unsubByDisplayName = onSnapshot(
-        qByDisplayName,
-        (snap) => { snapByDisplayName = snap; tryMerge(); },
-        (err)  => console.error(err)
-      );
+      try {
+        const qByDisplayName = query(
+          collection(db, 'Orders'),
+          where('customerName', '==', currentUser.displayName)
+        );
+        unsubByDisplayName = onSnapshot(
+          qByDisplayName,
+          (snap) => { snapByDisplayName = snap; tryMerge(); },
+          (err)  => console.error('onSnapshot by displayName:', err)
+        );
+      } catch (err) { /* ignore */ }
     }
 
     return () => {
@@ -160,7 +193,7 @@ const Notifications = () => {
         </p>
       </header>
 
-      {error && <p className="notif-error">{error}</p>}
+      {error && <p className="notif-error" role="alert">{error}</p>}
 
       {/* PAYMENT NOTIFICATIONS */}
       {paymentOrders.length > 0 && (
@@ -172,7 +205,7 @@ const Notifications = () => {
                 <strong className="notif-card__emoji">💳</strong>
                 <section className="notif-card__info">
                   <strong>Payment Successful</strong>
-                  <p>Your payment of R {o.total?.toFixed(2)} was received for your order from {o.vendorName}.</p>
+                  <p>Your payment of R {parseFloat(o.total || 0).toFixed(2)} was received for your order from {o.vendorName}.</p>
                 </section>
                 <time className="notif-card__time">{o.time}</time>
               </header>
@@ -215,7 +248,7 @@ const Notifications = () => {
 
                     <footer className="notif-card__footer">
                       <strong className="notif-card__total">
-                        Total: R {o.total?.toFixed(2)}
+                        Total: R {parseFloat(o.total || 0).toFixed(2)}
                       </strong>
                       {o.status === 'ready' && o.pickupEmailSent && (
                         <span className="notif-email-sent">
@@ -251,7 +284,7 @@ const Notifications = () => {
                     </section>
                     <p className="notif-card__message">{config.message}</p>
                     <strong className="notif-card__total">
-                      Total: R {o.total?.toFixed(2)}
+                      Total: R {parseFloat(o.total || 0).toFixed(2)}
                     </strong>
                   </section>
                   <time className="notif-card__time">{o.time}</time>

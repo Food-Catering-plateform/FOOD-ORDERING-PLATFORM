@@ -1,4 +1,4 @@
-import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
+import { collection, getDocs, doc, updateDoc, setDoc } from "firebase/firestore";
 import { db } from "../Firebase/firebaseConfig";
 
 // ─── Vendors ────────────────────────────────────────────────────────────────
@@ -43,17 +43,16 @@ export const fetchAllAdmins = async () => {
 };
 
 export const updateAdminStatus = async (adminId, newStatus) => {
-
-  const adminRef = doc(db, "admins", adminId);
-
-  // Update admin document
-  await updateDoc(adminRef, {
+  // Update admin application document
+  await updateDoc(doc(db, "admins", adminId), {
     status: newStatus,
   });
 
-  // Keep users collection in sync
+  // Sync status to users collection — keep role as 'vendor' so they still
+  // land on the vendor dashboard at login. isAdmin flag is what grants access.
   await updateDoc(doc(db, "users", adminId), {
     status: newStatus,
+    isAdmin: newStatus === "approved",
   });
 };
 
