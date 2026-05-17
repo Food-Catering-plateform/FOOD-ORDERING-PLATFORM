@@ -147,7 +147,7 @@ const MenuView = ({ shop, onBack, addToBasket }) => {
             <div className="menu-item-body">
               <header>
                 <h3>{item.name}</h3>
-                <data value={item.price}>R{item.price}</data>
+                <data value={item.price}>R{parseFloat(item.price || 0).toFixed(2)}</data>
               </header>
               {item.description && <p>{item.description}</p>}
               <DietaryInfo item={item} />
