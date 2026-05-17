@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../Firebase/firebaseConfig';
 import { auth } from '../../Firebase/firebaseConfig';
 import { signOut } from 'firebase/auth';
@@ -26,14 +26,26 @@ function VDashboard({ uid, onLogout }) {
 
   useEffect(() => {
     if (!uid) return;
-    getDoc(doc(db, 'stores', uid)).then(snap => {
-      if (snap.exists()) setStoreData(snap.data());
+    // FIX: Fetch from 'Vendors' collection, not 'stores'
+    getDoc(doc(db, 'Vendors', uid)).then(snap => {
+      if (snap.exists()) {
+        const data = snap.data();
+        setStoreData({
+          ...data,
+          name: data.businessName || data.name
+        });
+      }
     });
   }, [uid]);
 
-  const handleStoreUpdate = async (updatedData) => {
-    setStoreData(updatedData);
-    await setDoc(doc(db, 'Vendors', uid), updatedData);
+  const handleStoreUpdate = (updatedData) => {
+    // FIX: Only update local state. 
+    // AccSettings.js already handles the Firestore write correctly with { merge: true }.
+    setStoreData(prev => ({
+      ...prev,
+      ...updatedData,
+      name: updatedData.name || prev.name
+    }));
   };
 
   const renderSection = () => {
@@ -49,9 +61,7 @@ function VDashboard({ uid, onLogout }) {
 
   return (
     <section className="vendor-dashboard">
-
       <aside className={`vendor-sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
-
         <header className="vendor-sidebar__header">
           <div className="vendor-sidebar__logo"></div>
           <button
@@ -59,59 +69,37 @@ function VDashboard({ uid, onLogout }) {
             onClick={() => setSidebarOpen(prev => !prev)}
             aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
           >
-            <i
-              className={`ti ${sidebarOpen ? 'ti-layout-sidebar-left-collapse' : 'ti-layout-sidebar-right-collapse'}`}
-              aria-hidden="true"
-            />
+            <i className={`ti ${sidebarOpen ? 'ti-layout-sidebar-left-collapse' : 'ti-layout-sidebar-right-collapse'}`} aria-hidden="true" />
           </button>
         </header>
-
         <nav className="vendor-sidebar__nav" aria-label="Vendor navigation">
           <ul>
             {navItems.map(item => (
-              <React.Fragment key={item.key}>
-                {item.section && (
-                  <li aria-hidden="true">
-                    <p className="vendor-sidebar__section">{item.section}</p>
-                  </li>
-                )}
-                <li>
-                  <button
-                    className={`vendor-sidebar__item ${activeSection === item.key ? 'active' : ''}`}
-                    onClick={() => setActiveSection(item.key)}
-                    aria-current={activeSection === item.key ? 'page' : undefined}
-                  >
-                    <i className={`ti ${item.icon}`} aria-hidden="true" />
-                    <span>{item.label}</span>
-                  </button>
-                </li>
-              </React.Fragment>
+              <li key={item.key}>
+                <button
+                  className={`vendor-sidebar__item ${activeSection === item.key ? 'active' : ''}`}
+                  onClick={() => setActiveSection(item.key)}
+                >
+                  <i className={`ti ${item.icon}`} aria-hidden="true" />
+                  <span>{item.label}</span>
+                </button>
+              </li>
             ))}
-
-            {/* MOVED - logout now inside nav list so it is always visible */}
-            {/* REMOVED - was a separate button outside nav hidden at very bottom */}
             <li className="vendor-sidebar__logout-item">
-              <button
-                className="vendor-sidebar__item vendor-sidebar__item--logout"
-                onClick={() => signOut(auth).then(onLogout)}
-              >
+              <button className="vendor-sidebar__item vendor-sidebar__item--logout" onClick={() => signOut(auth).then(onLogout)}>
                 <i className="ti ti-logout" aria-hidden="true" />
                 <span>Logout</span>
               </button>
             </li>
-
           </ul>
         </nav>
-
       </aside>
-
       <main className="vendor-main">
         <div className="vendor-main__topbar">
           <NotificationBell />
         </div>
         {renderSection()}
       </main>
-
     </section>
   );
 }

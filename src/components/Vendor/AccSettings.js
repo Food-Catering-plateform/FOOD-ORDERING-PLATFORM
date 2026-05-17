@@ -14,7 +14,9 @@ const CATEGORIES = [
 function AccSettings({ onStoreUpdate, uid, onLogout }) {
   const [storeForm, setStoreForm] = useState({
     name: '', category: '', description: '', address: '', phone: '',
-    hours: {}, logoPreview: null, bannerPreview: null,
+    hours: {},
+    imageUrl: null,       // logo — named imageUrl to match MenuManagement convention
+    bannerImageUrl: null, // banner
   });
 
   const [accountForm, setAccountForm] = useState({
@@ -22,7 +24,9 @@ function AccSettings({ onStoreUpdate, uid, onLogout }) {
   });
 
   const [loading, setLoading]       = useState(true);
+  const [saving, setSaving]         = useState(false);
   const [saved, setSaved]           = useState(false);
+  const [saveError, setSaveError]   = useState(null);
   const [confirming, setConfirming] = useState(false);
   const [adminApp, setAdminApp]     = useState({ message: '', submitted: false });
 
@@ -39,14 +43,14 @@ function AccSettings({ onStoreUpdate, uid, onLogout }) {
         if (vendorSnap.exists()) {
           const v = vendorSnap.data();
           setStoreForm({
-            name:          v.businessName  || '',
-            category:      v.category      || '',
-            description:   v.description   || '',
-            address:       v.address       || '',
-            phone:         v.phoneNumber   || '',
-            hours:         v.hours         || {},
-            logoPreview:   v.logoURL       || null,
-            bannerPreview: v.bannerURL     || null,
+            name:           v.businessName    || '',
+            category:       v.category        || '',
+            description:    v.description     || '',
+            address:        v.address         || '',
+            phone:          v.phoneNumber     || '',
+            hours:          v.hours           || {},
+            imageUrl:       v.imageUrl        || null, // base64 logo stored in Firestore
+            bannerImageUrl: v.bannerImageUrl  || null, // base64 banner stored in Firestore
           });
         }
 
@@ -75,7 +79,7 @@ function AccSettings({ onStoreUpdate, uid, onLogout }) {
     fetchVendorData();
   }, [uid]);
 
-  // ── Submit admin application to Firestore 
+  // ── Submit admin application to Firestore
   const handleAdminApplication = async () => {
     if (!adminApp.message.trim() || !uid) return;
     try {
@@ -92,7 +96,7 @@ function AccSettings({ onStoreUpdate, uid, onLogout }) {
     }
   };
 
-  //  Delete account remove it everywhere 
+  // Delete account — remove it everywhere
   const handleDeleteAccount = async () => {
     if (!uid) return;
     await deleteDoc(doc(db, 'users',   uid));
@@ -109,16 +113,50 @@ function AccSettings({ onStoreUpdate, uid, onLogout }) {
       ...prev,
       hours: { ...prev.hours, [day]: { ...prev.hours[day], [field]: value } },
     }));
-//make image a object
-  const handleImage = (previewField, file) => {
+
+  // Convert image file to base64 string using FileReader — same as MenuManagement
+  const handleImage = (field, file) => {
     if (!file) return;
-    setStoreForm(prev => ({ ...prev, [previewField]: URL.createObjectURL(file) }));
+    const reader = new FileReader();
+    reader.onloadend = () => setStoreForm(prev => ({ ...prev, [field]: reader.result }));
+    reader.readAsDataURL(file);
   };
-//when you save changes on edits
-  const handleSave = () => {
-    if (onStoreUpdate) onStoreUpdate({ ...storeForm });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+
+  // Save store fields to Firestore.
+  // IMPORTANT: 'status' and 'storeInitialized' are intentionally excluded so this
+  // save never accidentally overwrites the admin-approved status.
+  // Hours are only written if they actually loaded — prevents overwriting with empty {}.
+  const handleSave = async () => {
+    if (!uid) return;
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const updates = {
+        businessName:   storeForm.name,
+        category:       storeForm.category,
+        description:    storeForm.description,
+        address:        storeForm.address,
+        phoneNumber:    storeForm.phone,
+        imageUrl:       storeForm.imageUrl       ?? null,
+        bannerImageUrl: storeForm.bannerImageUrl ?? null,
+        // Only write hours back if they actually loaded — never overwrite with empty {}
+        ...(Object.keys(storeForm.hours).length > 0 && { hours: storeForm.hours }),
+      };
+
+      await setDoc(doc(db, 'Vendors', uid), updates, { merge: true });
+
+      if (onStoreUpdate) onStoreUpdate({ ...storeForm });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      console.error('Failed to save settings:', err);
+      setSaveError(err.code
+        ? `Save failed: ${err.code}`
+        : 'Save failed. Please check your connection and try again.'
+      );
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading) return <p className="acc-settings__loading">Loading your settings…</p>;
@@ -133,6 +171,10 @@ function AccSettings({ onStoreUpdate, uid, onLogout }) {
 
       {saved && (
         <p className="acc-settings__toast" role="status">Changes saved successfully!</p>
+      )}
+
+      {saveError && (
+        <p className="acc-settings__error" role="alert">{saveError}</p>
       )}
 
       {/* ── Store Details ── */}
@@ -207,22 +249,22 @@ function AccSettings({ onStoreUpdate, uid, onLogout }) {
           <p className="acc-field">
             <label>Store Logo</label>
             <label className="upload-box upload-box--logo">
-              {storeForm.logoPreview
-                ? <img src={storeForm.logoPreview} alt="Logo" className="upload-preview" />
+              {storeForm.imageUrl
+                ? <img src={storeForm.imageUrl} alt="Logo" className="upload-preview" />
                 : <small className="upload-placeholder">Click to change logo</small>}
               <input type="file" accept="image/*" hidden
-                onChange={e => handleImage('logoPreview', e.target.files[0])} />
+                onChange={e => handleImage('imageUrl', e.target.files[0])} />
             </label>
           </p>
 
           <p className="acc-field">
             <label>Store Banner</label>
             <label className="upload-box upload-box--banner">
-              {storeForm.bannerPreview
-                ? <img src={storeForm.bannerPreview} alt="Banner" className="upload-preview" />
+              {storeForm.bannerImageUrl
+                ? <img src={storeForm.bannerImageUrl} alt="Banner" className="upload-preview" />
                 : <small className="upload-placeholder">Click to change banner</small>}
               <input type="file" accept="image/*" hidden
-                onChange={e => handleImage('bannerPreview', e.target.files[0])} />
+                onChange={e => handleImage('bannerImageUrl', e.target.files[0])} />
             </label>
           </p>
         </section>
@@ -329,7 +371,9 @@ function AccSettings({ onStoreUpdate, uid, onLogout }) {
       </section>
 
       <footer className="acc-settings__footer">
-        <button className="btn btn--primary" onClick={handleSave}>Save Changes</button>
+        <button className="btn btn--primary" onClick={handleSave} disabled={saving}>
+          {saving ? 'Saving…' : 'Save Changes'}
+        </button>
       </footer>
 
     </article>
