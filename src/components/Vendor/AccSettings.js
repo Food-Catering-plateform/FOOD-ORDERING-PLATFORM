@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './AccSettings.css';
 import { auth, db } from '../../Firebase/firebaseConfig';
 import { deleteUser } from 'firebase/auth';
-import { deleteDoc, doc, getDoc, setDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
+import { deleteDoc, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
