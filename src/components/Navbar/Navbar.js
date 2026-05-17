@@ -1,10 +1,13 @@
 import React from 'react';
 import './Navbar.css';
 import { assets } from '../../Assets/assets';
+import NotificationBell from './NotificationBell';
 
-export default function Navbar({ setActivePage, search, setSearch }) {
+export default function Navbar({ setActivePage, search, setSearch, activePage }) {
   return (
     <header className="navbar">
+
+      <NotificationBell setActivePage={setActivePage} activePage={activePage} />
 
       <img src={assets.colourlesslogo} alt="logo" className="logo" />
 

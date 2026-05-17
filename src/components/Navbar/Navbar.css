@@ -10,7 +10,7 @@
   justify-content: space-between;
   padding: 0 30px 0 64px; /* left padding makes room for the ☰ toggle button */
   z-index: 1000;
-  gap: 16px;
+  gap: 12px;
 }
 
 /* Logo */

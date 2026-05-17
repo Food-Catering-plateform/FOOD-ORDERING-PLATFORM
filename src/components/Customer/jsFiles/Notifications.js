@@ -1,124 +1,22 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import '../css/Notifications.css';
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
-import { db } from '../../../Firebase/firebaseConfig';
 import { useAuth } from '../../../Services/AuthContext';
-
-// Maps each order status to a badge label, emoji and css modifier
-const STATUS_CONFIG = {
-  pending: {
-    label:   'Order Received',
-    emoji:   '🧾',
-    message: 'Your order has been received and is waiting for the vendor to confirm.',
-    mod:     'pending',
-  },
-  preparing: {
-    label:   'Being Prepared',
-    emoji:   '👨‍🍳',
-    message: 'Your order is currently being prepared in the kitchen.',
-    mod:     'preparing',
-  },
-  ready: {
-    label:   'Ready for Collection',
-    emoji:   '✅',
-    message: 'Your order is ready! Head to the vendor to collect it now.',
-    mod:     'ready',
-  },
-  completed: {
-    label:   'Order Completed',
-    emoji:   '🎉',
-    message: 'You have collected your order. Enjoy your meal!',
-    mod:     'completed',
-  },
-  cancelled: {
-    label:   'Order Cancelled',
-    emoji:   '❌',
-    message: 'Your order was cancelled by the vendor. Please place a new order.',
-    mod:     'cancelled',
-  },
-};
+import { useCustomerOrders } from '../../../hooks/useCustomerOrders';
+import { STATUS_CONFIG, getNotificationKey } from '../notificationConfig';
+import { loadReadKeys, saveReadKeys } from '../../../utils/notificationReadState';
 
 const Notifications = () => {
   const { currentUser, authLoading } = useAuth();
-  const [orders, setOrders]         = useState([]);
-  const [error, setError]           = useState('');
+  const { orders, error, loading } = useCustomerOrders();
 
   useEffect(() => {
-    if (authLoading || !currentUser?.uid) {
-      setOrders([]);
-      return;
-    }
+    if (!currentUser?.uid || orders.length === 0) return;
+    const allKeys = new Set(orders.map(getNotificationKey));
+    const existing = loadReadKeys(currentUser.uid);
+    if (allKeys.size === existing.size && [...allKeys].every((k) => existing.has(k))) return;
+    saveReadKeys(currentUser.uid, allKeys);
+  }, [currentUser?.uid, orders]);
 
-    setError('');
-
-    const qById = query(
-      collection(db, 'Orders'),
-      where('customerId', '==', currentUser.uid)
-    );
-
-    const mergeDocs = (snapshots) => {
-      const map = new Map();
-      snapshots.forEach((snap) => {
-        snap.docs.forEach((d) => {
-          map.set(d.id, { id: d.id, ...d.data() });
-        });
-      });
-      // Sort by most recent first using createdAt
-      const sorted = [...map.values()].sort(
-        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-      );
-      setOrders(sorted);
-    };
-
-    let snapById          = null;
-    let snapByEmail       = null;
-    let snapByDisplayName = null;
-
-    const tryMerge = () => {
-      const snaps = [snapById, snapByEmail, snapByDisplayName].filter(Boolean);
-      if (snaps.length > 0) mergeDocs(snaps);
-    };
-
-    const unsubById = onSnapshot(
-      qById,
-      (snap) => { snapById = snap; tryMerge(); },
-      (err)  => { console.error(err); setError('Could not load notifications.'); setOrders([]); }
-    );
-
-    let unsubByEmail = () => {};
-    if (currentUser.email) {
-      const qByEmail = query(
-        collection(db, 'Orders'),
-        where('customerName', '==', currentUser.email)
-      );
-      unsubByEmail = onSnapshot(
-        qByEmail,
-        (snap) => { snapByEmail = snap; tryMerge(); },
-        (err)  => console.error(err)
-      );
-    }
-
-    let unsubByDisplayName = () => {};
-    if (currentUser.displayName) {
-      const qByDisplayName = query(
-        collection(db, 'Orders'),
-        where('customerName', '==', currentUser.displayName)
-      );
-      unsubByDisplayName = onSnapshot(
-        qByDisplayName,
-        (snap) => { snapByDisplayName = snap; tryMerge(); },
-        (err)  => console.error(err)
-      );
-    }
-
-    return () => {
-      unsubById();
-      unsubByEmail();
-      unsubByDisplayName();
-    };
-  }, [authLoading, currentUser?.uid, currentUser?.email, currentUser?.displayName]);
-
-  // Split orders into active and past
   const activeOrders = useMemo(
     () => orders.filter((o) => o.status === 'pending' || o.status === 'preparing' || o.status === 'ready'),
     [orders]
@@ -129,15 +27,17 @@ const Notifications = () => {
     [orders]
   );
 
-  // Payment notification — orders that came from PayFast (have paymentId)
   const paymentOrders = useMemo(
     () => orders.filter((o) => o.m_payment_id || o.paymentId),
     [orders]
   );
 
-  if (authLoading) {
+  if (authLoading || loading) {
     return (
       <section className="notif-page">
+        <header className="notif-header">
+          <h1>Notifications</h1>
+        </header>
         <p className="notif-loading">Loading notifications…</p>
       </section>
     );
@@ -146,6 +46,9 @@ const Notifications = () => {
   if (!currentUser) {
     return (
       <section className="notif-page">
+        <header className="notif-header">
+          <h1>Notifications</h1>
+        </header>
         <p className="notif-empty">Please sign in to see notifications.</p>
       </section>
     );
@@ -162,7 +65,6 @@ const Notifications = () => {
 
       {error && <p className="notif-error">{error}</p>}
 
-      {/* PAYMENT NOTIFICATIONS */}
       {paymentOrders.length > 0 && (
         <section className="notif-section">
           <h2 className="notif-section-title">💳 Payment</h2>
@@ -181,7 +83,6 @@ const Notifications = () => {
         </section>
       )}
 
-      {/* ACTIVE ORDER NOTIFICATIONS */}
       <section className="notif-section">
         <h2 className="notif-section-title">🔔 Active Orders</h2>
 
@@ -203,7 +104,6 @@ const Notifications = () => {
                     </section>
                     <p className="notif-card__message">{config.message}</p>
 
-                    {/* ORDER ITEMS */}
                     <ul className="notif-items">
                       {o.items?.map((item, i) => (
                         <li key={i} className="notif-item">
@@ -232,7 +132,6 @@ const Notifications = () => {
         )}
       </section>
 
-      {/* PAST ORDER NOTIFICATIONS */}
       {pastOrders.length > 0 && (
         <section className="notif-section">
           <h2 className="notif-section-title">📋 Past Orders</h2>
@@ -262,7 +161,6 @@ const Notifications = () => {
         </section>
       )}
 
-      {/* EMPTY STATE */}
       {orders.length === 0 && !error && (
         <section className="notif-empty-state">
           <p className="notif-empty-emoji">🔔</p>

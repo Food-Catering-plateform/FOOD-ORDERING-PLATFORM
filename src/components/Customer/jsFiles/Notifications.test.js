@@ -36,11 +36,12 @@ test('UAT-N01 - Notifications page renders heading', () => {
 });
 
 // UAT-N02
-test('UAT-N02 - Shows no order updates message when no orders exist', () => {
+test('UAT-N02 - Shows no notifications message when no orders exist', () => {
   const { unmount } = render(<Notifications />);
-  expect(screen.getByText(/no order updates yet/i)).toBeInTheDocument();
+  expect(screen.getByText(/no notifications yet/i)).toBeInTheDocument();
   unmount();
 });
+
 
 // UAT-N03
 test('UAT-N03 - Does not show loading when auth is resolved', () => {

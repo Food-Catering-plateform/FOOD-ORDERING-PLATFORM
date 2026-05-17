@@ -277,6 +277,7 @@ function App() {
           setActivePage={setActivePage}
           search={search}
           setSearch={setSearch}
+          activePage={activePage}
         />
       )}
       <section className="app-shell" style={{ display: 'flex' }}>
