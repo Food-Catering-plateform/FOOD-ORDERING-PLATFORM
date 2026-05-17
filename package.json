@@ -22,14 +22,6 @@
     "test": "react-scripts test --watchAll=false",
     "eject": "react-scripts eject"
   },
-  "jest": {    "testEnvironment": "jsdom",    "coverageReporters": [
-      "lcov",
-      "text"
-    ],
-    "moduleNameMapper": {
-      "\\\\.(css|less|scss|sass)$": "<rootDir>/__mocks__/styleMock.js"
-    }
-  },
   "eslintConfig": {
     "extends": [
       "react-app",

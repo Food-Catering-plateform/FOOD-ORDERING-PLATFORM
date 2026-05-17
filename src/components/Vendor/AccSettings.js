@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './AccSettings.css';
 import { auth, db } from '../../Firebase/firebaseConfig';
 import { deleteUser } from 'firebase/auth';
-import { deleteDoc, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { deleteDoc, doc, getDoc, setDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -11,7 +11,7 @@ const CATEGORIES = [
   'Seafood', 'Desserts & Drinks', 'Grills & Braai', 'Other',
 ];
 
-function AccSettings({ onStoreUpdate, uid, onLogout }) {
+function AccSettings({ onStoreUpdate, uid, onLogout, setActivePage }) {
   const [storeForm, setStoreForm] = useState({
     name: '', category: '', description: '', address: '', phone: '',
     hours: {},
@@ -28,7 +28,7 @@ function AccSettings({ onStoreUpdate, uid, onLogout }) {
   const [saved, setSaved]           = useState(false);
   const [saveError, setSaveError]   = useState(null);
   const [confirming, setConfirming] = useState(false);
-  const [adminApp, setAdminApp]     = useState({ message: '', submitted: false });
+  const [adminApp, setAdminApp]     = useState({ message: '', submitted: false, status: null });
 
   // Fetch vendor data + check existing admin application from database
   useEffect(() => {
@@ -38,7 +38,6 @@ function AccSettings({ onStoreUpdate, uid, onLogout }) {
       try {
         const vendorSnap = await getDoc(doc(db, 'Vendors', uid));
         const userData   = await getDoc(doc(db, 'users',   uid));
-        const appSnap    = await getDoc(doc(db, 'adminApplications', uid));
 
         if (vendorSnap.exists()) {
           const v = vendorSnap.data();
@@ -64,9 +63,11 @@ function AccSettings({ onStoreUpdate, uid, onLogout }) {
           }));
         }
 
-        // Restore submitted state if application already exists in Firestore
+        // Listen for real-time updates on the admin application status
+        const appSnap = await getDoc(doc(db, 'admins', uid));
         if (appSnap.exists()) {
-          setAdminApp({ message: appSnap.data().message, submitted: true });
+          const appData = appSnap.data();
+          setAdminApp({ message: appData.message || '', submitted: true, status: appData.status || 'pending' });
         }
 
       } catch (err) {
@@ -79,18 +80,19 @@ function AccSettings({ onStoreUpdate, uid, onLogout }) {
     fetchVendorData();
   }, [uid]);
 
-  // ── Submit admin application to Firestore
+  // ── Submit admin application to Firestore (writes to 'admins' collection so it appears in Admin Requests tab)
   const handleAdminApplication = async () => {
     if (!adminApp.message.trim() || !uid) return;
     try {
-      await setDoc(doc(db, 'adminApplications', uid), {
+      await setDoc(doc(db, 'admins', uid), {
         vendorId:    uid,
-        vendorName:  storeForm.name,
+        name:        storeForm.name,
+        email:       accountForm.email,
         message:     adminApp.message,
         status:      'pending',
         submittedAt: serverTimestamp(),
       });
-      setAdminApp(prev => ({ ...prev, submitted: true }));
+      setAdminApp(prev => ({ ...prev, submitted: true, status: 'pending' }));
     } catch (err) {
       console.error('Failed to submit admin application:', err);
     }
@@ -319,9 +321,27 @@ function AccSettings({ onStoreUpdate, uid, onLogout }) {
       <section className="acc-card acc-card--muted">
         <h2 className="acc-card__title acc-card__title--muted">Platform Access</h2>
         {adminApp.submitted ? (
-          <p className="admin-app__status">
-            Your application has been submitted and is under review.
-          </p>
+          adminApp.status === 'approved' ? (
+            <div className="admin-app__approved">
+              <p className="admin-app__status admin-app__status--approved">
+                ✓ Your admin access has been approved!
+              </p>
+              <button
+                className="btn btn--primary"
+                onClick={() => setActivePage('admin-dashboard')}
+              >
+                Access Admin Panel
+              </button>
+            </div>
+          ) : adminApp.status === 'suspended' ? (
+            <p className="admin-app__status admin-app__status--rejected">
+              Your application was not approved. Contact support if you think this is a mistake.
+            </p>
+          ) : (
+            <p className="admin-app__status">
+              ⏳ Your application has been submitted and is under review.
+            </p>
+          )
         ) : (
           <>
             <p className="admin-app__hint">

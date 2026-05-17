@@ -75,6 +75,9 @@ function App() {
     }
 
     if (roleOrStatus === 'admin') {
+      // Pure admins (signed up as admin) go straight to admin dashboard.
+      // Vendor-admins are caught earlier in the auth listener and routed to
+      // vendor-dashboard, so they never reach this branch.
       setActivePage('admin-dashboard');
     } else if (roleOrStatus === 'vendor') {
       const uid = auth.currentUser.uid;
@@ -97,24 +100,27 @@ function App() {
         if (userSnap.exists()) {
           const { role } = userSnap.data();
 
-          if (role === 'vendor') {
-            const vendorSnap = await getDoc(doc(db, 'Vendors', user.uid));
+          if (role === 'vendor' || (role === 'admin' && userSnap.data().isAdmin)) {
+            // Vendor-admins (isAdmin: true but role stays 'vendor') always land
+            // on the vendor dashboard. The "Access Admin Panel" button handles switching.
+            const targetUid = user.uid;
+            const vendorSnap = await getDoc(doc(db, 'Vendors', targetUid));
             if (vendorSnap.exists()) {
               const vd = vendorSnap.data();
               if (vd.status === 'suspended') { setActivePage('vendor-suspended'); setChecking(false); return; }
               if (vd.status !== 'approved' && !vd.storeInitialized) {
-                setVendorUid(user.uid);
+                setVendorUid(targetUid);
                 setActivePage('store-setup');
                 setChecking(false);
                 return;
               }
               if (vd.status !== 'approved') { setActivePage('vendor-pending'); setChecking(false); return; }
-              setVendorUid(user.uid);
+              setVendorUid(targetUid);
               setActivePage('vendor-dashboard');
               setChecking(false);
               return;
             } else {
-              setVendorUid(user.uid);
+              setVendorUid(targetUid);
               setActivePage('store-setup');
               setChecking(false);
               return;
@@ -220,7 +226,7 @@ function App() {
           />
         );
       case 'vendor-dashboard':
-        return <VDashboard uid={vendorUid} onLogout={() => setActivePage('login')} />;
+        return <VDashboard uid={vendorUid} onLogout={() => setActivePage('login')} setActivePage={setActivePage} />;
       case 'admin-dashboard':
         return <AdminDashboard setActivePage={setActivePage} />;
       case 'admin-vendor-management':
