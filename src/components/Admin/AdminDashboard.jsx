@@ -4,7 +4,7 @@ import { auth, db } from "../../Firebase/firebaseConfig";
 import { signOut } from "firebase/auth";
 import { collection, getDocs } from "firebase/firestore";
 
-//   Analytics helpers          
+     
 
 const PERIODS = ['Today', 'This Week', 'This Month'];
 
@@ -412,7 +412,7 @@ function ExportButton({ period, data }) {
               onMouseLeave={e => e.currentTarget.style.background = 'none'}
             >
               <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.05em', padding: '2px 5px', borderRadius: '4px', background: '#e6f9f0', color: '#16a34a', flexShrink: 0 }}>CSV</span>
-              <span style={{ fontSize: '13px', fontWeight: 500, color: '#ffffff' }}>
+              <span style={{ fontSize: '13px', fontWeight: 500, color: '#1a1c23' }}>
                 Spreadsheet <span style={{ fontSize: '11px', color: '#999' }}>.csv</span>
               </span>
             </button>
@@ -429,7 +429,7 @@ function ExportButton({ period, data }) {
               onMouseLeave={e => e.currentTarget.style.background = 'none'}
             >
               <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.05em', padding: '2px 5px', borderRadius: '4px', background: '#fff0e6', color: '#c2500a', flexShrink: 0 }}>PDF</span>
-              <span style={{ fontSize: '13px', fontWeight: 500, color: '#ffffff' }}>
+              <span style={{ fontSize: '13px', fontWeight: 500, color: '#1a1c23' }}>
                 Report <span style={{ fontSize: '11px', color: '#999' }}>.pdf</span>
               </span>
             </button>
@@ -611,7 +611,115 @@ function AnalyticsSection() {
   );
 }
 
-//  Main AdminDashboard 
+//  Dashboard Overview Section (real data) 
+
+function DashboardOverview() {
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({ totalOrders: 0, revenue: 0, newUsers: 0 });
+  const [recentOrders, setRecentOrders] = useState([]);
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      setLoading(true);
+      try {
+        const snap = await getDocs(collection(db, 'Orders'));
+        const allOrders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        const completed = allOrders.filter(o => o.status === 'completed');
+        const revenue = completed.reduce((sum, o) => sum + (o.total || 0), 0);
+
+        const sorted = [...allOrders].sort((a, b) => {
+          const aTime = new Date(a.createdAt || a.time || 0).getTime();
+          const bTime = new Date(b.createdAt || b.time || 0).getTime();
+          return bTime - aTime;
+        });
+
+        setStats({
+          totalOrders: allOrders.length,
+          revenue,
+          newUsers: new Set(allOrders.map(o => o.customerId).filter(Boolean)).size,
+        });
+        setRecentOrders(sorted.slice(0, 10));
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      }
+      setLoading(false);
+    };
+    fetchDashboard();
+  }, []);
+
+  if (loading) return <p style={{ padding: '24px' }}>Loading dashboard…</p>;
+
+  const statusClass = (status) => {
+    if (!status) return '';
+    const s = status.toLowerCase();
+    if (s === 'completed' || s === 'delivered') return 'status-approved';
+    if (s === 'cancelled') return 'status-suspended';
+    return 'status-pending';
+  };
+
+  return (
+    <>
+      <section className="cards" aria-label="Summary statistics">
+        <article>
+          <h3>Total Orders</h3>
+          <p className="stat-value">{stats.totalOrders}</p>
+        </article>
+        <article>
+          <h3>Revenue</h3>
+          <p className="stat-value">R {stats.revenue.toLocaleString('en-ZA', { minimumFractionDigits: 2 })}</p>
+        </article>
+        <article>
+          <h3>Unique Customers</h3>
+          <p className="stat-value">{stats.newUsers}</p>
+        </article>
+      </section>
+
+      <section aria-labelledby="recent-orders-heading" style={{ paddingTop: 0 }}>
+        <h2 id="recent-orders-heading" className="section-title">Recent Orders</h2>
+        {recentOrders.length === 0 ? (
+          <p style={{ color: '#888' }}>No orders found.</p>
+        ) : (
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Order ID</th>
+                <th scope="col">Customer</th>
+                <th scope="col">Vendor</th>
+                <th scope="col">Total</th>
+                <th scope="col">Status</th>
+                <th scope="col">Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recentOrders.map((order) => (
+                <tr key={order.id}>
+                  <td style={{ fontFamily: 'monospace', fontSize: '0.8rem', color: '#888' }}>
+                    #{order.id.slice(0, 8)}
+                  </td>
+                  <td>{order.customerName || order.customerId || '—'}</td>
+                  <td>{order.vendorName || '—'}</td>
+                  <td>R {(order.total || 0).toLocaleString('en-ZA', { minimumFractionDigits: 2 })}</td>
+                  <td>
+                    <span className={statusClass(order.status)}>
+                      {order.status || 'Unknown'}
+                    </span>
+                  </td>
+                  <td style={{ color: '#888', fontSize: '0.85rem' }}>
+                    {order.createdAt || order.time
+                      ? new Date(order.createdAt || order.time).toLocaleDateString('en-ZA')
+                      : '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
+    </>
+  );
+}
+
 
 const AdminDashboard = ({ setActivePage }) => {
   const [localPage, setLocalPage] = useState("dashboard");
@@ -631,13 +739,17 @@ const AdminDashboard = ({ setActivePage }) => {
         <h2>Admin</h2>
         <nav aria-label="Admin navigation">
           <ul>
-            <li><button onClick={() => setLocalPage("dashboard")}>Dashboard</button></li>
+            <li className={localPage === 'dashboard' ? 'active' : ''}>
+              <button onClick={() => setLocalPage("dashboard")}>Dashboard</button>
+            </li>
             <li><button onClick={() => {}}>Orders</button></li>
             <li><button onClick={() => setActivePage('admin-vendor-management')}>Vendors</button></li>
             <li><button onClick={() => {}}>Users</button></li>
             <li><button onClick={() => {}}>Payments</button></li>
             <li><button onClick={() => {}}>Settings</button></li>
-            <li><button onClick={() => setLocalPage("analytics")}>Analytics</button></li>
+            <li className={localPage === 'analytics' ? 'active' : ''}>
+              <button onClick={() => setLocalPage("analytics")}>Analytics</button>
+            </li>
             <li><button onClick={handleLogout}>Logout</button></li>
           </ul>
         </nav>
@@ -651,40 +763,7 @@ const AdminDashboard = ({ setActivePage }) => {
         {localPage === 'analytics' ? (
           <AnalyticsSection />
         ) : (
-          <>
-            <section className="cards" aria-label="Summary statistics">
-              <article>
-                <h3>Total Orders</h3>
-                <p>120</p>
-              </article>
-              <article>
-                <h3>Revenue</h3>
-                <p>R5,000</p>
-              </article>
-              <article>
-                <h3>New Users</h3>
-                <p>10</p>
-              </article>
-            </section>
-
-            <section aria-labelledby="recent-orders-heading">
-              <h2 id="recent-orders-heading">Recent Orders</h2>
-              <table>
-                <thead>
-                  <tr>
-                    <th scope="col">Order ID</th>
-                    <th scope="col">Customer</th>
-                    <th scope="col">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr><td>#001</td><td>John</td><td>Delivered</td></tr>
-                  <tr><td>#002</td><td>Alice</td><td>Pending</td></tr>
-                  <tr><td>#003</td><td>Mike</td><td>Cancelled</td></tr>
-                </tbody>
-              </table>
-            </section>
-          </>
+          <DashboardOverview />
         )}
 
         <footer>
