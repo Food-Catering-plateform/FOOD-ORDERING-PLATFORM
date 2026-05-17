@@ -1,15 +1,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap');
 
+/* ─────────────────────────────────────────────────────────────
+   All selectors are scoped to .dashboard-container so they
+   never bleed into customer / vendor pages.
+   The only global rules are the ones that MUST be global (body).
+───────────────────────────────────────────────────────────── */
+
 body {
   margin: 0;
   font-family: 'Plus Jakarta Sans', sans-serif;
-  display: flex;
   background: #F5F4F2;
   color: #1A1C23;
-  height: 100vh;
-  overflow: hidden;
 }
 
+/* ── Layout shell ── */
 .dashboard-container {
   display: flex;
   width: 100%;
@@ -18,7 +22,7 @@ body {
 }
 
 /* ── Sidebar ── */
-aside {
+.dashboard-container aside {
   width: 240px;
   height: 100vh;
   background: #1A1C23;
@@ -30,7 +34,7 @@ aside {
   overflow-y: auto;
 }
 
-aside .sidebar-logo {
+.dashboard-container aside .sidebar-logo {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -38,7 +42,7 @@ aside .sidebar-logo {
   border-bottom: 1px solid rgba(255,255,255,.07);
 }
 
-aside .sidebar-logo-mark {
+.dashboard-container aside .sidebar-logo-mark {
   width: 34px; height: 34px;
   border-radius: 8px;
   background: linear-gradient(135deg, #FF6B2B, #D94F15);
@@ -49,7 +53,7 @@ aside .sidebar-logo-mark {
   flex-shrink: 0;
 }
 
-aside .sidebar-brand {
+.dashboard-container aside .sidebar-brand {
   font-family: 'Syne', sans-serif;
   font-weight: 800;
   font-size: 1rem;
@@ -57,7 +61,7 @@ aside .sidebar-brand {
   margin: 0;
 }
 
-aside h2 {
+.dashboard-container aside h2 {
   font-family: 'Syne', sans-serif;
   font-weight: 800;
   font-size: 1.1rem;
@@ -67,7 +71,7 @@ aside h2 {
   color: #FFFFFF;
 }
 
-aside .sidebar-section-label {
+.dashboard-container aside .sidebar-section-label {
   font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: .10em;
@@ -76,16 +80,17 @@ aside .sidebar-section-label {
   padding: 1.2rem 1.2rem 0.4rem;
 }
 
-aside ul { list-style: none; padding: 6px 0; margin: 0; }
+.dashboard-container aside ul { list-style: none; padding: 6px 0; margin: 0; }
 
-aside li {
+.dashboard-container aside li {
   margin: 2px 8px;
   border-radius: 8px;
   cursor: pointer;
   transition: background .18s;
 }
 
-aside li a, aside li button {
+.dashboard-container aside li a,
+.dashboard-container aside li button {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -102,17 +107,19 @@ aside li a, aside li button {
   transition: color .18s;
 }
 
-aside li:hover { background: rgba(255,255,255,.06); }
-aside li:hover a, aside li:hover button { color: #FFFFFF; }
+.dashboard-container aside li:hover { background: rgba(255,255,255,.06); }
+.dashboard-container aside li:hover a,
+.dashboard-container aside li:hover button { color: #FFFFFF; }
 
-aside li.active { background: rgba(255,107,43,.15); }
-aside li.active a, aside li.active button {
+.dashboard-container aside li.active { background: rgba(255,107,43,.15); }
+.dashboard-container aside li.active a,
+.dashboard-container aside li.active button {
   color: #FF6B2B;
   font-weight: 700;
 }
 
 /* ── Main area ── */
-main {
+.dashboard-container main {
   flex: 1;
   background: #F5F4F2;
   height: 100vh;
@@ -122,7 +129,7 @@ main {
 }
 
 /* ── Top header bar ── */
-header {
+.dashboard-container header {
   background: #FFFFFF;
   padding: 14px 24px;
   border-bottom: 1px solid #E8E6E1;
@@ -135,7 +142,8 @@ header {
   z-index: 10;
 }
 
-header h1, header h2 {
+.dashboard-container header h1,
+.dashboard-container header h2 {
   font-family: 'Syne', sans-serif;
   font-weight: 800;
   font-size: 1.2rem;
@@ -144,16 +152,16 @@ header h1, header h2 {
 }
 
 /* ── Section & cards ── */
-section { padding: 24px; }
+.dashboard-container section { padding: 24px; }
 
-section.cards {
+.dashboard-container section.cards {
   display: flex;
   gap: 18px;
   flex-wrap: wrap;
   padding: 0 24px 24px;
 }
 
-article {
+.dashboard-container article {
   background: #FFFFFF;
   padding: 22px 20px;
   flex: 1;
@@ -163,7 +171,7 @@ article {
   min-width: 160px;
 }
 
-article h3 {
+.dashboard-container article h3 {
   font-size: 0.8rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -172,7 +180,7 @@ article h3 {
   margin: 0 0 8px;
 }
 
-article .stat-value {
+.dashboard-container article .stat-value {
   font-family: 'Syne', sans-serif;
   font-size: 2rem;
   font-weight: 800;
@@ -181,7 +189,7 @@ article .stat-value {
   line-height: 1;
 }
 
-article .stat-delta {
+.dashboard-container article .stat-delta {
   font-size: 0.8rem;
   color: #00C896;
   font-weight: 600;
@@ -197,7 +205,7 @@ article .stat-delta {
 }
 
 /* ── Tables ── */
-table {
+.dashboard-container table {
   width: 100%;
   border-collapse: collapse;
   background: #FFFFFF;
@@ -207,7 +215,7 @@ table {
   border: 1px solid #E8E6E1;
 }
 
-th {
+.dashboard-container th {
   background: #F5F4F2;
   padding: 12px 16px;
   text-align: left;
@@ -219,15 +227,15 @@ th {
   border-bottom: 1px solid #E8E6E1;
 }
 
-td {
+.dashboard-container td {
   padding: 13px 16px;
   border-bottom: 1px solid #F0EEE9;
   font-size: 0.9rem;
   color: #1A1C23;
 }
 
-tr:last-child td { border-bottom: none; }
-tr:hover td { background: #FAFAF8; }
+.dashboard-container tr:last-child td { border-bottom: none; }
+.dashboard-container tr:hover td { background: #FAFAF8; }
 
 /* ── Bar chart override ── */
 .bar-fill {
@@ -289,14 +297,14 @@ tr:hover td { background: #FAFAF8; }
   box-shadow: 0 3px 10px rgba(255,107,43,.25);
 }
 
-/* ── Status badges used in tables ── */
+/* ── Status badges ── */
 .status-approved  { background:#E8F5E9; color:#2E7D32; border-radius:99px; padding:3px 10px; font-size:.75rem; font-weight:700; }
 .status-pending   { background:#FFF8E1; color:#F57F17; border-radius:99px; padding:3px 10px; font-size:.75rem; font-weight:700; }
 .status-suspended { background:#FEECEC; color:#B91C1C; border-radius:99px; padding:3px 10px; font-size:.75rem; font-weight:700; }
 
 .special { color: #FF6B2B; }
 
-footer {
+.dashboard-container footer {
   border-top: 1px solid #E8E6E1;
   background: #FFFFFF;
   padding: 14px 24px;
@@ -310,18 +318,13 @@ footer {
    MOBILE RESPONSIVE — Admin Dashboard
 ═══════════════════════════════════════ */
 @media (max-width: 768px) {
-  body {
-    flex-direction: column;
+  .dashboard-container {
+    flex-direction: column !important;
     height: auto;
     overflow: auto;
   }
 
-  .dashboard-container {
-    flex-direction: column !important;
-    height: auto;
-  }
-
-  aside {
+  .dashboard-container aside {
     width: 100%;
     height: auto;
     flex-direction: row;
@@ -332,18 +335,18 @@ footer {
     overflow-x: hidden;
   }
 
-  aside h2 {
+  .dashboard-container aside h2 {
     padding: 0.8rem 1rem;
     font-size: 0.95rem;
     flex-shrink: 0;
   }
 
-  aside nav[aria-label] {
+  .dashboard-container aside nav[aria-label] {
     flex: 1;
     overflow: hidden;
   }
 
-  aside ul {
+  .dashboard-container aside ul {
     display: flex;
     flex-direction: row;
     overflow-x: auto;
@@ -353,50 +356,52 @@ footer {
     flex-wrap: nowrap;
   }
 
-  aside ul::-webkit-scrollbar { display: none; }
+  .dashboard-container aside ul::-webkit-scrollbar { display: none; }
 
-  aside li {
+  .dashboard-container aside li {
     margin: 2px 3px;
     flex-shrink: 0;
   }
 
-  aside li a, aside li button {
+  .dashboard-container aside li a,
+  .dashboard-container aside li button {
     padding: 8px 12px;
     font-size: 0.78rem;
     white-space: nowrap;
   }
 
-  main {
+  .dashboard-container main {
     height: auto;
     overflow-y: visible;
   }
 
-  section.cards {
+  .dashboard-container section.cards {
     gap: 12px;
     padding: 0 16px 16px;
   }
 
-  article {
+  .dashboard-container article {
     min-width: 140px;
     padding: 16px 14px;
   }
 
-  section { padding: 16px; }
+  .dashboard-container section { padding: 16px; }
 
-  table { font-size: 0.82rem; }
-  th, td { padding: 10px 10px; }
+  .dashboard-container table { font-size: 0.82rem; }
+  .dashboard-container th,
+  .dashboard-container td { padding: 10px 10px; }
 }
 
 @media (max-width: 480px) {
-  section.cards {
+  .dashboard-container section.cards {
     flex-direction: column;
     gap: 10px;
   }
 
-  article {
+  .dashboard-container article {
     min-width: 0;
     width: 100%;
   }
 
-  table { display: block; overflow-x: auto; }
+  .dashboard-container table { display: block; overflow-x: auto; }
 }
