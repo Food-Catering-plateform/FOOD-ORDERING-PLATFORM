@@ -1,0 +1,30 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Logout Component Snapshot matches the snapshot 1`] = `
+<DocumentFragment>
+  <main
+    class="logout-page"
+  >
+    <section
+      class="logout-card"
+    >
+      <h1>
+        You’ve been logged out
+      </h1>
+      <p>
+        Thank you for using the platform.
+      </p>
+      <div
+        class="logout-actions"
+      >
+        <button>
+          Log in again
+        </button>
+        <button>
+          Go to Shops
+        </button>
+      </div>
+    </section>
+  </main>
+</DocumentFragment>
+`;
