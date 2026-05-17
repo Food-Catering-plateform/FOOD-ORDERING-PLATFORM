@@ -1,22 +1,22 @@
 import React from 'react';
 import '@testing-library/jest-dom';
-import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 // ── Static mocks ──────────────────────────────────────────────────────────────
 
-jest.mock('./NotificationBell.css', () => ({}));
+jest.mock('../NotificationBell.css', () => ({}));
 
 // ── Firebase mocks ────────────────────────────────────────────────────────────
 
-const mockOnSnapshot  = jest.fn();
-const mockUpdateDoc   = jest.fn(() => Promise.resolve());
-const mockDeleteDoc   = jest.fn(() => Promise.resolve());
-const mockCollection  = jest.fn((_db, ...path) => ({ path }));
-const mockDoc         = jest.fn((_db, ...path) => ({ path }));
-const mockQuery       = jest.fn((...args) => args);
-const mockOrderBy     = jest.fn((...args) => args);
+const mockOnSnapshot = jest.fn();
+const mockUpdateDoc  = jest.fn(() => Promise.resolve());
+const mockDeleteDoc  = jest.fn(() => Promise.resolve());
+const mockCollection = jest.fn((_db, ...path) => ({ path }));
+const mockDoc        = jest.fn((_db, ...path) => ({ path }));
+const mockQuery      = jest.fn((...args) => args);
+const mockOrderBy    = jest.fn((...args) => args);
 
-jest.mock('../../Firebase/firebaseConfig', () => ({ db: {} }));
+jest.mock('../../../Firebase/firebaseConfig', () => ({ db: {} }));
 
 jest.mock('firebase/firestore', () => ({
   collection: (...args) => mockCollection(...args),
@@ -32,27 +32,25 @@ jest.mock('firebase/firestore', () => ({
 
 let mockCurrentUser = { uid: 'vendor-123' };
 
-jest.mock('../../Services/AuthContext', () => ({
+jest.mock('../../../Services/AuthContext', () => ({
   useAuth: () => ({ currentUser: mockCurrentUser }),
 }));
 
-// ── Notification API mock ─────────────────────────────────────────────────────
+// ── Browser Notification API mock ─────────────────────────────────────────────
 
-const mockNotification = jest.fn();
-global.Notification = mockNotification;
+const mockNotificationConstructor = jest.fn();
+global.Notification = mockNotificationConstructor;
 global.Notification.permission = 'granted';
 global.Notification.requestPermission = jest.fn(() => Promise.resolve('granted'));
 
-import NotificationBell from './NotificationBell';
+// ── Import component AFTER mocks ──────────────────────────────────────────────
+
+import NotificationBell from '../NotificationBell';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const renderBell = () => render(<NotificationBell />);
 
-/**
- * Sets up onSnapshot to fire with given notifications docs.
- * Returns triggerSnapshot so tests can push new data.
- */
 function setupNotifications(docs = []) {
   let snapshotCb;
 
@@ -88,18 +86,21 @@ describe('NotificationBell – rendering', () => {
   beforeEach(() => {
     mockCurrentUser = { uid: 'vendor-123' };
     jest.clearAllMocks();
+    global.Notification.permission = 'granted';
   });
 
-  it('renders the bell emoji button', () => {
+  it('renders the bell button', () => {
     setupNotifications();
     renderBell();
     expect(screen.getByTitle('Notifications')).toBeInTheDocument();
   });
 
-  it('does not show badge when there are no unread notifications', () => {
+  it('does not show badge when there are no unread notifications', async () => {
     setupNotifications([makeNotif({ read: true })]);
     renderBell();
-    expect(document.querySelector('.notif-bell__badge')).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(document.querySelector('.notif-bell__badge')).not.toBeInTheDocument();
+    });
   });
 
   it('shows badge with correct count for unread notifications', async () => {
@@ -131,17 +132,30 @@ describe('NotificationBell – rendering', () => {
     expect(document.querySelector('.notif-bell__dropdown')).not.toBeInTheDocument();
   });
 
-  it('does not render when currentUser is null', () => {
+  it('does not call onSnapshot when currentUser is null', () => {
     mockCurrentUser = null;
+    mockOnSnapshot.mockReturnValue(jest.fn());
+    renderBell();
+    expect(mockOnSnapshot).not.toHaveBeenCalled();
+  });
+
+  it('requests notification permission on mount when permission is default', () => {
+    global.Notification.permission = 'default';
     setupNotifications();
     renderBell();
-    expect(screen.getByTitle('Notifications')).toBeInTheDocument();
-    expect(mockOnSnapshot).not.toHaveBeenCalled();
+    expect(global.Notification.requestPermission).toHaveBeenCalled();
+  });
+
+  it('does not request permission when already granted', () => {
+    global.Notification.permission = 'granted';
+    setupNotifications();
+    renderBell();
+    expect(global.Notification.requestPermission).not.toHaveBeenCalled();
   });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Dropdown open/close
+// Dropdown open / close
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('NotificationBell – dropdown open/close', () => {
@@ -174,7 +188,7 @@ describe('NotificationBell – dropdown open/close', () => {
     expect(document.querySelector('.notif-bell__dropdown')).not.toBeInTheDocument();
   });
 
-  it('shows empty state message when no notifications', () => {
+  it('shows empty state when no notifications', () => {
     setupNotifications([]);
     renderBell();
     fireEvent.click(screen.getByTitle('Notifications'));
@@ -190,7 +204,7 @@ describe('NotificationBell – dropdown open/close', () => {
     });
   });
 
-  it('shows "new" pill in header when there are unread notifications', async () => {
+  it('shows unread pill in header when there are unread notifications', async () => {
     setupNotifications([makeNotif({ read: false })]);
     renderBell();
     fireEvent.click(screen.getByTitle('Notifications'));
@@ -199,7 +213,7 @@ describe('NotificationBell – dropdown open/close', () => {
     });
   });
 
-  it('shows "Mark all read" button when there are unread notifications', async () => {
+  it('shows Mark all read button when there are unread notifications', async () => {
     setupNotifications([makeNotif({ read: false })]);
     renderBell();
     fireEvent.click(screen.getByTitle('Notifications'));
@@ -208,7 +222,7 @@ describe('NotificationBell – dropdown open/close', () => {
     });
   });
 
-  it('shows "Clear all" button when there are notifications', async () => {
+  it('shows Clear all button when there are notifications', async () => {
     setupNotifications([makeNotif()]);
     renderBell();
     fireEvent.click(screen.getByTitle('Notifications'));
@@ -217,7 +231,7 @@ describe('NotificationBell – dropdown open/close', () => {
     });
   });
 
-  it('does not show "Mark all read" when all notifications are read', async () => {
+  it('does not show Mark all read when all notifications are read', async () => {
     setupNotifications([makeNotif({ read: true })]);
     renderBell();
     fireEvent.click(screen.getByTitle('Notifications'));
@@ -241,29 +255,24 @@ describe('NotificationBell – mark as read', () => {
     setupNotifications([makeNotif({ docId: 'notif-1', read: false })]);
     renderBell();
     fireEvent.click(screen.getByTitle('Notifications'));
-
     await waitFor(() => screen.getByText('New order #ABC123 — R 50.00'));
     fireEvent.click(screen.getByText('New order #ABC123 — R 50.00'));
-
     await waitFor(() => {
-      expect(mockUpdateDoc).toHaveBeenCalledWith(
-        expect.anything(),
-        { read: true }
-      );
+      expect(mockUpdateDoc).toHaveBeenCalled();
+      const lastCall = mockUpdateDoc.mock.calls[0];
+      expect(lastCall[lastCall.length - 1]).toEqual({ read: true });
     });
   });
 
-  it('calls updateDoc for all unread when "Mark all read" is clicked', async () => {
+  it('calls updateDoc for all unread when Mark all read is clicked', async () => {
     setupNotifications([
       makeNotif({ docId: 'n1', read: false }),
       makeNotif({ docId: 'n2', read: false, message: 'New order #DEF456 — R 30.00' }),
     ]);
     renderBell();
     fireEvent.click(screen.getByTitle('Notifications'));
-
     await waitFor(() => screen.getByText(/mark all read/i));
     fireEvent.click(screen.getByText(/mark all read/i));
-
     await waitFor(() => {
       expect(mockUpdateDoc).toHaveBeenCalledTimes(2);
     });
@@ -286,6 +295,24 @@ describe('NotificationBell – mark as read', () => {
       expect(document.querySelector('.notif-bell__item-dot')).not.toBeInTheDocument();
     });
   });
+
+  it('shows unread class on unread notification item', async () => {
+    setupNotifications([makeNotif({ read: false })]);
+    renderBell();
+    fireEvent.click(screen.getByTitle('Notifications'));
+    await waitFor(() => {
+      expect(document.querySelector('.notif-bell__item.unread')).toBeInTheDocument();
+    });
+  });
+
+  it('does not show unread class on read notification item', async () => {
+    setupNotifications([makeNotif({ read: true })]);
+    renderBell();
+    fireEvent.click(screen.getByTitle('Notifications'));
+    await waitFor(() => {
+      expect(document.querySelector('.notif-bell__item.unread')).not.toBeInTheDocument();
+    });
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -298,17 +325,15 @@ describe('NotificationBell – clear all', () => {
     jest.clearAllMocks();
   });
 
-  it('calls deleteDoc for each notification when "Clear all" is clicked', async () => {
+  it('calls deleteDoc for each notification when Clear all is clicked', async () => {
     setupNotifications([
       makeNotif({ docId: 'n1' }),
       makeNotif({ docId: 'n2', message: 'New order #DEF456 — R 30.00' }),
     ]);
     renderBell();
     fireEvent.click(screen.getByTitle('Notifications'));
-
     await waitFor(() => screen.getByText(/clear all/i));
     fireEvent.click(screen.getByText(/clear all/i));
-
     await waitFor(() => {
       expect(mockDeleteDoc).toHaveBeenCalledTimes(2);
     });
@@ -318,10 +343,8 @@ describe('NotificationBell – clear all', () => {
     setupNotifications([makeNotif()]);
     renderBell();
     fireEvent.click(screen.getByTitle('Notifications'));
-
     await waitFor(() => screen.getByText(/clear all/i));
     fireEvent.click(screen.getByText(/clear all/i));
-
     await waitFor(() => {
       expect(document.querySelector('.notif-bell__dropdown')).not.toBeInTheDocument();
     });
@@ -338,7 +361,7 @@ describe('NotificationBell – formatTime', () => {
     jest.clearAllMocks();
   });
 
-  it('shows "Just now" for a notification created less than 1 minute ago', async () => {
+  it('shows Just now for a notification created less than 1 minute ago', async () => {
     setupNotifications([makeNotif({ time: new Date().toISOString() })]);
     renderBell();
     fireEvent.click(screen.getByTitle('Notifications'));
@@ -378,6 +401,16 @@ describe('NotificationBell – formatTime', () => {
       expect(timeEl.textContent).not.toBe('');
     });
   });
+
+  it('returns empty string for missing time', async () => {
+    setupNotifications([makeNotif({ time: null })]);
+    renderBell();
+    fireEvent.click(screen.getByTitle('Notifications'));
+    await waitFor(() => {
+      const timeEl = document.querySelector('.notif-bell__item-time');
+      expect(timeEl.textContent).toBe('');
+    });
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -404,5 +437,76 @@ describe('NotificationBell – has-unread class', () => {
     await waitFor(() => {
       expect(screen.getByTitle('Notifications')).not.toHaveClass('has-unread');
     });
+  });
+
+  it('does not add has-unread class when there are no notifications', async () => {
+    setupNotifications([]);
+    renderBell();
+    await waitFor(() => {
+      expect(screen.getByTitle('Notifications')).not.toHaveClass('has-unread');
+    });
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Browser push notification
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('NotificationBell – browser push notification', () => {
+  beforeEach(() => {
+    mockCurrentUser = { uid: 'vendor-123' };
+    jest.clearAllMocks();
+    global.Notification.permission = 'granted';
+  });
+
+  it('fires browser notification when new unread notification arrives', async () => {
+    const { triggerSnapshot } = setupNotifications([]);
+    renderBell();
+
+    triggerSnapshot([makeNotif({ read: false })]);
+
+    await waitFor(() => {
+      expect(mockNotificationConstructor).toHaveBeenCalledWith(
+        'New Order Received!',
+        expect.objectContaining({ body: 'New order #ABC123 — R 50.00' })
+      );
+    });
+  });
+
+  it('does not fire browser notification when permission is denied', async () => {
+    global.Notification.permission = 'denied';
+    const { triggerSnapshot } = setupNotifications([]);
+    renderBell();
+
+    triggerSnapshot([makeNotif({ read: false })]);
+
+    await waitFor(() => {
+      expect(mockNotificationConstructor).not.toHaveBeenCalled();
+    });
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Firestore subscription
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('NotificationBell – Firestore subscription', () => {
+  beforeEach(() => {
+    mockCurrentUser = { uid: 'vendor-123' };
+    jest.clearAllMocks();
+  });
+
+  it('subscribes to notifications on mount', () => {
+    setupNotifications();
+    renderBell();
+    expect(mockOnSnapshot).toHaveBeenCalledTimes(1);
+  });
+
+  it('unsubscribes from Firestore on unmount', () => {
+    const unsub = jest.fn();
+    mockOnSnapshot.mockReturnValue(unsub);
+    const { unmount } = renderBell();
+    unmount();
+    expect(unsub).toHaveBeenCalled();
   });
 });

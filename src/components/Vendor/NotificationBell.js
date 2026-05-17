@@ -39,7 +39,7 @@ function NotificationBell() {
       if (newUnread > prevCountRef.current && prevCountRef.current !== null) {
         const newest = fetched.find(n => !n.read);
         if (newest && Notification.permission === 'granted') {
-          new Notification('🍽️ New Order Received!', {
+          new Notification('New Order Received!', {
             body: newest.message,
             icon: '/favicon.ico',
             tag: newest.orderId,
