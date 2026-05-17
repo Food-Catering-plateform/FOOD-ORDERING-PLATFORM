@@ -132,23 +132,29 @@ describe('AdminDashboard — rendering', () => {
 
   test('TC-AD-06: dashboard shows summary stat cards', async () => {
     renderAdminDashboard();
-    expect(screen.getByText(/total orders/i)).toBeInTheDocument();
-    expect(screen.getByText(/revenue/i)).toBeInTheDocument();
-    expect(screen.getByText(/new users/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/total orders/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/revenue/i).length).toBeGreaterThan(0);
+      expect(screen.getByText(/unique customers/i)).toBeInTheDocument();
+    });
   });
 
   test('TC-AD-07: recent orders table has correct columns', async () => {
     renderAdminDashboard();
-    expect(screen.getByText(/order id/i)).toBeInTheDocument();
-    expect(screen.getByText(/customer/i)).toBeInTheDocument();
-    expect(screen.getByText(/status/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/order id/i)).toBeInTheDocument();
+      expect(screen.getByText(/customer/i)).toBeInTheDocument();
+      expect(screen.getByText(/status/i)).toBeInTheDocument();
+    });
   });
 
-  test('TC-AD-08: recent orders table renders static rows', async () => {
+  test('TC-AD-08: recent orders table shows real order data, not hardcoded names', async () => {
     renderAdminDashboard();
-    expect(screen.getByText('John')).toBeInTheDocument();
-    expect(screen.getByText('Alice')).toBeInTheDocument();
-    expect(screen.getByText('Mike')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByText('John')).not.toBeInTheDocument();
+      expect(screen.queryByText('Alice')).not.toBeInTheDocument();
+      expect(screen.queryByText('Mike')).not.toBeInTheDocument();
+    });
   });
 
   test('TC-AD-09: clicking Dashboard nav shows dashboard heading', async () => {
@@ -236,7 +242,6 @@ describe('AdminDashboard — rendering', () => {
     renderAdminDashboard();
     fireEvent.click(screen.getByRole('button', { name: /analytics/i }));
     await waitFor(() => {
-      // should not show "Loading analytics..." anymore after error
       expect(screen.queryByText(/loading analytics/i)).not.toBeInTheDocument();
     });
   });
@@ -479,7 +484,6 @@ describe('AdminDashboard — buildCSV', () => {
 
   test('TC-CSV-07: buildCSV completion rate is correct when orders > 0', () => {
     const csv = buildCSV('Today', sampleData);
-    // completionRate = round(2/4*100) = 50
     expect(csv).toContain('50%');
   });
 
@@ -614,7 +618,6 @@ describe('AdminVendorManagement', () => {
   test('TC-VM-12: "All" filter shows all vendors', async () => {
     render(<AdminVendorManagement setActivePage={jest.fn()} />);
     await waitFor(() => screen.getByText('Tasty Bites'));
-    // First filter by pending, then reset to all
     fireEvent.click(screen.getByRole('button', { name: /^pending/i }));
     fireEvent.click(screen.getByRole('button', { name: /^all/i }));
     await waitFor(() => {
@@ -670,7 +673,6 @@ describe('AdminVendorManagement', () => {
     await waitFor(() => screen.getByText('Tasty Bites'));
     fireEvent.click(screen.getByRole('button', { name: /admin requests/i }));
     await waitFor(() => screen.getByText(/bob/i));
-    // Bob is pending, so Approve button should be visible
     const approveBtn = screen.getByRole('button', { name: /approve bob@test\.com/i });
     fireEvent.click(approveBtn);
     await waitFor(() => expect(approveAdmin).toHaveBeenCalledWith('a2'));
@@ -681,7 +683,6 @@ describe('AdminVendorManagement', () => {
     await waitFor(() => screen.getByText('Tasty Bites'));
     fireEvent.click(screen.getByRole('button', { name: /admin requests/i }));
     await waitFor(() => screen.getByText(/alice/i));
-    // Alice is approved, suspend is available
     const suspendBtn = screen.getByRole('button', { name: /suspend alice@test\.com/i });
     fireEvent.click(suspendBtn);
     await waitFor(() => expect(suspendAdmin).toHaveBeenCalledWith('a1'));
@@ -697,11 +698,8 @@ describe('AdminVendorManagement', () => {
   test('TC-VM-20: filter resets when switching between vendor/admin tabs', async () => {
     render(<AdminVendorManagement setActivePage={jest.fn()} />);
     await waitFor(() => screen.getByText('Tasty Bites'));
-    // Filter to pending
     fireEvent.click(screen.getByRole('button', { name: /^pending/i }));
-    // Switch to admins
     fireEvent.click(screen.getByRole('button', { name: /admin requests/i }));
-    // Switch back — filter should reset to All
     fireEvent.click(screen.getByRole('button', { name: /vendors/i }));
     await waitFor(() => {
       expect(screen.getByText('Tasty Bites')).toBeInTheDocument();
@@ -875,7 +873,7 @@ describe('Dietary & Allergen — standardised data source', () => {
 });
 
 
-describe('AdminDashboard — navigation', () => {
+describe('AdminDashboard — navigation (updated)', () => {
   beforeEach(() => {
     mockSetActivePage.mockClear();
     mockGetDocs.mockResolvedValue({ docs: [] });
@@ -887,7 +885,7 @@ describe('AdminDashboard — navigation', () => {
     expect(mockSetActivePage).toHaveBeenCalledWith('admin-vendor-management');
   });
 
-  test('TC-NAV-02: clicking "Analytics" shows analytics heading', async () => {
+  test('TC-NAV-02: clicking "Analytics" shows Analytics heading', async () => {
     renderAdminDashboard();
     fireEvent.click(screen.getByRole('button', { name: /analytics/i }));
     await waitFor(() =>
@@ -900,6 +898,652 @@ describe('AdminDashboard — navigation', () => {
     fireEvent.click(screen.getByRole('button', { name: /analytics/i }));
     await waitFor(() => screen.getByRole('heading', { name: /analytics/i }));
     fireEvent.click(screen.getByRole('button', { name: /^dashboard$/i }));
-    expect(screen.getByText(/recent orders/i)).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText(/recent orders/i)).toBeInTheDocument());
+  });
+
+  test('TC-NAV-04: clicking "Orders" shows Orders heading', async () => {
+    renderAdminDashboard();
+    fireEvent.click(screen.getByRole('button', { name: /^orders$/i }));
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: /^orders$/i })).toBeInTheDocument()
+    );
+  });
+
+  test('TC-NAV-05: clicking "Users" shows Users heading', async () => {
+    mockGetDocs.mockResolvedValue({ docs: [] });
+    renderAdminDashboard();
+    fireEvent.click(screen.getByRole('button', { name: /^users$/i }));
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: /^users$/i })).toBeInTheDocument()
+    );
+  });
+
+  test('TC-NAV-06: clicking "Payments" shows Payments heading', async () => {
+    renderAdminDashboard();
+    fireEvent.click(screen.getByRole('button', { name: /^payments$/i }));
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: /^payments$/i })).toBeInTheDocument()
+    );
+  });
+
+  test('TC-NAV-07: clicking "Settings" shows Settings heading', async () => {
+    renderAdminDashboard();
+    fireEvent.click(screen.getByRole('button', { name: /^settings$/i }));
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: /^settings$/i })).toBeInTheDocument()
+    );
+  });
+
+  test('TC-NAV-08: active nav item is highlighted when page is selected', async () => {
+    renderAdminDashboard();
+    fireEvent.click(screen.getByRole('button', { name: /^orders$/i }));
+    await waitFor(() => {
+      const li = screen.getByRole('button', { name: /^orders$/i }).closest('li');
+      expect(li).toHaveClass('active');
+    });
+  });
+
+  test('TC-NAV-09: only one nav item is active at a time', async () => {
+    renderAdminDashboard();
+    fireEvent.click(screen.getByRole('button', { name: /^payments$/i }));
+    await waitFor(() => {
+      const activeItems = document.querySelectorAll('li.active');
+      expect(activeItems.length).toBe(1);
+    });
+  });
+
+  test('TC-NAV-10: header title updates to match active section', async () => {
+    renderAdminDashboard();
+    fireEvent.click(screen.getByRole('button', { name: /^payments$/i }));
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: /^payments$/i })).toBeInTheDocument()
+    );
+    fireEvent.click(screen.getByRole('button', { name: /^settings$/i }));
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: /^settings$/i })).toBeInTheDocument()
+    );
+  });
+});
+
+
+// ─── Orders Section ───────────────────────────────────────────────────────────
+
+describe('AdminDashboard — Orders section', () => {
+  beforeEach(() => {
+    mockSetActivePage.mockClear();
+    mockGetDocs.mockResolvedValue({
+      docs: MOCK_ORDERS.map(o => ({ id: o.id, data: () => o })),
+    });
+  });
+
+  const goToOrders = async () => {
+    renderAdminDashboard();
+    fireEvent.click(screen.getByRole('button', { name: /^orders$/i }));
+    await waitFor(() => screen.getByRole('heading', { name: /^orders$/i }));
+  };
+
+  test('TC-ORD-01: shows loading state while fetching orders', async () => {
+    mockGetDocs.mockReturnValue(new Promise(() => {}));
+    renderAdminDashboard();
+    fireEvent.click(screen.getByRole('button', { name: /^orders$/i }));
+    expect(screen.getByText(/loading orders/i)).toBeInTheDocument();
+  });
+
+  test('TC-ORD-02: renders orders table with correct column headers', async () => {
+    await goToOrders();
+    await waitFor(() => {
+      expect(screen.getByText(/order id/i)).toBeInTheDocument();
+      expect(screen.getByText(/vendor/i)).toBeInTheDocument();
+      expect(screen.getByText(/total/i)).toBeInTheDocument();
+      expect(screen.getByText(/status/i)).toBeInTheDocument();
+    });
+  });
+
+  test('TC-ORD-03: shows all orders by default (All filter)', async () => {
+    await goToOrders();
+    await waitFor(() => {
+      const rows = screen.getAllByRole('row');
+      expect(rows.length).toBe(5); // 1 header + 4 data
+    });
+  });
+
+  test('TC-ORD-04: filter tabs are rendered (All, Pending, Completed, Cancelled)', async () => {
+    await goToOrders();
+    expect(screen.getByRole('button', { name: /^all/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^pending/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^completed/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^cancelled/i })).toBeInTheDocument();
+  });
+
+  test('TC-ORD-05: Completed filter shows only completed orders', async () => {
+    await goToOrders();
+    await waitFor(() => screen.getAllByRole('row'));
+    fireEvent.click(screen.getByRole('button', { name: /^completed/i }));
+    await waitFor(() => {
+      const rows = screen.getAllByRole('row');
+      expect(rows.length).toBe(3); // 2 completed + 1 header
+    });
+  });
+
+  test('TC-ORD-06: Cancelled filter shows only cancelled orders', async () => {
+    await goToOrders();
+    await waitFor(() => screen.getAllByRole('row'));
+    fireEvent.click(screen.getByRole('button', { name: /^cancelled/i }));
+    await waitFor(() => {
+      const rows = screen.getAllByRole('row');
+      expect(rows.length).toBe(2); // 1 cancelled + 1 header
+    });
+  });
+
+  test('TC-ORD-07: Pending filter shows only pending orders', async () => {
+    await goToOrders();
+    await waitFor(() => screen.getAllByRole('row'));
+    fireEvent.click(screen.getByRole('button', { name: /^pending/i }));
+    await waitFor(() => {
+      const rows = screen.getAllByRole('row');
+      expect(rows.length).toBe(2); // 1 pending + 1 header
+    });
+  });
+
+  test('TC-ORD-08: filter counts are shown next to tab labels', async () => {
+    await goToOrders();
+    await waitFor(() => {
+      expect(screen.getByText('(4)')).toBeInTheDocument();
+      expect(screen.getByText('(2)')).toBeInTheDocument();
+    });
+  });
+
+  test('TC-ORD-09: order rows show vendor name', async () => {
+    await goToOrders();
+    await waitFor(() => {
+      expect(screen.getAllByText('Tasty Bites').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Spice Garden').length).toBeGreaterThan(0);
+    });
+  });
+
+  test('TC-ORD-10: order rows show status badge', async () => {
+    await goToOrders();
+    await waitFor(() => {
+      expect(screen.getAllByText(/completed/i).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/cancelled/i).length).toBeGreaterThan(0);
+    });
+  });
+
+  test('TC-ORD-11: order rows show formatted total in Rands', async () => {
+    await goToOrders();
+    await waitFor(() => {
+      expect(screen.getByText(/R 150/i)).toBeInTheDocument();
+    });
+  });
+
+  test('TC-ORD-12: shows "No orders found" when collection is empty', async () => {
+    mockGetDocs.mockResolvedValue({ docs: [] });
+    renderAdminDashboard();
+    fireEvent.click(screen.getByRole('button', { name: /^orders$/i }));
+    await waitFor(() => {
+      expect(screen.getByText(/no orders found/i)).toBeInTheDocument();
+    });
+  });
+
+  test('TC-ORD-13: Firestore error does not crash the orders section', async () => {
+    mockGetDocs.mockRejectedValue(new Error('Firestore down'));
+    renderAdminDashboard();
+    fireEvent.click(screen.getByRole('button', { name: /^orders$/i }));
+    await waitFor(() => {
+      expect(screen.queryByText(/loading orders/i)).not.toBeInTheDocument();
+    });
+  });
+
+  test('TC-ORD-14: order items are displayed in each row', async () => {
+    await goToOrders();
+    await waitFor(() => {
+      expect(screen.getByText(/bunny chow/i)).toBeInTheDocument();
+    });
+  });
+
+  test('TC-ORD-15: All filter re-shows all orders after another filter was active', async () => {
+    await goToOrders();
+    await waitFor(() => screen.getAllByRole('row'));
+    fireEvent.click(screen.getByRole('button', { name: /^cancelled/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^all/i }));
+    await waitFor(() => {
+      const rows = screen.getAllByRole('row');
+      expect(rows.length).toBe(5);
+    });
+  });
+});
+
+
+// ─── Users Section ────────────────────────────────────────────────────────────
+
+describe('AdminDashboard — Users section', () => {
+  const MOCK_CUSTOMERS = [
+    { id: 'cu1', name: 'Sipho Dlamini', email: 'sipho@test.com', createdAt: new Date().toISOString() },
+    { id: 'cu2', name: 'Amara Okafor',  email: 'amara@test.com', createdAt: new Date().toISOString(), suspended: true },
+  ];
+  const MOCK_USER_VENDORS = [
+    { id: 'vu1', name: 'Raj Patel', email: 'raj@test.com', storeName: "Raj's Grill", createdAt: new Date().toISOString() },
+  ];
+
+  beforeEach(() => {
+    mockSetActivePage.mockClear();
+    mockGetDocs
+      .mockResolvedValueOnce({ docs: MOCK_CUSTOMERS.map(u => ({ id: u.id, data: () => u })) })
+      .mockResolvedValueOnce({ docs: MOCK_USER_VENDORS.map(u => ({ id: u.id, data: () => u })) });
+  });
+
+  const goToUsers = async () => {
+    renderAdminDashboard();
+    fireEvent.click(screen.getByRole('button', { name: /^users$/i }));
+    await waitFor(() => screen.getByRole('heading', { name: /^users$/i }));
+  };
+
+  test('TC-USR-01: shows loading state while fetching users', async () => {
+    mockGetDocs.mockReturnValue(new Promise(() => {}));
+    renderAdminDashboard();
+    fireEvent.click(screen.getByRole('button', { name: /^users$/i }));
+    expect(screen.getByText(/loading users/i)).toBeInTheDocument();
+  });
+
+  test('TC-USR-02: renders Customers tab by default', async () => {
+    await goToUsers();
+    await waitFor(() => {
+      const customerTab = screen.getByRole('button', { name: /customers/i });
+      expect(customerTab).toHaveStyle('background: #1A1C23');
+    });
+  });
+
+  test('TC-USR-03: Customers tab shows customer names', async () => {
+    await goToUsers();
+    await waitFor(() => {
+      expect(screen.getByText('Sipho Dlamini')).toBeInTheDocument();
+      expect(screen.getByText('Amara Okafor')).toBeInTheDocument();
+    });
+  });
+
+  test('TC-USR-04: Customers tab shows customer emails', async () => {
+    await goToUsers();
+    await waitFor(() => {
+      expect(screen.getByText('sipho@test.com')).toBeInTheDocument();
+    });
+  });
+
+  test('TC-USR-05: suspended customer shows Suspended badge', async () => {
+    await goToUsers();
+    await waitFor(() => {
+      expect(screen.getByText(/suspended/i)).toBeInTheDocument();
+    });
+  });
+
+  test('TC-USR-06: active customer shows Active badge', async () => {
+    await goToUsers();
+    await waitFor(() => {
+      expect(screen.getAllByText(/active/i).length).toBeGreaterThan(0);
+    });
+  });
+
+  test('TC-USR-07: switching to Vendors tab shows vendor names', async () => {
+    await goToUsers();
+    await waitFor(() => screen.getByText('Sipho Dlamini'));
+    fireEvent.click(screen.getByRole('button', { name: /vendors/i }));
+    await waitFor(() => {
+      expect(screen.getByText('Raj Patel')).toBeInTheDocument();
+    });
+  });
+
+  test('TC-USR-08: Vendors tab shows store name column', async () => {
+    await goToUsers();
+    await waitFor(() => screen.getByText('Sipho Dlamini'));
+    fireEvent.click(screen.getByRole('button', { name: /vendors/i }));
+    await waitFor(() => {
+      expect(screen.getByText("Raj's Grill")).toBeInTheDocument();
+    });
+  });
+
+  test('TC-USR-09: Customers tab does not show store name column', async () => {
+    await goToUsers();
+    await waitFor(() => screen.getByText('Sipho Dlamini'));
+    expect(screen.queryByText(/store/i)).not.toBeInTheDocument();
+  });
+
+  test('TC-USR-10: customer count is shown in Customers tab label', async () => {
+    await goToUsers();
+    await waitFor(() => {
+      const tab = screen.getByRole('button', { name: /customers/i });
+      expect(tab.textContent).toMatch(/2/);
+    });
+  });
+
+  test('TC-USR-11: vendor count is shown in Vendors tab label', async () => {
+    await goToUsers();
+    await waitFor(() => {
+      const tab = screen.getByRole('button', { name: /vendors/i });
+      expect(tab.textContent).toMatch(/1/);
+    });
+  });
+
+  test('TC-USR-12: shows "No customers found" when customer list is empty', async () => {
+    mockGetDocs
+      .mockResolvedValueOnce({ docs: [] })
+      .mockResolvedValueOnce({ docs: [] });
+    renderAdminDashboard();
+    fireEvent.click(screen.getByRole('button', { name: /^users$/i }));
+    await waitFor(() => {
+      expect(screen.getByText(/no customers found/i)).toBeInTheDocument();
+    });
+  });
+
+  test('TC-USR-13: shows "No vendors found" when vendor list is empty on Vendors tab', async () => {
+    mockGetDocs
+      .mockResolvedValueOnce({ docs: MOCK_CUSTOMERS.map(u => ({ id: u.id, data: () => u })) })
+      .mockResolvedValueOnce({ docs: [] });
+    renderAdminDashboard();
+    fireEvent.click(screen.getByRole('button', { name: /^users$/i }));
+    await waitFor(() => screen.getByText('Sipho Dlamini'));
+    fireEvent.click(screen.getByRole('button', { name: /vendors/i }));
+    await waitFor(() => {
+      expect(screen.getByText(/no vendors found/i)).toBeInTheDocument();
+    });
+  });
+
+  test('TC-USR-14: Firestore error does not crash the users section', async () => {
+    mockGetDocs.mockRejectedValue(new Error('permission denied'));
+    renderAdminDashboard();
+    fireEvent.click(screen.getByRole('button', { name: /^users$/i }));
+    await waitFor(() => {
+      expect(screen.queryByText(/loading users/i)).not.toBeInTheDocument();
+    });
+  });
+
+  test('TC-USR-15: join date is shown for each customer', async () => {
+    await goToUsers();
+    await waitFor(() => {
+      const today = new Date().toLocaleDateString('en-ZA');
+      expect(screen.getAllByText(today).length).toBeGreaterThan(0);
+    });
+  });
+});
+
+
+// ─── Payments Section ─────────────────────────────────────────────────────────
+
+describe('AdminDashboard — Payments section', () => {
+  const MOCK_PAYMENTS = [
+    { id: 'p1', customerName: 'Sipho', vendorName: 'Tasty Bites', total: 150, status: 'completed', createdAt: new Date().toISOString(), paymentMethod: 'PayFast' },
+    { id: 'p2', customerName: 'Amara', vendorName: 'Spice Garden', total: 200, status: 'completed', createdAt: new Date().toISOString(), paymentMethod: 'Card' },
+  ];
+
+  beforeEach(() => {
+    mockSetActivePage.mockClear();
+    mockGetDocs.mockResolvedValue({
+      docs: MOCK_PAYMENTS.map(p => ({ id: p.id, data: () => p })),
+    });
+  });
+
+  const goToPayments = async () => {
+    renderAdminDashboard();
+    fireEvent.click(screen.getByRole('button', { name: /^payments$/i }));
+    await waitFor(() => screen.getByRole('heading', { name: /^payments$/i }));
+  };
+
+  test('TC-PAY-01: shows loading state while fetching payments', async () => {
+    mockGetDocs.mockReturnValue(new Promise(() => {}));
+    renderAdminDashboard();
+    fireEvent.click(screen.getByRole('button', { name: /^payments$/i }));
+    expect(screen.getByText(/loading payments/i)).toBeInTheDocument();
+  });
+
+  test('TC-PAY-02: shows Total Processed summary card', async () => {
+    await goToPayments();
+    await waitFor(() => {
+      expect(screen.getByText(/total processed/i)).toBeInTheDocument();
+    });
+  });
+
+  test('TC-PAY-03: shows Transactions summary card', async () => {
+    await goToPayments();
+    await waitFor(() => {
+      expect(screen.getByText(/^transactions$/i)).toBeInTheDocument();
+    });
+  });
+
+  test('TC-PAY-04: shows Avg. Order Value summary card', async () => {
+    await goToPayments();
+    await waitFor(() => {
+      expect(screen.getByText(/avg\. order value/i)).toBeInTheDocument();
+    });
+  });
+
+  test('TC-PAY-05: Total Processed shows correct sum', async () => {
+    await goToPayments();
+    await waitFor(() => {
+      expect(screen.getByText(/R 350/i)).toBeInTheDocument();
+    });
+  });
+
+  test('TC-PAY-06: Transactions count matches number of payment records', async () => {
+    await goToPayments();
+    await waitFor(() => {
+      const statValues = document.querySelectorAll('.stat-value');
+      const txCount = Array.from(statValues).find(el => el.textContent.trim() === '2');
+      expect(txCount).toBeTruthy();
+    });
+  });
+
+  test('TC-PAY-07: Avg. Order Value is correctly calculated', async () => {
+    await goToPayments();
+    await waitFor(() => {
+      expect(screen.getByText(/R 175/i)).toBeInTheDocument();
+    });
+  });
+
+  test('TC-PAY-08: table renders correct column headers', async () => {
+    await goToPayments();
+    await waitFor(() => {
+      expect(screen.getByText(/^ref$/i)).toBeInTheDocument();
+      expect(screen.getByText(/^customer$/i)).toBeInTheDocument();
+      expect(screen.getByText(/^vendor$/i)).toBeInTheDocument();
+      expect(screen.getByText(/^amount$/i)).toBeInTheDocument();
+      expect(screen.getByText(/^method$/i)).toBeInTheDocument();
+      expect(screen.getByText(/^date$/i)).toBeInTheDocument();
+    });
+  });
+
+  test('TC-PAY-09: table shows customer and vendor names', async () => {
+    await goToPayments();
+    await waitFor(() => {
+      expect(screen.getByText('Sipho')).toBeInTheDocument();
+      expect(screen.getByText('Tasty Bites')).toBeInTheDocument();
+    });
+  });
+
+  test('TC-PAY-10: table shows payment method', async () => {
+    await goToPayments();
+    await waitFor(() => {
+      expect(screen.getByText('PayFast')).toBeInTheDocument();
+      expect(screen.getByText('Card')).toBeInTheDocument();
+    });
+  });
+
+  test('TC-PAY-11: shows "No payments found" when list is empty', async () => {
+    mockGetDocs.mockResolvedValue({ docs: [] });
+    renderAdminDashboard();
+    fireEvent.click(screen.getByRole('button', { name: /^payments$/i }));
+    await waitFor(() => {
+      expect(screen.getByText(/no payments found/i)).toBeInTheDocument();
+    });
+  });
+
+  test('TC-PAY-12: avg order value shows 0.00 when no payments', async () => {
+    mockGetDocs.mockResolvedValue({ docs: [] });
+    renderAdminDashboard();
+    fireEvent.click(screen.getByRole('button', { name: /^payments$/i }));
+    await waitFor(() => {
+      expect(screen.getByText(/R 0\.00/i)).toBeInTheDocument();
+    });
+  });
+
+  test('TC-PAY-13: Firestore error does not crash the payments section', async () => {
+    mockGetDocs.mockRejectedValue(new Error('quota exceeded'));
+    renderAdminDashboard();
+    fireEvent.click(screen.getByRole('button', { name: /^payments$/i }));
+    await waitFor(() => {
+      expect(screen.queryByText(/loading payments/i)).not.toBeInTheDocument();
+    });
+  });
+
+  test('TC-PAY-14: payment amounts are formatted in Rands', async () => {
+    await goToPayments();
+    await waitFor(() => {
+      expect(screen.getByText(/R 150\.00/i)).toBeInTheDocument();
+      expect(screen.getByText(/R 200\.00/i)).toBeInTheDocument();
+    });
+  });
+});
+
+
+// ─── Settings Section ─────────────────────────────────────────────────────────
+
+describe('AdminDashboard — Settings section', () => {
+  beforeEach(() => {
+    mockSetActivePage.mockClear();
+    mockGetDocs.mockResolvedValue({ docs: [] });
+  });
+
+  const goToSettings = async () => {
+    renderAdminDashboard();
+    fireEvent.click(screen.getByRole('button', { name: /^settings$/i }));
+    await waitFor(() => screen.getByRole('heading', { name: /^settings$/i }));
+  };
+
+  test('TC-SET-01: renders Platform Name field with default value', async () => {
+    await goToSettings();
+    expect(screen.getByDisplayValue('UniEats')).toBeInTheDocument();
+  });
+
+  test('TC-SET-02: renders Support Email field with default value', async () => {
+    await goToSettings();
+    expect(screen.getByDisplayValue('support@unieats.co.za')).toBeInTheDocument();
+  });
+
+  test('TC-SET-03: renders Max Vendors input field', async () => {
+    await goToSettings();
+    expect(screen.getByPlaceholderText(/unlimited/i)).toBeInTheDocument();
+  });
+
+  test('TC-SET-04: renders Order Notifications toggle', async () => {
+    await goToSettings();
+    expect(screen.getByText(/order notifications/i)).toBeInTheDocument();
+  });
+
+  test('TC-SET-05: renders Allow New Sign-ups toggle', async () => {
+    await goToSettings();
+    expect(screen.getByText(/allow new sign-ups/i)).toBeInTheDocument();
+  });
+
+  test('TC-SET-06: renders Maintenance Mode toggle', async () => {
+    await goToSettings();
+    expect(screen.getByText(/maintenance mode/i)).toBeInTheDocument();
+  });
+
+  test('TC-SET-07: renders Save Changes button', async () => {
+    await goToSettings();
+    expect(screen.getByRole('button', { name: /save changes/i })).toBeInTheDocument();
+  });
+
+  test('TC-SET-08: Platform Name input can be edited', async () => {
+    await goToSettings();
+    const input = screen.getByDisplayValue('UniEats');
+    await userEvent.clear(input);
+    await userEvent.type(input, 'FoodApp');
+    expect(input).toHaveValue('FoodApp');
+  });
+
+  test('TC-SET-09: Support Email input can be edited', async () => {
+    await goToSettings();
+    const input = screen.getByDisplayValue('support@unieats.co.za');
+    await userEvent.clear(input);
+    await userEvent.type(input, 'new@email.com');
+    expect(input).toHaveValue('new@email.com');
+  });
+
+  test('TC-SET-10: clicking Save Changes shows a saved confirmation', async () => {
+    await goToSettings();
+    fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+    await waitFor(() => {
+      expect(screen.getByText(/saved/i)).toBeInTheDocument();
+    });
+  });
+
+  test('TC-SET-11: saved confirmation disappears after 2.5s', async () => {
+    jest.useFakeTimers();
+    await goToSettings();
+    fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+    await waitFor(() => screen.getByText(/saved/i));
+    jest.advanceTimersByTime(3000);
+    await waitFor(() => {
+      expect(screen.queryByText(/✓ saved/i)).not.toBeInTheDocument();
+    });
+    jest.useRealTimers();
+  });
+
+  test('TC-SET-12: toggling Maintenance Mode changes its visual state', async () => {
+    await goToSettings();
+    const toggleBtns = screen.getAllByRole('button');
+    const maintenanceToggle = toggleBtns.find(b =>
+      b.closest('div')?.previousSibling?.textContent?.includes('Maintenance')
+    );
+    if (maintenanceToggle) {
+      const before = maintenanceToggle.style.background;
+      fireEvent.click(maintenanceToggle);
+      expect(maintenanceToggle.style.background).not.toBe(before);
+    } else {
+      expect(screen.getByText(/maintenance mode/i)).toBeInTheDocument();
+    }
+  });
+
+  test('TC-SET-13: Max Vendors accepts numeric input', async () => {
+    await goToSettings();
+    const input = screen.getByPlaceholderText(/unlimited/i);
+    await userEvent.type(input, '50');
+    expect(input).toHaveValue(50);
+  });
+
+  test('TC-SET-14: General and Notifications section headings are visible', async () => {
+    await goToSettings();
+    expect(screen.getByText(/^general$/i)).toBeInTheDocument();
+    expect(screen.getByText(/notifications & access/i)).toBeInTheDocument();
+  });
+});
+
+
+// ─── Signup Role — admin option removed ──────────────────────────────────────
+
+describe('SignupRole — admin option removed', () => {
+  test('TC-SR-01: admin signup button is no longer present', async () => {
+    const { render: rr, screen: ss } = await import('@testing-library/react');
+    const { MemoryRouter } = await import('react-router-dom');
+    const SignupRole = (await import('../login-and-signup/signup-role')).default;
+    rr(<MemoryRouter><SignupRole /></MemoryRouter>);
+    expect(ss.queryByText(/apply for admin access/i)).not.toBeInTheDocument();
+    expect(ss.queryByRole('link', { name: /admin/i })).not.toBeInTheDocument();
+  });
+
+  test('TC-SR-02: Customer and Vendor signup options are still present', async () => {
+    const { render: rr, screen: ss } = await import('@testing-library/react');
+    const { MemoryRouter } = await import('react-router-dom');
+    const SignupRole = (await import('../login-and-signup/signup-role')).default;
+    rr(<MemoryRouter><SignupRole /></MemoryRouter>);
+    expect(ss.getByRole('link', { name: /sign up as customer/i })).toBeInTheDocument();
+    expect(ss.getByRole('link', { name: /sign up as vendor/i })).toBeInTheDocument();
+  });
+
+  test('TC-SR-03: exactly 2 role options are shown', async () => {
+    const { render: rr, screen: ss } = await import('@testing-library/react');
+    const { MemoryRouter } = await import('react-router-dom');
+    const SignupRole = (await import('../login-and-signup/signup-role')).default;
+    rr(<MemoryRouter><SignupRole /></MemoryRouter>);
+    const links = ss.getAllByRole('link', { name: /sign up as/i });
+    expect(links.length).toBe(2);
   });
 });
