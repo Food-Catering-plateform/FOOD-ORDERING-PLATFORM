@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import './NotificationBell.css';
 import { db } from '../../Firebase/firebaseConfig';
 import { collection, onSnapshot, updateDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
@@ -54,15 +54,16 @@ function NotificationBell() {
   }, [vendorId]);
 
   // Close on outside click
+  const handleOutside = useCallback((e) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+      setOpen(false);
+    }
+  }, []);
+
   useEffect(() => {
-    const handleOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setOpen(false);
-      }
-    };
     document.addEventListener('mousedown', handleOutside);
     return () => document.removeEventListener('mousedown', handleOutside);
-  }, []);
+  }, [handleOutside]);
 
   const markOneRead = async (docId) => {
     await updateDoc(doc(db, 'Vendors', vendorId, 'notifications', docId), { read: true });
