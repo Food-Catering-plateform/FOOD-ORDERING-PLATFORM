@@ -87,6 +87,7 @@ export default function AdminVendorManagement({ setActivePage }) {
         <tr>
           <th scope="col">{activeTab === "vendors" ? "Business Name" : "Name"}</th>
           <th scope="col">Email</th>
+          {activeTab === "admins" && <th scope="col">Reason</th>}
           <th scope="col">Status</th>
           <th scope="col">Actions</th>
         </tr>
@@ -104,6 +105,11 @@ export default function AdminVendorManagement({ setActivePage }) {
                 </strong>
               </td>
               <td>{item.email || "—"}</td>
+              {activeTab === "admins" && (
+                <td style={{ fontSize: "0.85rem", color: "#555", maxWidth: "260px" }}>
+                  {item.message || <em style={{ color: "#bbb" }}>No reason provided</em>}
+                </td>
+              )}
               <td>
                 <mark
                   className="avm-badge"
