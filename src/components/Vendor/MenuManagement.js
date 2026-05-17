@@ -227,7 +227,7 @@ function MenuManagement() {
               <img src={item.imageUrl} alt={item.name} />
               <div className="info">
                 <h3>{item.name}</h3>
-                <p>R {item.price}</p>
+                <p>R {parseFloat(item.price || 0).toFixed(2)}</p>
                 {item.description ? <p>{item.description}</p> : null}
                 {(item.dietary ?? []).length > 0 && (
                   <p className="allergen-tags">

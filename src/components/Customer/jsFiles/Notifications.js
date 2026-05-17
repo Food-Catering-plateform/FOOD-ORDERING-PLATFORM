@@ -1,22 +1,156 @@
 import React, { useEffect, useMemo } from 'react';
 import '../css/Notifications.css';
+import { collection, onSnapshot, query, where, getDocs } from 'firebase/firestore';
+import { db } from '../../../Firebase/firebaseConfig';
 import { useAuth } from '../../../Services/AuthContext';
-import { useCustomerOrders } from '../../../hooks/useCustomerOrders';
-import { STATUS_CONFIG, getNotificationKey } from '../notificationConfig';
-import { loadReadKeys, saveReadKeys } from '../../../utils/notificationReadState';
+
+const STATUS_CONFIG = {
+  pending: {
+    label:   'Order Received',
+    emoji:   '🧾',
+    message: 'Your order has been received and is waiting for the vendor to confirm.',
+    mod:     'pending',
+  },
+  preparing: {
+    label:   'Being Prepared',
+    emoji:   '👨‍🍳',
+    message: 'Your order is currently being prepared in the kitchen.',
+    mod:     'preparing',
+  },
+  ready: {
+    label:   'Ready for Collection',
+    emoji:   '✅',
+    message: 'Your order is ready! Head to the vendor to collect it now.',
+    mod:     'ready',
+  },
+  completed: {
+    label:   'Order Completed',
+    emoji:   '🎉',
+    message: 'You have collected your order. Enjoy your meal!',
+    mod:     'completed',
+  },
+  cancelled: {
+    label:   'Order Cancelled',
+    emoji:   '❌',
+    message: 'Your order was cancelled by the vendor. Please place a new order.',
+    mod:     'cancelled',
+  },
+};
 
 const Notifications = () => {
   const { currentUser, authLoading } = useAuth();
   const { orders, error, loading } = useCustomerOrders();
 
   useEffect(() => {
-    if (!currentUser?.uid || orders.length === 0) return;
-    const allKeys = new Set(orders.map(getNotificationKey));
-    const existing = loadReadKeys(currentUser.uid);
-    if (allKeys.size === existing.size && [...allKeys].every((k) => existing.has(k))) return;
-    saveReadKeys(currentUser.uid, allKeys);
-  }, [currentUser?.uid, orders]);
+    if (authLoading || !currentUser?.uid) {
+      setOrders([]);
+      return;
+    }
 
+    setError('');
+
+    const mergeAndSet = (snapshots) => {
+      const map = new Map();
+      snapshots.forEach((snap) => {
+        (snap.docs || []).forEach((d) => {
+          map.set(d.id, { id: d.id, ...d.data() });
+        });
+      });
+      const sorted = [...map.values()].sort(
+        (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+      );
+      setOrders(sorted);
+    };
+
+    let snapById          = null;
+    let snapByEmail       = null;
+    let snapByDisplayName = null;
+    let usedFallback      = false;
+
+    const tryMerge = () => {
+      const snaps = [snapById, snapByEmail, snapByDisplayName].filter(Boolean);
+      if (snaps.length > 0) mergeAndSet(snaps);
+    };
+
+    // Fallback for when onSnapshot is blocked by Firestore rules or missing index
+    const fetchFallback = async () => {
+      if (usedFallback) return;
+      usedFallback = true;
+      try {
+        const snap = await getDocs(
+          query(collection(db, 'Orders'), where('customerId', '==', currentUser.uid))
+        );
+        let allSnaps = [snap];
+        if (snap.docs.length === 0 && currentUser.email) {
+          const snapEmail = await getDocs(
+            query(collection(db, 'Orders'), where('customerEmail', '==', currentUser.email))
+          ).catch(() => ({ docs: [] }));
+          allSnaps = [snap, snapEmail];
+        }
+        mergeAndSet(allSnaps);
+      } catch (err) {
+        console.error('Fallback getDocs failed:', err);
+        setError('Could not load notifications. Please check your connection and try again.');
+      }
+    };
+
+    let unsubById = () => {};
+    let unsubByEmail = () => {};
+    let unsubByDisplayName = () => {};
+
+    try {
+      const qById = query(
+        collection(db, 'Orders'),
+        where('customerId', '==', currentUser.uid)
+      );
+      unsubById = onSnapshot(
+        qById,
+        (snap) => { snapById = snap; tryMerge(); },
+        (err)  => {
+          console.error('onSnapshot by UID failed:', err);
+          fetchFallback();
+        }
+      );
+    } catch (err) {
+      fetchFallback();
+    }
+
+    if (currentUser.email) {
+      try {
+        const qByEmail = query(
+          collection(db, 'Orders'),
+          where('customerName', '==', currentUser.email)
+        );
+        unsubByEmail = onSnapshot(
+          qByEmail,
+          (snap) => { snapByEmail = snap; tryMerge(); },
+          (err)  => console.error('onSnapshot by email:', err)
+        );
+      } catch (err) { /* ignore */ }
+    }
+
+    if (currentUser.displayName) {
+      try {
+        const qByDisplayName = query(
+          collection(db, 'Orders'),
+          where('customerName', '==', currentUser.displayName)
+        );
+        unsubByDisplayName = onSnapshot(
+          qByDisplayName,
+          (snap) => { snapByDisplayName = snap; tryMerge(); },
+          (err)  => console.error('onSnapshot by displayName:', err)
+        );
+      } catch (err) { /* ignore */ }
+    }
+
+    return () => {
+      unsubById();
+      unsubByEmail();
+      unsubByDisplayName();
+    };
+  }, [authLoading, currentUser?.uid, currentUser?.email, currentUser?.displayName]);
+
+  // Split orders into active and past
   const activeOrders = useMemo(
     () => orders.filter((o) => o.status === 'pending' || o.status === 'preparing' || o.status === 'ready'),
     [orders]
@@ -63,7 +197,7 @@ const Notifications = () => {
         </p>
       </header>
 
-      {error && <p className="notif-error">{error}</p>}
+      {error && <p className="notif-error" role="alert">{error}</p>}
 
       {paymentOrders.length > 0 && (
         <section className="notif-section">
@@ -74,7 +208,7 @@ const Notifications = () => {
                 <strong className="notif-card__emoji">💳</strong>
                 <section className="notif-card__info">
                   <strong>Payment Successful</strong>
-                  <p>Your payment of R {o.total?.toFixed(2)} was received for your order from {o.vendorName}.</p>
+                  <p>Your payment of R {parseFloat(o.total || 0).toFixed(2)} was received for your order from {o.vendorName}.</p>
                 </section>
                 <time className="notif-card__time">{o.time}</time>
               </header>
@@ -115,7 +249,7 @@ const Notifications = () => {
 
                     <footer className="notif-card__footer">
                       <strong className="notif-card__total">
-                        Total: R {o.total?.toFixed(2)}
+                        Total: R {parseFloat(o.total || 0).toFixed(2)}
                       </strong>
                       {o.status === 'ready' && o.pickupEmailSent && (
                         <span className="notif-email-sent">
@@ -150,7 +284,7 @@ const Notifications = () => {
                     </section>
                     <p className="notif-card__message">{config.message}</p>
                     <strong className="notif-card__total">
-                      Total: R {o.total?.toFixed(2)}
+                      Total: R {parseFloat(o.total || 0).toFixed(2)}
                     </strong>
                   </section>
                   <time className="notif-card__time">{o.time}</time>

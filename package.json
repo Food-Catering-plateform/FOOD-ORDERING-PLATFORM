@@ -16,14 +16,20 @@
     "react-scripts": "^5.0.1",
     "web-vitals": "^2.1.4"
   },
- "scripts": {
-  "start": "react-scripts start",
-  "build": "react-scripts build",
-  "test": "react-scripts test",
-  "test:ci": "react-scripts test --watchAll=false --coverage --coverageReporters=lcov --coverageReporters=text --ci",
-  "eject": "react-scripts eject"
-},
-
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --watchAll=false",
+    "eject": "react-scripts eject"
+  },
+  "jest": {    "testEnvironment": "jsdom",    "coverageReporters": [
+      "lcov",
+      "text"
+    ],
+    "moduleNameMapper": {
+      "\\\\.(css|less|scss|sass)$": "<rootDir>/__mocks__/styleMock.js"
+    }
+  },
   "eslintConfig": {
     "extends": [
       "react-app",
@@ -47,9 +53,6 @@
     "@babel/preset-env": "^7.29.5",
     "@babel/preset-react": "^7.28.5",
     "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.2",
-    "babel-jest": "^30.4.1",
-    "jest": "^30.3.0",
-    "jest-environment-jsdom": "^30.4.1"
+    "@testing-library/react": "^16.3.2"
   }
 }

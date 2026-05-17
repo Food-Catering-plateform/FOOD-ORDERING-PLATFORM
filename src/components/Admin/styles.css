@@ -292,3 +292,91 @@ footer {
   color: #9A9AAB;
   text-align: center;
 }
+/* ═══════════════════════════════════════
+   MOBILE RESPONSIVE — Admin Dashboard
+═══════════════════════════════════════ */
+@media (max-width: 768px) {
+  body {
+    flex-direction: column;
+  }
+
+  .dashboard-container {
+    flex-direction: column !important;
+  }
+
+  aside {
+    width: 100%;
+    min-height: auto;
+    flex-direction: row;
+    align-items: center;
+    padding: 0;
+    flex-wrap: wrap;
+  }
+
+  aside h2 {
+    padding: 0.8rem 1rem;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+  }
+
+  aside nav[aria-label] {
+    flex: 1;
+    overflow: hidden;
+  }
+
+  aside ul {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 4px 4px;
+    gap: 2px;
+    flex-wrap: nowrap;
+  }
+
+  aside ul::-webkit-scrollbar { display: none; }
+
+  aside li {
+    margin: 2px 3px;
+    flex-shrink: 0;
+  }
+
+  aside li a, aside li button {
+    padding: 8px 12px;
+    font-size: 0.78rem;
+    white-space: nowrap;
+  }
+
+  main {
+    min-height: 0;
+  }
+
+  section.cards {
+    gap: 12px;
+    padding: 0 16px 16px;
+  }
+
+  article {
+    min-width: 140px;
+    padding: 16px 14px;
+  }
+
+  section { padding: 16px; }
+
+  table { font-size: 0.82rem; }
+  th, td { padding: 10px 10px; }
+}
+
+@media (max-width: 480px) {
+  section.cards {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  article {
+    min-width: 0;
+    width: 100%;
+  }
+
+  table { display: block; overflow-x: auto; }
+}

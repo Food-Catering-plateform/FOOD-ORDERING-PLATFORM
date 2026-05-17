@@ -31,12 +31,11 @@ function StoreSetup({ onComplete, onCancel }) {
     address: '',
     phone: '',
     hours: defaultHours,
-    logo: null,
-    banner: null,
-    logoPreview: null,
-    bannerPreview: null,
+    imageUrl:       null, // base64 logo — stored directly in Firestore, no Storage needed
+    bannerImageUrl: null, // base64 banner
   });
   const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
 
   const update = (field, value) =>
     setForm(prev => ({ ...prev, [field]: value }));
@@ -47,14 +46,14 @@ function StoreSetup({ onComplete, onCancel }) {
       hours: { ...prev.hours, [day]: { ...prev.hours[day], [field]: value } },
     }));
 
-  const handleImage = (field, previewField, file) => {
+  // Convert image file to base64 string using FileReader — same as MenuManagement
+  const handleImage = (field, file) => {
     if (!file) return;
-    setForm(prev => ({
-      ...prev,
-      [field]: file,
-      [previewField]: URL.createObjectURL(file),
-    }));
+    const reader = new FileReader();
+    reader.onloadend = () => setForm(prev => ({ ...prev, [field]: reader.result }));
+    reader.readAsDataURL(file);
   };
+
 //indicates complusory values
   const validate = () => {
     const e = {};
@@ -73,25 +72,34 @@ function StoreSetup({ onComplete, onCancel }) {
 
   const next = () => { if (validate()) setStep(s => s + 1); };
   const back = () => setStep(s => s - 1);
+
 ///puts data in database
   const handleSubmit = async () => {
     if (!vendorId) return;
+    setSubmitting(true);
+    try {
+      const storeData = {
+        businessName:     form.name,
+        category:         form.category,
+        description:      form.description,
+        address:          form.address,
+        phoneNumber:      form.phone,
+        hours:            form.hours,
+        status:           'pending',
+        storeInitialized: true,
+        imageUrl:         form.imageUrl       ?? null, // base64 logo — null if skipped
+        bannerImageUrl:   form.bannerImageUrl ?? null, // base64 banner — null if skipped
+      };
 
-    const storeData = {
-      businessName: form.name,
-      category:     form.category,
-      description:  form.description,
-      address:      form.address,
-      phoneNumber:  form.phone,
-      hours:        form.hours,
-      status:       'pending',
-      storeInitialized: true,
-    };
-
-    await setDoc(doc(db, 'Vendors', vendorId), storeData, { merge: true });
-    // Sign out then show the pending wall — admin must approve before dashboard access
-    await signOut(auth);
-    if (onComplete) onComplete();
+      await setDoc(doc(db, 'Vendors', vendorId), storeData, { merge: true });
+      // Sign out then show the pending wall — admin must approve before dashboard access
+      await signOut(auth);
+      if (onComplete) onComplete();
+    } catch (err) {
+      console.error('Failed to save store:', err);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (!vendorId) return <p>Loading...</p>;
@@ -229,14 +237,14 @@ function StoreSetup({ onComplete, onCancel }) {
               <section className="field">
                 <b className="field__label">Store Logo</b>
                 <label className="upload-box">
-                  {form.logoPreview
-                    ? <img src={form.logoPreview} alt="Logo preview" className="upload-preview upload-preview--logo" />
+                  {form.imageUrl
+                    ? <img src={form.imageUrl} alt="Logo preview" className="upload-preview upload-preview--logo" />
                     : <small className="upload-placeholder">Click to upload logo</small>}
                   <input
                     type="file"
                     accept="image/*"
                     hidden
-                    onChange={e => handleImage('logo', 'logoPreview', e.target.files[0])}
+                    onChange={e => handleImage('imageUrl', e.target.files[0])}
                   />
                 </label>
               </section>
@@ -244,14 +252,14 @@ function StoreSetup({ onComplete, onCancel }) {
               <section className="field">
                 <b className="field__label">Store Banner</b>
                 <label className="upload-box upload-box--wide">
-                  {form.bannerPreview
-                    ? <img src={form.bannerPreview} alt="Banner preview" className="upload-preview upload-preview--banner" />
+                  {form.bannerImageUrl
+                    ? <img src={form.bannerImageUrl} alt="Banner preview" className="upload-preview upload-preview--banner" />
                     : <small className="upload-placeholder">Click to upload banner image</small>}
                   <input
                     type="file"
                     accept="image/*"
                     hidden
-                    onChange={e => handleImage('banner', 'bannerPreview', e.target.files[0])}
+                    onChange={e => handleImage('bannerImageUrl', e.target.files[0])}
                   />
                 </label>
                 <small className="field__hint">Optional — displayed at the top of your store page</small>
@@ -263,13 +271,13 @@ function StoreSetup({ onComplete, onCancel }) {
             <section className="store-setup__review">
               <h2>Review Your Store</h2>
 
-              {form.bannerPreview && (
-                <img src={form.bannerPreview} alt="Store banner" className="review-banner" />
+              {form.bannerImageUrl && (
+                <img src={form.bannerImageUrl} alt="Store banner" className="review-banner" />
               )}
 
               <figure className="review-profile">
-                {form.logoPreview && (
-                  <img src={form.logoPreview} alt="Store logo" className="review-logo" />
+                {form.imageUrl && (
+                  <img src={form.imageUrl} alt="Store logo" className="review-logo" />
                 )}
                 <figcaption>
                   <h3>{form.name || '—'}</h3>
@@ -306,11 +314,13 @@ function StoreSetup({ onComplete, onCancel }) {
             <button className="btn btn--ghost" onClick={() => signOut(auth).then(onCancel)}>Exit</button>
           )}
           {step > 0 && (
-            <button className="btn btn--ghost" onClick={back}>Back</button>
+            <button className="btn btn--ghost" onClick={back} disabled={submitting}>Back</button>
           )}
           {step < STEPS.length - 1
             ? <button className="btn btn--primary" onClick={next}>Next</button>
-            : <button className="btn btn--primary" onClick={handleSubmit}>Launch Store</button>
+            : <button className="btn btn--primary" onClick={handleSubmit} disabled={submitting}>
+                {submitting ? 'Saving…' : 'Launch Store'}
+              </button>
           }
         </footer>
 

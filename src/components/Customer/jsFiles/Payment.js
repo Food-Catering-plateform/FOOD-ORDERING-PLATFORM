@@ -1,44 +1,42 @@
 import React, { useState } from 'react';
-import md5 from 'md5';
+import md5 from 'md5';//generate a payment security signature for PayFast
 import '../css/Style-Payment.css';
 import payfastLogo from '../../../Assets/payfast-logo.png';
 
 
-function Payment({ setActivePage, setBasket }) {
+function Payment({ setActivePage, setBasket }) { 
 
   const order = JSON.parse(localStorage.getItem('pendingPayment'));
   const [loading] = useState(false);
-  const appOrigin = window.location.origin;
+  const appOrigin = window.location.origin; 
 
-  if (!order) {
+  if (!order) { 
     setActivePage('basket');
     return null;
   }
 
-  const paymentId = `order_${Date.now()}`;
+  const paymentId = `order_${Date.now()}`; 
   localStorage.setItem('pendingPaymentId', paymentId);
 
-  
   const params = {
-    merchant_id:   '10048201',
+    merchant_id:   '10048201', 
     merchant_key:  'alyr23z2b1yii',
     return_url:    `${appOrigin}/?page=payment-success`,
     cancel_url:    `${appOrigin}/?page=basket`,
     name_first:    order.customerName || 'Test',
-    email_address: 'sbtu01@payfast.co.za',
     m_payment_id:  paymentId,
     amount:        order.total.toFixed(2),
     item_name:     'Campus Food Order',
   };
 
-  
-const signatureString = Object.entries(params)
-  .map(([key, val]) => `${key}=${encodeURIComponent(String(val)).replace(/%20/g, '+')}`)
+ const signatureString = Object.entries(params)
+  .map(([key, val]) =>
+    `${key}=${encodeURIComponent(String(val)).replace(/%20/g, '+')}`
+  )
   .join('&');
 
-
-  const signature = md5(signatureString);
-  const finalParams = { ...params, signature };
+const signature = md5(signatureString);
+const finalParams = { ...params, signature };
 
 
   return (
