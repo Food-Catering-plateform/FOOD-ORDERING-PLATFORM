@@ -19,7 +19,7 @@ const navItems = [
   { key: 'settings',  label: 'Account Settings', icon: 'ti-settings'          },
 ];
 
-function VDashboard({ uid, onLogout }) {
+function VDashboard({ uid, onLogout, setActivePage }) {
   const [activeSection, setActiveSection] = useState('home');
   const [sidebarOpen, setSidebarOpen]     = useState(true);
   const [storeData, setStoreData]         = useState(null);
@@ -54,7 +54,7 @@ function VDashboard({ uid, onLogout }) {
       case 'menu':      return <MenuManagement />;
       case 'orders':    return <Orders />;
       case 'analytics': return <Analytics />;
-      case 'settings':  return <AccSettings storeData={storeData} onStoreUpdate={handleStoreUpdate} uid={uid} onLogout={onLogout} />;
+      case 'settings':  return <AccSettings storeData={storeData} onStoreUpdate={handleStoreUpdate} uid={uid} onLogout={onLogout} setActivePage={setActivePage} />;
       default:          return <VenHome />;
     }
   };
