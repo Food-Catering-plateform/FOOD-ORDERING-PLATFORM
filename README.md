@@ -1,6 +1,6 @@
 # UniEats- Campus Food Ordering Platform
 
-A web-based campus food ordering platform built with React 18 and Firebase. The platform supports three user roles — **student**, **vendor**, and **admin** — each with a tailored interface. Payments are processed via PayFast and order-ready email notifications are sent via EmailJS.
+A web-based campus food ordering platform built with React 18 and Firebase. The platform supports three user roles , **student**, **vendor**, and **admin** , each with a tailored interface. Payments are processed via PayFast and order-ready email notifications are sent via EmailJS.
 
 ---
 
