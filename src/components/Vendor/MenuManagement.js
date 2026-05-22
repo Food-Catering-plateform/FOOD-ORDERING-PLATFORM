@@ -24,7 +24,7 @@ export const ALLERGEN_ICONS = {
 
 const EMPTY_FORM = {
   name: '', price: '', qty: '', description: '', imageUrl: null, allergens: [], dietary: [],
-  isSoldOut: false // --- NEW: Added isSoldOut to initial state
+  isSoldOut: false // Added isSoldOut  
 };
 
 function MenuManagement() {
@@ -99,7 +99,7 @@ function MenuManagement() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    // --- NEW: Added isSoldOut to the data object being saved
+    //  Added isSoldOut to the data object being saved
     const data = { 
         ...form, 
         price: parseFloat(form.price), 
@@ -138,7 +138,7 @@ function MenuManagement() {
       imageUrl:    item.imageUrl    ?? null,
       allergens:   Array.isArray(item.allergens) ? item.allergens : [],
       dietary:     Array.isArray(item.dietary)   ? item.dietary   : [],
-      isSoldOut:   item.isSoldOut   ?? false, // --- NEW: Load isSoldOut status when editing
+      isSoldOut:   item.isSoldOut   ?? false, //  Load isSoldOut status when editing
     });
     formRef.current?.scrollIntoView({ behavior: 'smooth' });
   }
@@ -181,7 +181,7 @@ function MenuManagement() {
           <textarea id="foodDesc" placeholder="Description"      value={form.description} onChange={handleChange} />
           <input id="foodImage" type="file" accept="image/*"     onChange={handleChange} />
 
-          {/* --- NEW: Sold Out Toggle Switch --- */}
+          {/* Sold Out Toggle Switch --- */}
           <div style={{ margin: '10px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <input 
               type="checkbox" 
@@ -250,7 +250,7 @@ function MenuManagement() {
               <img src={item.imageUrl} alt={item.name} />
               <div className="info">
                 <h3>{item.name}</h3>
-                {/* --- NEW: Show Sold Out Badge in the list --- */}
+                {/*  Show Sold Out Badge in the list  */}
                 {item.isSoldOut && <span style={{ background: '#fee2e2', color: '#ef4444', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold' }}>SOLD OUT</span>}
                 <p>R {parseFloat(item.price || 0).toFixed(2)}</p>
                 {item.description ? <p>{item.description}</p> : null}

@@ -27,7 +27,7 @@ function VDashboard({ uid, onLogout }) {
 
   useEffect(() => {
     if (!uid) return;
-    // FIX: Fetch from 'Vendors' collection, not 'stores'
+    //  Fetch from 'Vendors' collection  
     getDoc(doc(db, 'Vendors', uid)).then(snap => {
       if (snap.exists()) {
         const data = snap.data();
@@ -40,8 +40,8 @@ function VDashboard({ uid, onLogout }) {
   }, [uid]);
 
   const handleStoreUpdate = (updatedData) => {
-    // FIX: Only update local state. 
-    // AccSettings.js already handles the Firestore write correctly with { merge: true }.
+    // Only update local state. 
+    // AccSettings.js handles the Firestore write correctly with { merge: true }.
     setStoreData(prev => ({
       ...prev,
       ...updatedData,

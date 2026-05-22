@@ -55,7 +55,7 @@ function Orders() {
 
     const newStatus  = STATUS_FLOW[order.status];
 
-    // --- NEW: Reduce Quantity in Inventory when order is COMPLETED ---
+    //  Reduce Quantity in Inventory when order is COMPLETED 
     if (newStatus === 'completed') {
       console.log('[Orders] Reducing inventory for completed order:', id);
       try {
@@ -80,7 +80,7 @@ function Orders() {
         console.error("[Orders] Error updating inventory:", error);
       }
     }
-    // --- End of Inventory Logic ---
+    //  End of Inventory Logic 
 
     await updateDoc(doc(db, "Orders", id), { status: newStatus });
 

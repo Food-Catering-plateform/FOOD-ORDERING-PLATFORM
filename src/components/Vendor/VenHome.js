@@ -4,6 +4,7 @@ import { db } from '../../Firebase/firebaseConfig';
 import { collection, query, where, onSnapshot, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { useAuth } from '../../Services/AuthContext';
 
+// Static tips that rotate every 12 seconds to give vendors helpful advice
 const TIPS = [
   { icon: 'fa-solid fa-clock', title: 'Peak hours tip', text: 'Orders spike between 12–2 PM. Make sure your menu is fully stocked before lunch.' },
   { icon: 'fa-solid fa-star', title: 'Boost visibility', text: 'Stores with photos on every menu item get 40% more clicks from students.' },
@@ -12,14 +13,16 @@ const TIPS = [
 ];
 
 function VenHome({ storeName, setActiveSection }) {
-  const { vendorId } = useAuth();
+  const { vendorId } = useAuth();   // Get the logged-in vendor's ID from auth context
 
+  // Generate dynamic greeting based on current time
   const hour = new Date().getHours();
   const greeting =
     hour < 12 ? 'Good morning' :
     hour < 17 ? 'Good afternoon' :
                 'Good evening';
 
+  // Live clock and date states (updated every second)
   const [liveTime, setLiveTime] = useState(() =>
     new Date().toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
   );
@@ -27,52 +30,62 @@ function VenHome({ storeName, setActiveSection }) {
     new Date().toLocaleDateString('en-ZA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
   );
 
+  // Update live time and date every second
   useEffect(() => {
     const tick = setInterval(() => {
       const now = new Date();
       setLiveTime(now.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
       setLiveDate(now.toLocaleDateString('en-ZA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }));
     }, 1000);
-    return () => clearInterval(tick);
+
+    return () => clearInterval(tick); // Cleanup on unmount
   }, []);
 
+  // Main state variables
   const [stats, setStats] = useState({ newOrders: 0, menuItems: 0, revenue: 0, customers: 0 });
   const [orderBreakdown, setOrderBreakdown] = useState({ pending: 0, preparing: 0, completed: 0 });
   const [recentOrders, setRecentOrders] = useState([]);
   const [storeOpen, setStoreOpen] = useState(true);
   const [tipIndex, setTipIndex] = useState(0);
 
-  const tip = TIPS[tipIndex];
+  const tip = TIPS[tipIndex]; // Current rotating tip
 
+  // Rotate tips every 12 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       setTipIndex(i => (i + 1) % TIPS.length);
     }, 12000);
+
     return () => clearInterval(interval);
   }, []);
 
+  // Main data fetching effect - listens to Firestore in real-time
   useEffect(() => {
     if (!vendorId) return;
 
     const vendorRef = doc(db, 'Vendors', vendorId);
-    getDocs(collection(db, 'Vendors')).then(() => {}).catch(() => {});
 
+    // Listen to store open/closed status
     const unsubVendor = onSnapshot(vendorRef, (snap) => {
       if (snap.exists() && snap.data().isOpen !== undefined) {
         setStoreOpen(snap.data().isOpen);
       }
     });
 
+    // Query all orders for this vendor
     const q = query(collection(db, 'Orders'), where('vendorID', '==', vendorId));
 
     const unsubOrders = onSnapshot(q, async (snapshot) => {
       const orders = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 
       const today = new Date().toLocaleDateString('en-ZA');
+      
+      // Filter orders for today
       const todayOrders = orders.filter(o =>
         o.time?.startsWith(today) || o.time?.includes(new Date().toLocaleDateString())
       );
 
+      // Calculate statistics
       const newOrders = orders.filter(o => o.status === 'pending').length;
 
       const revenue = todayOrders
@@ -83,34 +96,45 @@ function VenHome({ storeName, setActiveSection }) {
         todayOrders.filter(o => o.status === 'completed').map(o => o.customerId)
       ).size;
 
+      // Order breakdown
       const pending = orders.filter(o => o.status === 'pending').length;
       const preparing = orders.filter(o => o.status === 'preparing').length;
       const completed = todayOrders.filter(o => o.status === 'completed').length;
 
+      // Get 5 most recent orders
       const sorted = [...orders]
         .filter(o => o.time)
         .sort((a, b) => new Date(b.time) - new Date(a.time))
         .slice(0, 5);
 
+      // Get menu item count
       const menuSnap = await getDocs(collection(db, 'Vendors', vendorId, 'menuItems'));
 
+      // Update all states
       setStats({ newOrders, menuItems: menuSnap.size, revenue, customers });
       setOrderBreakdown({ pending, preparing, completed });
       setRecentOrders(sorted);
     });
 
-    return () => { unsubOrders(); unsubVendor(); };
+    // Cleanup listeners when component unmounts
+    return () => { 
+      unsubOrders(); 
+      unsubVendor(); 
+    };
   }, [vendorId]);
 
+  // Toggle store open/closed status in Firestore
   const toggleStore = async () => {
     const next = !storeOpen;
-    setStoreOpen(next);
+    setStoreOpen(next); // Optimistic update
     try {
       await updateDoc(doc(db, 'Vendors', vendorId), { isOpen: next });
-    } catch {
+    } catch (err) {
+      console.error("Failed to update store status:", err);
     }
   };
 
+  // Format order time for display
   const formatOrderTime = (timeStr) => {
     if (!timeStr) return '—';
     const d = new Date(timeStr);
@@ -118,6 +142,7 @@ function VenHome({ storeName, setActiveSection }) {
     return d.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' });
   };
 
+  // Get first letter of customer ID for avatar
   const getInitial = (order) => {
     const id = order.customerId || order.id || '?';
     return String(id).charAt(0).toUpperCase();
@@ -125,8 +150,9 @@ function VenHome({ storeName, setActiveSection }) {
 
   return (
     <section className="ven-home">
-
+      {/* Header with greeting, live clock, and store status toggle */}
       <header className="ven-home__header">
+        {/* Decorative background elements */}
         <span className="ven-home__header-geo ven-home__header-geo--ring" aria-hidden="true" />
         <span className="ven-home__header-geo ven-home__header-geo--ring2" aria-hidden="true" />
         <span className="ven-home__header-geo ven-home__header-geo--dot" aria-hidden="true" />
@@ -135,11 +161,13 @@ function VenHome({ storeName, setActiveSection }) {
         <span className="ven-home__accent" aria-hidden="true" />
         <h1 className="ven-home__greeting">{greeting}, {storeName || 'Chef'} 👋</h1>
         <p className="ven-home__sub">Here is a quick look at how your store is doing today.</p>
+        
         <div className="ven-home__clock-row">
           <span className="ven-home__clock">{liveTime}</span>
           <span className="ven-home__date">{liveDate}</span>
         </div>
 
+        {/* Store Open/Closed Toggle Button */}
         <button
           className={`ven-home__store-status ${storeOpen ? 'open' : ''}`}
           onClick={toggleStore}
@@ -151,6 +179,7 @@ function VenHome({ storeName, setActiveSection }) {
         </button>
       </header>
 
+      {/* Quick Stats Cards */}
       <section className="ven-home__stats" aria-label="Quick stats">
         <article className="stat-card stat-card--clickable" onClick={() => setActiveSection('orders')} title="Go to Orders">
           <h2>{stats.newOrders}</h2>
@@ -170,6 +199,7 @@ function VenHome({ storeName, setActiveSection }) {
         </article>
       </section>
 
+      {/* Order Status Breakdown */}
       <section className="ven-home__status-bar" aria-label="Order status breakdown">
         <h3 className="ven-home__status-bar-title">
           <i className="fa-solid fa-chart-pie" />
@@ -191,6 +221,7 @@ function VenHome({ storeName, setActiveSection }) {
         </div>
       </section>
 
+      {/* Recent Orders Section */}
       <section className="ven-home__recent" aria-label="Recent orders">
         <div className="ven-home__recent-header">
           <h3 className="ven-home__recent-title">
@@ -224,6 +255,7 @@ function VenHome({ storeName, setActiveSection }) {
       </section>
 
       <div className="ven-home__bottom">
+        {/* Rotating Tip Section */}
         <section className="ven-home__tip" aria-label="Tip">
           <div className="ven-home__tip-icon">
             <i className={tip.icon} />
@@ -234,6 +266,7 @@ function VenHome({ storeName, setActiveSection }) {
           </div>
         </section>
 
+        {/* Quick Action Links */}
         <section className="ven-home__quick" aria-label="Quick actions">
           <h3 className="ven-home__quick-title">
             <i className="fa-solid fa-bolt" />
@@ -262,7 +295,6 @@ function VenHome({ storeName, setActiveSection }) {
           </ul>
         </section>
       </div>
-
     </section>
   );
 }
